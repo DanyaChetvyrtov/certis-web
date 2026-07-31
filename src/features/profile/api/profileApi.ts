@@ -16,7 +16,7 @@ const fallbackMessage = 'We could not load your profile. Please try again.'
 
 export const getCurrentProfile = async (): Promise<Profile | null> => {
   try {
-    return await apiRequest<Profile>('/api/v1/profiles/me', { fallbackMessage })
+    return await apiRequest<Profile>('/api/v1/profiles', { fallbackMessage })
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       return null

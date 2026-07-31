@@ -28,7 +28,7 @@ describe('SessionProvider', () => {
   it('derives profile onboarding from the backend after session refresh', async () => {
     server.use(
       http.post('/api/v1/auth/tokens/access', () => new HttpResponse(null, { status: 204 })),
-      http.get('/api/v1/profiles/me', () => new HttpResponse(null, { status: 404 })),
+      http.get('/api/v1/profiles', () => new HttpResponse(null, { status: 404 })),
     )
 
     render(<SessionProvider><SessionProbe /></SessionProvider>)
@@ -42,7 +42,7 @@ describe('SessionProvider', () => {
     server.use(
       http.post('/api/v1/auth/tokens/access', () => new HttpResponse(null, { status: 401 })),
       http.post('/api/v1/auth', () => new HttpResponse(null, { status: 200 })),
-      http.get('/api/v1/profiles/me', () => {
+      http.get('/api/v1/profiles', () => {
         profileRequestCount += 1
         return HttpResponse.json({
           id: 'profile-id',

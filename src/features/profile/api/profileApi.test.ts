@@ -6,7 +6,7 @@ import { createProfile, getCurrentProfile } from './profileApi'
 describe('profileApi', () => {
   it('treats a missing current profile as incomplete onboarding', async () => {
     server.use(
-      http.get('/api/v1/profiles/me', () => new HttpResponse(null, { status: 404 })),
+      http.get('/api/v1/profiles', () => new HttpResponse(null, { status: 404 })),
     )
 
     await expect(getCurrentProfile()).resolves.toBeNull()
