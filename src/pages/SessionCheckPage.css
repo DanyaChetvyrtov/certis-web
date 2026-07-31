@@ -1,0 +1,98 @@
+.session-check-page {
+  display: flex;
+  min-height: 100svh;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  padding: 32px;
+  color: #f7f9fd;
+  background:
+    radial-gradient(circle at 50% 42%, rgb(19 191 139 / 10%), transparent 28%),
+    #081a31;
+  text-align: center;
+}
+
+.session-check-logo {
+  position: absolute;
+  top: 34px;
+  left: clamp(24px, 5vw, 88px);
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.session-check-logo .certis-mark {
+  width: 42px;
+  height: 42px;
+  color: #d7e0eb;
+}
+
+.session-check-logo > span {
+  font-size: 23px;
+  font-weight: 760;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.session-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgb(255 255 255 / 14%);
+  border-top-color: #13bf8b;
+  border-radius: 50%;
+  animation: spin 750ms linear infinite;
+}
+
+.session-check-page h1 {
+  max-width: 680px;
+  margin: 26px 0 0;
+  font-size: clamp(34px, 5vw, 54px);
+  letter-spacing: -0.035em;
+}
+
+.session-check-page .eyebrow + h1 {
+  margin-top: 18px;
+}
+
+.session-check-page > p:not(.eyebrow) {
+  max-width: 570px;
+  margin: 16px 0 0;
+  color: #9cacbf;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.session-check-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.session-check-actions button {
+  min-width: 145px;
+  min-height: 52px;
+  padding: 0 22px;
+  border: 1px solid #0dbb87;
+  border-radius: 15px;
+  color: #fff;
+  background: #0dbb87;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.session-check-actions button.secondary {
+  border-color: #314964;
+  color: #c4cfdd;
+  background: transparent;
+}
+
+@media (max-width: 480px) {
+  .session-check-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .session-check-actions button {
+    width: 100%;
+  }
+}
