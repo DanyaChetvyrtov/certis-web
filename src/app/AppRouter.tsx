@@ -1,14 +1,28 @@
+import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthPage } from '../features/auth/pages/AuthPage'
-import { DashboardPage } from '../pages/DashboardPage'
+import { SessionCheckPage } from '../pages/SessionCheckPage'
 import { ProtectedRoute } from './ProtectedRoute'
+
+const DashboardPage = lazy(() =>
+  import('../pages/DashboardPage').then((module) => ({
+    default: module.DashboardPage,
+  })),
+)
 
 export function AppRouter() {
   return (
     <Routes>
       <Route path="/" element={<AuthPage />} />
       <Route element={<ProtectedRoute />}>
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <Suspense fallback={<SessionCheckPage />}>
+              <DashboardPage />
+            </Suspense>
+          }
+        />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
