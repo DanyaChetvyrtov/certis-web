@@ -10,6 +10,12 @@ const DashboardPage = lazy(() =>
   })),
 )
 
+const AccountsPage = lazy(() =>
+  import('../features/accounts/pages/AccountsPage').then((module) => ({
+    default: module.AccountsPage,
+  })),
+)
+
 export function AppRouter() {
   return (
     <Routes>
@@ -20,6 +26,14 @@ export function AppRouter() {
           element={
             <Suspense fallback={<SessionCheckPage />}>
               <DashboardPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/accounts"
+          element={
+            <Suspense fallback={<SessionCheckPage />}>
+              <AccountsPage />
             </Suspense>
           }
         />

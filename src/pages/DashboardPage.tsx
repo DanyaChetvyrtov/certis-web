@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { CertisLogo, Icon } from '../components/Icons'
 import type { IconName } from '../components/Icons'
 import { getAccounts } from '../features/accounts/api/accountsApi'
@@ -23,11 +24,12 @@ type NavigationItem = {
   label: string
   icon: IconName
   active?: boolean
+  to?: string
 }
 
 const navigation: NavigationItem[] = [
-  { label: 'Dashboard', icon: 'dashboard', active: true },
-  { label: 'Accounts', icon: 'wallet' },
+  { label: 'Dashboard', icon: 'dashboard', active: true, to: '/dashboard' },
+  { label: 'Accounts', icon: 'wallet', to: '/accounts' },
   { label: 'Transactions', icon: 'receipt' },
   { label: 'Budgets', icon: 'gauge' },
   { label: 'Goals', icon: 'target' },
@@ -266,14 +268,22 @@ export function DashboardPage() {
         <div className="sidebar-workspace">
           <p>Workspace</p>
           <nav aria-label="Workspace navigation">
-            {navigation.map((item) => (
+            {navigation.map((item) => item.to ? (
+              <Link
+                key={item.label}
+                to={item.to}
+                className={item.active ? 'sidebar-link-active' : undefined}
+                aria-current={item.active ? 'page' : undefined}
+              >
+                <Icon name={item.icon} />
+                <span>{item.label}</span>
+              </Link>
+            ) : (
               <button
                 key={item.label}
                 type="button"
-                className={item.active ? 'sidebar-link-active' : undefined}
-                aria-current={item.active ? 'page' : undefined}
-                disabled={!item.active}
-                title={item.active ? item.label : `${item.label} — coming soon`}
+                disabled
+                title={`${item.label} — coming soon`}
               >
                 <Icon name={item.icon} />
                 <span>{item.label}</span>

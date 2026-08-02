@@ -1,0 +1,258 @@
+.workspace-sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  width: 260px;
+  height: 100svh;
+  flex-direction: column;
+  padding: 32px 22px 20px;
+  color: #a9b5c9;
+  background:
+    radial-gradient(circle at 5% 100%, rgb(15 185 139 / 9%), transparent 24%),
+    #081a31;
+}
+
+.workspace-brand-link {
+  align-self: flex-start;
+  color: inherit;
+  text-decoration: none;
+}
+
+.workspace-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 13px;
+  color: #f8fafc;
+}
+
+.workspace-logo .certis-mark {
+  width: 39px;
+  height: 39px;
+  color: #d7e0eb;
+}
+
+.workspace-logo > span {
+  font-size: 21px;
+  font-weight: 780;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.workspace-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 44px;
+}
+
+.workspace-navigation > p {
+  margin: 0 0 16px 13px;
+  color: #7f90aa;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+
+.workspace-navigation > a,
+.workspace-nav-disabled,
+.workspace-settings-link {
+  position: relative;
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 15px;
+  border-radius: 13px;
+  padding: 0 16px;
+  color: #a7b3c6;
+  font-size: 14px;
+  font-weight: 520;
+  text-decoration: none;
+}
+
+.workspace-navigation > a svg,
+.workspace-nav-disabled svg,
+.workspace-settings-link svg {
+  width: 21px;
+  height: 21px;
+  flex: 0 0 auto;
+}
+
+.workspace-navigation > a:hover {
+  color: #f1f5f9;
+  background: rgb(255 255 255 / 4%);
+}
+
+.workspace-navigation > a.active {
+  color: #f8fafc;
+  background: #142c4e;
+}
+
+.workspace-navigation > a.active::before {
+  position: absolute;
+  left: -22px;
+  width: 4px;
+  height: 26px;
+  border-radius: 0 4px 4px 0;
+  content: '';
+  background: #0fc391;
+}
+
+.workspace-navigation > a.active svg {
+  color: #11c493;
+}
+
+.workspace-nav-disabled,
+.workspace-settings-link {
+  cursor: default;
+  opacity: .72;
+}
+
+.workspace-sidebar-spacer {
+  flex: 1;
+  min-height: 26px;
+}
+
+.workspace-insight {
+  padding: 18px;
+  border: 1px solid #304562;
+  border-radius: 18px;
+  background: #122a4d;
+}
+
+.workspace-insight > span {
+  display: grid;
+  width: 39px;
+  height: 39px;
+  place-items: center;
+  border-radius: 11px;
+  color: #d1a054;
+  background: rgb(209 160 84 / 12%);
+}
+
+.workspace-insight svg {
+  width: 22px;
+  height: 22px;
+}
+
+.workspace-insight strong {
+  display: block;
+  margin-top: 15px;
+  color: #f5f7fa;
+  font-size: 14px;
+}
+
+.workspace-insight p {
+  margin: 7px 0 0;
+  color: #8393aa;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.workspace-settings-link {
+  margin-top: 18px;
+  padding-inline: 16px;
+}
+
+.workspace-person {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 11px;
+  margin-top: 8px;
+  padding: 17px 10px 0;
+  border-top: 1px solid #203754;
+}
+
+.workspace-avatar {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 13px;
+  color: #0b2037;
+  background: #c49a58;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.workspace-person > span:nth-child(2) {
+  min-width: 0;
+}
+
+.workspace-person strong,
+.workspace-person small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-person strong {
+  color: #f4f7fa;
+  font-size: 12px;
+}
+
+.workspace-person small {
+  margin-top: 4px;
+  color: #75869f;
+  font-size: 10px;
+}
+
+.workspace-person > svg {
+  width: 17px;
+  height: 17px;
+}
+
+@media (max-width: 900px) {
+  .workspace-sidebar {
+    position: sticky;
+    z-index: 30;
+    top: 0;
+    width: 100%;
+    height: auto;
+    min-height: 70px;
+    flex-direction: row;
+    align-items: center;
+    gap: 18px;
+    padding: 13px 20px;
+  }
+
+  .workspace-logo > span,
+  .workspace-navigation > p,
+  .workspace-nav-disabled,
+  .workspace-sidebar-spacer,
+  .workspace-insight,
+  .workspace-settings-link,
+  .workspace-person {
+    display: none;
+  }
+
+  .workspace-navigation {
+    flex: 1;
+    flex-direction: row;
+    justify-content: flex-end;
+    margin: 0;
+  }
+
+  .workspace-navigation > a {
+    min-height: 44px;
+    padding-inline: 13px;
+  }
+
+  .workspace-navigation > a.active::before {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .workspace-logo .certis-mark {
+    width: 35px;
+    height: 35px;
+  }
+
+  .workspace-navigation > a {
+    gap: 8px;
+    font-size: 12px;
+  }
+}

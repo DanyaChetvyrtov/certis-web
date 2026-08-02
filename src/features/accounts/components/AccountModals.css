@@ -1,0 +1,341 @@
+.account-modal-layer {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  overflow-y: auto;
+  place-items: center;
+  padding: 28px;
+  background: rgb(4 17 35 / 62%);
+  backdrop-filter: blur(8px);
+  animation: account-modal-fade 180ms ease-out;
+}
+
+.account-modal,
+.account-confirm-modal {
+  width: min(100%, 620px);
+  border: 1px solid #e4ded3;
+  border-radius: 26px;
+  color: #0a1c34;
+  background: #fffefa;
+  box-shadow: 0 28px 90px rgb(5 20 40 / 24%);
+  animation: account-modal-rise 220ms ease-out;
+}
+
+.account-modal {
+  padding: 30px;
+}
+
+.account-modal-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.account-modal-heading p,
+.account-confirm-modal > p:first-of-type {
+  margin: 0;
+  color: #9b7a43;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+
+.account-modal-heading h2,
+.account-confirm-modal h2 {
+  margin: 8px 0 0;
+  font-size: 29px;
+  letter-spacing: -0.03em;
+}
+
+.account-modal-close {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #e3ddd2;
+  border-radius: 13px;
+  color: #5e6c80;
+  background: #fff;
+  cursor: pointer;
+}
+
+.account-modal-close svg {
+  width: 19px;
+  height: 19px;
+}
+
+.account-modal form {
+  margin-top: 27px;
+}
+
+.account-form-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+  color: #263a52;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.account-form-field input,
+.account-form-field select {
+  width: 100%;
+  height: 50px;
+  border: 1px solid #dcd5c9;
+  border-radius: 13px;
+  outline: none;
+  padding: 0 15px;
+  color: #0a1c34;
+  background: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.account-form-field input:focus,
+.account-form-field select:focus {
+  border-color: #13b98a;
+  box-shadow: 0 0 0 4px rgb(19 185 138 / 11%);
+}
+
+.account-form-field input[aria-invalid='true'] {
+  border-color: #cb6969;
+}
+
+.account-form-field select:disabled {
+  color: #738197;
+  background: #f5f2ed;
+}
+
+.account-form-field small {
+  color: #b44747;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.account-form-field .field-hint {
+  color: #8290a4;
+}
+
+.account-type-fieldset {
+  min-width: 0;
+  margin: 23px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.account-type-fieldset legend {
+  margin-bottom: 9px;
+  color: #263a52;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.account-type-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.account-type-grid label {
+  display: flex;
+  min-width: 0;
+  min-height: 86px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #e1dbd0;
+  border-radius: 15px;
+  color: #536278;
+  background: #fff;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.account-type-grid label.selected {
+  border-color: #77d6ba;
+  color: #0b7157;
+  background: #f1fcf8;
+}
+
+.account-type-grid input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.account-type-grid strong {
+  overflow: hidden;
+  max-width: 100%;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-type-icon {
+  display: grid;
+  width: 31px;
+  height: 31px;
+  place-items: center;
+}
+
+.account-type-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.account-form-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 14px;
+  margin-top: 23px;
+}
+
+.account-form-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 20px 0 0;
+  color: #a83f3f;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+.account-form-error svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+
+.account-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.account-modal-actions button {
+  min-width: 118px;
+  height: 46px;
+  border: 1px solid #ddd6cb;
+  border-radius: 13px;
+  padding: 0 18px;
+  color: #536278;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.account-modal-actions button.primary {
+  min-width: 150px;
+  border-color: #0ebb88;
+  color: #fff;
+  background: #0ebb88;
+  box-shadow: 0 10px 24px rgb(14 187 136 / 19%);
+}
+
+.account-modal-actions button.danger {
+  border-color: #b84d4d;
+  color: #fff;
+  background: #b84d4d;
+}
+
+.account-modal-actions button:disabled,
+.account-modal-close:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.account-confirm-modal {
+  width: min(100%, 470px);
+  padding: 34px;
+  text-align: center;
+}
+
+.account-confirm-icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 20px;
+  place-items: center;
+  border-radius: 18px;
+  color: #ad4a4a;
+  background: #f9e9e7;
+}
+
+.account-confirm-icon svg {
+  width: 27px;
+  height: 27px;
+}
+
+.account-confirm-modal > p:nth-of-type(2) {
+  margin: 14px auto 0;
+  color: #657389;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.account-confirm-modal .account-modal-actions {
+  justify-content: center;
+}
+
+@keyframes account-modal-fade {
+  from { opacity: 0; }
+}
+
+@keyframes account-modal-rise {
+  from { opacity: 0; transform: translateY(12px) scale(.985); }
+}
+
+@media (max-width: 620px) {
+  .account-modal-layer {
+    align-items: end;
+    padding: 0;
+  }
+
+  .account-modal,
+  .account-confirm-modal {
+    max-height: 94svh;
+    overflow-y: auto;
+    border-radius: 24px 24px 0 0;
+  }
+
+  .account-modal {
+    padding: 24px 20px;
+  }
+
+  .account-type-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .account-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .account-modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .account-modal-actions button,
+  .account-modal-actions button.primary {
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-modal-layer,
+  .account-modal,
+  .account-confirm-modal {
+    animation: none;
+  }
+}
