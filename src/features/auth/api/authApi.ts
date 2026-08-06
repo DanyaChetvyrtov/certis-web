@@ -1,54 +1,58 @@
-import { apiRequest } from '../../../shared/api/client'
+import {
+    apiRequest,
+    refreshSession,
+} from '../../../shared/api/client'
 
 export type LoginRequest = {
-  email: string
-  password: string
+    email: string
+    password: string
 }
 
 export type RegisterRequest = LoginRequest & {
-  passwordConfirmation: string
+    passwordConfirmation: string
 }
 
 const getAuthFallback = (status: number): string => {
-  switch (status) {
-    case 400:
-      return 'Check the entered details and try again.'
-    case 401:
-      return 'The email or password is incorrect.'
-    case 404:
-      return 'No account was found for this email.'
-    case 409:
-      return 'An account with this email already exists.'
-    default:
-      return 'We could not complete your request. Please try again.'
-  }
+    switch (status) {
+        case 400:
+            return 'Check the entered details and try again.'
+        case 401:
+            return 'The email or password is incorrect.'
+        case 409:
+            return 'An account with this email already exists.'
+        case 429:
+            return 'Too many attempts. Please wait and try again.'
+        default:
+            return 'We could not complete your request. Please try again.'
+    }
 }
 
-export const login = (request: LoginRequest) =>
-  apiRequest('/api/v1/auth', {
-    method: 'POST',
-    body: request,
-    fallbackMessage: getAuthFallback,
-  })
-
-export const register = (request: RegisterRequest) =>
-  apiRequest('/api/v1/auth/registration', {
-    method: 'POST',
-    body: request,
-    fallbackMessage: getAuthFallback,
-  })
-
-let sessionRefreshRequest: Promise<void> | null = null
-
-export const refreshSession = () => {
-  if (!sessionRefreshRequest) {
-    sessionRefreshRequest = apiRequest('/api/v1/auth/tokens/access', {
-      method: 'POST',
-      fallbackMessage: getAuthFallback,
-    }).finally(() => {
-      sessionRefreshRequest = null
+export const login = (
+    request: LoginRequest,
+): Promise<void> =>
+    apiRequest('/api/v1/auth', {
+        method: 'POST',
+        body: request,
+        retryOnUnauthorized: false,
+        fallbackMessage: getAuthFallback,
     })
-  }
 
-  return sessionRefreshRequest
-}
+export const register = (
+    request: RegisterRequest,
+): Promise<void> =>
+    apiRequest('/api/v1/auth/registration', {
+        method: 'POST',
+        body: request,
+        retryOnUnauthorized: false,
+        fallbackMessage: getAuthFallback,
+    })
+
+export const logout = (): Promise<void> =>
+    apiRequest('/api/v1/auth/logout', {
+        method: 'POST',
+        retryOnUnauthorized: false,
+        fallbackMessage:
+            'We could not sign you out. Please try again.',
+    })
+
+export {refreshSession}

@@ -220,50 +220,88 @@
   color: #13a97d;
 }
 
-.profile-modal-footer button {
+.profile-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-modal-actions button {
   display: inline-flex;
   min-height: 48px;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 0 20px;
-  border: 0;
+  gap: 10px;
   border-radius: 13px;
-  color: #fff;
-  background: #0c5c4a;
-  box-shadow: 0 12px 24px rgb(12 92 74 / 18%);
   font: inherit;
   font-size: 13px;
   font-weight: 760;
   cursor: pointer;
   transition:
-    transform 160ms ease,
-    background-color 160ms ease,
-    box-shadow 160ms ease;
+          transform 160ms ease,
+          background-color 160ms ease,
+          border-color 160ms ease,
+          box-shadow 160ms ease;
 }
 
-.profile-modal-footer button:hover:not(:disabled) {
+.profile-submit-button {
+  padding: 0 20px;
+  border: 0;
+  color: #fff;
+  background: #0c5c4a;
+  box-shadow: 0 12px 24px rgb(12 92 74 / 18%);
+}
+
+.profile-submit-button:hover:not(:disabled) {
   background: #08745a;
   box-shadow: 0 15px 28px rgb(12 92 74 / 25%);
   transform: translateY(-1px);
 }
 
-.profile-modal-footer button:disabled {
-  cursor: wait;
-  opacity: 0.78;
+.profile-sign-out-button {
+  padding: 0 16px;
+  border: 1px solid #d8dee6;
+  color: #68788d;
+  background: transparent;
 }
 
-.profile-modal-footer button > svg,
-.profile-spinner {
+.profile-sign-out-button:hover:not(:disabled) {
+  border-color: #c7d0da;
+  color: #34475d;
+  background: #f0f3f6;
+}
+
+.profile-modal-actions button:focus-visible {
+  outline: 2px solid #13a97d;
+  outline-offset: 2px;
+}
+
+.profile-modal-actions button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.profile-submit-button > svg,
+.profile-spinner,
+.profile-sign-out-spinner {
   width: 18px;
   height: 18px;
+}
+
+.profile-spinner,
+.profile-sign-out-spinner {
+  border-radius: 50%;
+  animation: profile-spin 700ms linear infinite;
 }
 
 .profile-spinner {
   border: 2px solid rgb(255 255 255 / 35%);
   border-top-color: #fff;
-  border-radius: 50%;
-  animation: profile-spin 700ms linear infinite;
+}
+
+.profile-sign-out-spinner {
+  border: 2px solid rgb(104 120 141 / 25%);
+  border-top-color: #68788d;
 }
 
 @keyframes profile-modal-in {
@@ -334,7 +372,12 @@
     flex-direction: column-reverse;
   }
 
-  .profile-modal-footer button {
+  .profile-modal-actions {
+    width: 100%;
+    flex-direction: column-reverse;
+  }
+
+  .profile-modal-actions button {
     width: 100%;
   }
 }

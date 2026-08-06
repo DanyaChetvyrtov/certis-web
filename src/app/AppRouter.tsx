@@ -1,44 +1,67 @@
-import { lazy, Suspense } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
-import { AuthPage } from '../features/auth/pages/AuthPage'
-import { SessionCheckPage } from '../pages/SessionCheckPage'
-import { ProtectedRoute } from './ProtectedRoute'
+import {
+    lazy,
+    Suspense,
+} from 'react'
+import {
+    Navigate,
+    Route,
+    Routes,
+} from 'react-router-dom'
+import {AuthPage} from '../features/auth/pages/AuthPage'
+import {SessionCheckPage} from '../pages/SessionCheckPage'
+import {ProtectedRoute} from './ProtectedRoute'
+import {PublicRoute} from './PublicRoute'
 
 const DashboardPage = lazy(() =>
-  import('../pages/DashboardPage').then((module) => ({
-    default: module.DashboardPage,
-  })),
+    import('../pages/DashboardPage').then((module) => ({
+        default: module.DashboardPage,
+    })),
 )
 
 const AccountsPage = lazy(() =>
-  import('../features/accounts/pages/AccountsPage').then((module) => ({
-    default: module.AccountsPage,
-  })),
+    import('../features/accounts/pages/AccountsPage').then(
+        (module) => ({
+            default: module.AccountsPage,
+        }),
+    ),
 )
 
 export function AppRouter() {
-  return (
-    <Routes>
-      <Route path="/" element={<AuthPage />} />
-      <Route element={<ProtectedRoute />}>
-        <Route
-          path="/dashboard"
-          element={
-            <Suspense fallback={<SessionCheckPage />}>
-              <DashboardPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/accounts"
-          element={
-            <Suspense fallback={<SessionCheckPage />}>
-              <AccountsPage />
-            </Suspense>
-          }
-        />
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  )
+    return (
+        <Routes>
+            <Route element={<PublicRoute/>}>
+                <Route
+                    path="/"
+                    element={<AuthPage/>}
+                />
+            </Route>
+
+            <Route element={<ProtectedRoute/>}>
+                <Route
+                    path="/dashboard"
+                    element={
+                        <Suspense fallback={<SessionCheckPage/>}>
+                            <DashboardPage/>
+                        </Suspense>
+                    }
+                />
+
+                <Route
+                    path="/accounts"
+                    element={
+                        <Suspense fallback={<SessionCheckPage/>}>
+                            <AccountsPage/>
+                        </Suspense>
+                    }
+                />
+            </Route>
+
+            <Route
+                path="*"
+                element={
+                    <Navigate to="/" replace/>
+                }
+            />
+        </Routes>
+    )
 }
