@@ -14,6 +14,10 @@ import {
 import {useSession} from '../features/auth/session/SessionContext'
 import {ApiError} from '../shared/api/ApiError'
 import './WorkspaceSidebar.css'
+import {ProfileModal} from '../features/profile/ProfileModal'
+import {
+    createProfilePhotoSrc,
+} from '../features/profile/profilePhoto'
 
 type WorkspaceSidebarProps = {
     activePage: 'dashboard' | 'accounts'
@@ -49,19 +53,30 @@ export function WorkspaceSidebar({
                                      activeAccounts = 0,
                                  }: WorkspaceSidebarProps) {
     const navigate = useNavigate()
-    const {profile, signOut} = useSession()
+    const {
+        profile,
+        profilePhotoRevision,
+        refreshProfilePhoto,
+        setProfile,
+        signOut,
+    } = useSession()
 
-    const [isAccountMenuOpen, setAccountMenuOpen] =
-        useState(false)
+    const [
+        isProfileModalOpen,
+        setProfileModalOpen,
+    ] = useState(false)
 
-    const [isSigningOut, setSigningOut] =
-        useState(false)
+    const openProfileModal = () => {
+        setAccountMenuOpen(false)
+        setSignOutError(null)
+        setProfileModalOpen(true)
+    }
 
-    const [signOutError, setSignOutError] =
-        useState<string | null>(null)
-
-    const accountMenuRef =
-        useRef<HTMLDivElement>(null)
+    const [isAccountMenuOpen, setAccountMenuOpen] = useState(false)
+    const [isSigningOut, setSigningOut] = useState(false)
+    const [signOutError, setSignOutError] = useState<string | null>(null)
+    const accountMenuRef = useRef<HTMLDivElement>(null)
+    const accountButtonRef = useRef<HTMLButtonElement>(null)
 
     const displayName = profile
         ? `${profile.name} ${profile.surname.charAt(0)}.`
@@ -71,6 +86,12 @@ export function WorkspaceSidebar({
         ? `${profile.name.charAt(0)}${profile.surname.charAt(0)}`
             .toUpperCase()
         : 'C'
+
+    const profilePhotoSrc =
+        createProfilePhotoSrc(
+            profile?.photoUrl,
+            profilePhotoRevision,
+        )
 
     useEffect(() => {
         if (!isAccountMenuOpen) {
@@ -147,168 +168,225 @@ export function WorkspaceSidebar({
     }
 
     return (
-        <aside className="workspace-sidebar">
-            <Link
-                className="workspace-brand-link"
-                to="/dashboard"
-                aria-label="Certis dashboard"
-            >
-                <CertisLogo className="workspace-logo"/>
-            </Link>
-
-            <nav
-                className="workspace-navigation"
-                aria-label="Workspace navigation"
-            >
-                <p>Workspace</p>
-
+        <>
+            <aside className="workspace-sidebar">
                 <Link
-                    className={
-                        activePage === 'dashboard'
-                            ? 'active'
-                            : undefined
-                    }
+                    className="workspace-brand-link"
                     to="/dashboard"
-                    aria-current={
-                        activePage === 'dashboard'
-                            ? 'page'
-                            : undefined
-                    }
+                    aria-label="Certis dashboard"
                 >
-                    <Icon name="dashboard"/>
-                    <span>Dashboard</span>
+                    <CertisLogo className="workspace-logo"/>
                 </Link>
 
-                <Link
-                    className={
-                        activePage === 'accounts'
-                            ? 'active'
-                            : undefined
-                    }
-                    to="/accounts"
-                    aria-current={
-                        activePage === 'accounts'
-                            ? 'page'
-                            : undefined
-                    }
+                <nav
+                    className="workspace-navigation"
+                    aria-label="Workspace navigation"
                 >
-                    <Icon name="wallet"/>
-                    <span>Accounts</span>
-                </Link>
+                    <p>Workspace</p>
 
-                {futureNavigation.map((item) => (
-                    <span
-                        className="workspace-nav-disabled"
-                        aria-disabled="true"
-                        key={item.label}
+                    <Link
+                        className={
+                            activePage === 'dashboard'
+                                ? 'active'
+                                : undefined
+                        }
+                        to="/dashboard"
+                        aria-current={
+                            activePage === 'dashboard'
+                                ? 'page'
+                                : undefined
+                        }
                     >
+                        <Icon name="dashboard"/>
+                        <span>Dashboard</span>
+                    </Link>
+
+                    <Link
+                        className={
+                            activePage === 'accounts'
+                                ? 'active'
+                                : undefined
+                        }
+                        to="/accounts"
+                        aria-current={
+                            activePage === 'accounts'
+                                ? 'page'
+                                : undefined
+                        }
+                    >
+                        <Icon name="wallet"/>
+                        <span>Accounts</span>
+                    </Link>
+
+                    {futureNavigation.map((item) => (
+                        <span
+                            className="workspace-nav-disabled"
+                            aria-disabled="true"
+                            key={item.label}
+                        >
                         <Icon name={item.icon}/>
                         <span>{item.label}</span>
                     </span>
-                ))}
-            </nav>
+                    ))}
+                </nav>
 
-            <div className="workspace-sidebar-spacer"/>
+                <div className="workspace-sidebar-spacer"/>
 
-            <section
-                className="workspace-insight"
-                aria-label="Account overview"
-            >
+                <section
+                    className="workspace-insight"
+                    aria-label="Account overview"
+                >
                 <span>
                     <Icon name="piggy-bank"/>
                 </span>
 
-                <strong>Your money, one place</strong>
+                    <strong>Your money, one place</strong>
 
-                <p>
-                    {activeAccounts === 0
-                        ? 'Create your first account to start tracking balances.'
-                        : `${activeAccounts} active ${
-                            activeAccounts === 1
-                                ? 'account is'
-                                : 'accounts are'
-                        } included in your overview.`}
-                </p>
-            </section>
+                    <p>
+                        {activeAccounts === 0
+                            ? 'Create your first account to start tracking balances.'
+                            : `${activeAccounts} active ${
+                                activeAccounts === 1
+                                    ? 'account is'
+                                    : 'accounts are'
+                            } included in your overview.`}
+                    </p>
+                </section>
 
-            <span
-                className="workspace-settings-link"
-                aria-disabled="true"
-            >
+                <span
+                    className="workspace-settings-link"
+                    aria-disabled="true"
+                >
                 <Icon name="settings"/>
                 <span>Settings</span>
             </span>
 
-            <div
-                className="workspace-person-menu"
-                ref={accountMenuRef}
-            >
-                <button
-                    className="workspace-person"
-                    type="button"
-                    aria-haspopup="menu"
-                    aria-expanded={isAccountMenuOpen}
-                    aria-controls="workspace-account-menu"
-                    onClick={toggleAccountMenu}
+                <div
+                    className="workspace-person-menu"
+                    ref={accountMenuRef}
                 >
-                    <span className="workspace-avatar">
-                        {initials}
+                    <button
+                        ref={accountButtonRef}
+                        className="workspace-person"
+                        type="button"
+                        aria-haspopup="menu"
+                        aria-expanded={isAccountMenuOpen}
+                        aria-controls="workspace-account-menu"
+                        onClick={toggleAccountMenu}
+                    >
+
+                    <span
+                        className="workspace-avatar"
+                        aria-hidden="true"
+                    >
+                        {profilePhotoSrc
+                            ? (
+                                <img
+                                    src={profilePhotoSrc}
+                                    alt=""
+                                />
+                            )
+                            : initials}
                     </span>
 
-                    <span className="workspace-person-copy">
+                        <span className="workspace-person-copy">
                         <strong>{displayName}</strong>
                         <small>Personal workspace</small>
                     </span>
 
-                    <Icon name="chevron-down"/>
-                </button>
+                        <Icon name="chevron-down"/>
+                    </button>
 
-                {isAccountMenuOpen && (
-                    <div
-                        id="workspace-account-menu"
-                        className="workspace-account-menu"
-                        role="menu"
-                    >
-                        <div className="workspace-account-menu-header">
-                            <strong>{displayName}</strong>
-                            <small>Certis account</small>
-                        </div>
-
-                        <button
-                            type="button"
-                            role="menuitem"
-                            disabled={isSigningOut}
-                            onClick={() => void handleSignOut()}
+                    {isAccountMenuOpen && (
+                        <div
+                            id="workspace-account-menu"
+                            className="workspace-account-menu"
+                            role="menu"
                         >
+                            <div className="workspace-account-menu-header">
+                                <strong>{displayName}</strong>
+                                <small>Certis account</small>
+                            </div>
+
+                            {profile && (
+                                <>
+                                    <button
+                                        type="button"
+                                        role="menuitem"
+                                        className="workspace-account-menu-profile"
+                                        onClick={openProfileModal}
+                                    >
+                                <span className="workspace-account-menu-label">
+                                    <Icon name="user"/>
+                                    <span>Profile</span>
+                                </span>
+
+                                        <Icon name="chevron-right"/>
+                                    </button>
+
+                                    <div
+                                        className="workspace-account-menu-divider"
+                                        aria-hidden="true"
+                                    />
+                                </>
+                            )}
+
+                            <button
+                                type="button"
+                                role="menuitem"
+                                className="workspace-account-menu-sign-out"
+                                disabled={isSigningOut}
+                                onClick={() => void handleSignOut()}
+                            >
                             <span>
                                 {isSigningOut
                                     ? 'Signing out…'
                                     : 'Sign out'}
                             </span>
 
-                            {isSigningOut
-                                ? (
-                                    <span
-                                        className="workspace-sign-out-spinner"
-                                        aria-hidden="true"
-                                    />
-                                )
-                                : (
-                                    <Icon name="arrow-right"/>
-                                )}
-                        </button>
+                                {isSigningOut
+                                    ? (
+                                        <span
+                                            className="workspace-sign-out-spinner"
+                                            aria-hidden="true"
+                                        />
+                                    )
+                                    : (
+                                        <Icon name="arrow-right"/>
+                                    )}
+                            </button>
 
-                        {signOutError && (
-                            <p
-                                className="workspace-sign-out-error"
-                                role="alert"
-                            >
-                                {signOutError}
-                            </p>
-                        )}
-                    </div>
-                )}
-            </div>
-        </aside>
+                            {signOutError && (
+                                <p
+                                    className="workspace-sign-out-error"
+                                    role="alert"
+                                >
+                                    {signOutError}
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </aside>
+
+            {isProfileModalOpen && profile && (
+                <ProfileModal
+                    profile={profile}
+                    profilePhotoRevision={
+                        profilePhotoRevision
+                    }
+                    onProfileChange={setProfile}
+                    onProfilePhotoChange={
+                        refreshProfilePhoto
+                    }
+                    onClose={() =>
+                        setProfileModalOpen(false)
+                    }
+                    restoreFocus={() =>
+                        accountButtonRef.current
+                            ?.focus()
+                    }
+                />)}
+        </>
     )
 }

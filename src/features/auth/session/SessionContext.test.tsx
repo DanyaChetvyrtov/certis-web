@@ -9,9 +9,11 @@ import {useState} from 'react'
 import {describe, expect, it} from 'vitest'
 import {server} from '../../../test/server'
 import {
-    SessionProvider,
     useSession,
 } from './SessionContext'
+import {
+    SessionProvider,
+} from './SessionProvider.tsx'
 
 const profileResponse = {
     id: 'profile-id',

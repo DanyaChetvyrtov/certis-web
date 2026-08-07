@@ -1,7 +1,5 @@
 import {
-    createContext,
     useCallback,
-    useContext,
     useEffect,
     useMemo,
     useRef,
@@ -23,12 +21,13 @@ import type {
     LoginRequest,
     RegisterRequest,
 } from '../api/authApi'
-
-export type SessionStatus =
-    | 'checking'
-    | 'authenticated'
-    | 'unauthenticated'
-    | 'unavailable'
+import {
+    SessionContext,
+} from './SessionContext'
+import type {
+    SessionContextValue,
+    SessionStatus,
+} from './SessionContext'
 
 type ResolvedSessionStatus = Exclude<
     SessionStatus,
@@ -39,19 +38,6 @@ type ResolvedSession = {
     profile: Profile | null
     status: ResolvedSessionStatus
 }
-
-type SessionContextValue = {
-    profile: Profile | null
-    retry: () => Promise<void>
-    setProfile: (profile: Profile) => void
-    signIn: (request: LoginRequest) => Promise<void>
-    signOut: () => Promise<void>
-    signUp: (request: RegisterRequest) => Promise<void>
-    status: SessionStatus
-}
-
-const SessionContext =
-    createContext<SessionContextValue | null>(null)
 
 const statusForError = (
     error: unknown,
@@ -86,18 +72,22 @@ export function SessionProvider({
                                 }: {
     children: ReactNode
 }) {
-    const [status, setStatus] =
-        useState<SessionStatus>('checking')
+    const [status, setStatus] = useState<SessionStatus>('checking')
+    const [profile, setProfileState] = useState<Profile | null>(null)
 
-    const [profile, setProfileState] =
-        useState<Profile | null>(null)
-
-    /*
-     * Every operation that may replace the current session state receives
-     * its own revision. An older asynchronous operation must not overwrite
-     * the result of a newer login, logout or retry.
-     */
     const sessionRevisionRef = useRef(0)
+
+    const [
+        profilePhotoRevision,
+        setProfilePhotoRevision,
+    ] = useState(0)
+
+    const refreshProfilePhoto =
+        useCallback((): void => {
+            setProfilePhotoRevision(
+                (current) => current + 1,
+            )
+        }, [])
 
     const expireSession = useCallback((): void => {
         sessionRevisionRef.current += 1
@@ -189,10 +179,6 @@ export function SessionProvider({
         async (): Promise<void> => {
             await logout()
 
-            /*
-             * Invalidates any profile/session request that started before
-             * logout completed.
-             */
             sessionRevisionRef.current += 1
 
             setProfileState(null)
@@ -220,6 +206,8 @@ export function SessionProvider({
     const value = useMemo<SessionContextValue>(
         () => ({
             profile,
+            profilePhotoRevision,
+            refreshProfilePhoto,
             retry: checkSession,
             setProfile,
             signIn,
@@ -230,6 +218,8 @@ export function SessionProvider({
         [
             checkSession,
             profile,
+            profilePhotoRevision,
+            refreshProfilePhoto,
             setProfile,
             signIn,
             signOut,
@@ -243,18 +233,4 @@ export function SessionProvider({
             {children}
         </SessionContext.Provider>
     )
-}
-
-// The provider and its dedicated hook form one public session module.
-// eslint-disable-next-line react-refresh/only-export-components
-export function useSession(): SessionContextValue {
-    const context = useContext(SessionContext)
-
-    if (!context) {
-        throw new Error(
-            'useSession must be used inside SessionProvider',
-        )
-    }
-
-    return context
 }

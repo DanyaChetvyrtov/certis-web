@@ -1,82 +1,30 @@
-import {useEffect, useRef, useState} from 'react'
+import {
+    useEffect,
+    useRef,
+    useState,
+} from 'react'
 import type {FormEvent} from 'react'
-import {ApiError} from '../../shared/api/ApiError'
 import {Icon} from '../../components/Icons'
+import {ApiError} from '../../shared/api/ApiError'
 import {createProfile} from './api/profileApi'
 import type {Profile} from './api/profileApi'
+import {
+    EMPTY_PROFILE_FORM,
+    getLatestBirthDate,
+    normalizeProfileForm,
+    toProfileFieldErrors,
+    validateProfile,
+} from './profileForm'
+import type {
+    ProfileField,
+    ProfileFieldErrors,
+    ProfileForm,
+} from './profileForm'
 import './ProfileSetupModal.css'
-
-type ProfileField = 'name' | 'surname' | 'dateOfBirth'
-type ProfileFieldErrors = Partial<Record<ProfileField, string>>
-
-type ProfileForm = {
-    name: string
-    surname: string
-    dateOfBirth: string
-}
 
 type ProfileSetupModalProps = {
     onComplete: (profile: Profile) => void
     onSignOut: () => Promise<void>
-}
-
-const emptyForm: ProfileForm = {
-    name: '',
-    surname: '',
-    dateOfBirth: '',
-}
-
-const formatLocalDate = (date: Date): string => {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-
-    return `${year}-${month}-${day}`
-}
-
-const getLatestBirthDate = (): string => {
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
-
-    return formatLocalDate(yesterday)
-}
-
-const validateProfile = (values: ProfileForm): ProfileFieldErrors => {
-    const errors: ProfileFieldErrors = {}
-
-    if (!values.name.trim()) {
-        errors.name = 'Enter your first name.'
-    } else if (values.name.trim().length > 100) {
-        errors.name = 'First name must be 100 characters or fewer.'
-    }
-
-    if (!values.surname.trim()) {
-        errors.surname = 'Enter your last name.'
-    } else if (values.surname.trim().length > 100) {
-        errors.surname = 'Last name must be 100 characters or fewer.'
-    }
-
-    if (!values.dateOfBirth) {
-        errors.dateOfBirth = 'Choose your date of birth.'
-    } else if (values.dateOfBirth > getLatestBirthDate()) {
-        errors.dateOfBirth = 'Date of birth must be in the past.'
-    }
-
-    return errors
-}
-
-const toFieldErrors = (
-    errors?: Record<string, string>,
-): ProfileFieldErrors => {
-    if (!errors) {
-        return {}
-    }
-
-    return {
-        name: errors.name,
-        surname: errors.surname,
-        dateOfBirth: errors.dateOfBirth,
-    }
 }
 
 type ProfileFieldProps = {
@@ -88,7 +36,10 @@ type ProfileFieldProps = {
     max?: string
     maxLength?: number
     name: ProfileField
-    onChange: (name: ProfileField, value: string) => void
+    onChange: (
+        name: ProfileField,
+        value: string,
+    ) => void
     placeholder?: string
     type: 'date' | 'text'
     value: string
@@ -112,11 +63,21 @@ function ProfileFieldInput({
 
     return (
         <div className="profile-field">
-            <label htmlFor={inputId}>{label}</label>
+            <label htmlFor={inputId}>
+                {label}
+            </label>
+
             <div
-                className={`profile-input-shell${error ? ' profile-input-shell-error' : ''}`}
+                className={
+                    `profile-input-shell${
+                        error
+                            ? ' profile-input-shell-error'
+                            : ''
+                    }`
+                }
             >
                 <Icon name={icon}/>
+
                 <input
                     id={inputId}
                     name={name}
@@ -127,23 +88,44 @@ function ProfileFieldInput({
                     placeholder={placeholder}
                     autoComplete={autoComplete}
                     disabled={disabled}
-                    aria-invalid={Boolean(error)}
-                    aria-describedby={error ? `${inputId}-error` : undefined}
-                    onChange={(event) => onChange(name, event.target.value)}
+                    aria-invalid={
+                        Boolean(error)
+                    }
+                    aria-describedby={
+                        error
+                            ? `${inputId}-error`
+                            : undefined
+                    }
+                    onChange={(event) =>
+                        onChange(
+                            name,
+                            event.target.value,
+                        )
+                    }
                 />
             </div>
+
             {error && (
-                <span className="profile-field-error" id={`${inputId}-error`}>
-          {error}
-        </span>
+                <span
+                    className="profile-field-error"
+                    id={`${inputId}-error`}
+                >
+                    {error}
+                </span>
             )}
         </div>
     )
 }
 
-export function ProfileSetupModal({onComplete, onSignOut}: ProfileSetupModalProps) {
+export function ProfileSetupModal({
+                                      onComplete,
+                                      onSignOut,
+                                  }: ProfileSetupModalProps) {
     const firstInputRef = useRef<HTMLInputElement>(null)
-    const [values, setValues] = useState<ProfileForm>(emptyForm)
+    const [values, setValues] =
+        useState<ProfileForm>({
+            ...EMPTY_PROFILE_FORM,
+        })
     const [errors, setErrors] = useState<ProfileFieldErrors>({})
     const [notice, setNotice] = useState<string | null>(null)
     const [isSubmitting, setSubmitting] = useState(false)
@@ -202,16 +184,21 @@ export function ProfileSetupModal({onComplete, onSignOut}: ProfileSetupModalProp
         setNotice(null)
 
         try {
-            const profile = await createProfile({
-                name: values.name.trim(),
-                surname: values.surname.trim(),
-                dateOfBirth: values.dateOfBirth,
-            })
+            const profile =
+                await createProfile(
+                    normalizeProfileForm(
+                        values,
+                    ),
+                )
 
             onComplete(profile)
         } catch (error) {
             if (error instanceof ApiError) {
-                setErrors(toFieldErrors(error.fieldErrors))
+                setErrors(
+                    toProfileFieldErrors(
+                        error.fieldErrors,
+                    ),
+                )
                 setNotice(error.message)
             } else {
                 setNotice('Something went wrong. Please try again.')
