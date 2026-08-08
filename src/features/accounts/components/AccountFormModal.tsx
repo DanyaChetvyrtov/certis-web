@@ -342,11 +342,16 @@ export function AccountFormModal({
                                         ? BALANCE_ERROR_ID
                                         : undefined
                                 }
-                                onChange={(event) =>
+                                onChange={(event) => {
                                     setOpeningBalance(
                                         event.target.value,
                                     )
-                                }
+
+                                    setFieldError(
+                                        'openingBalance',
+                                        undefined,
+                                    )
+                                }}
                             />
 
                             {fieldErrors.openingBalance && (
