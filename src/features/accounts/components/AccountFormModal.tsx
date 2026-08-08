@@ -26,7 +26,10 @@ import {
 type AccountFormModalProps = {
     account?: Account
     onClose: () => void
-    onSaved: (account: Account) => void
+    onSaved: (
+        account: Account,
+    ) => void
+    restoreFocus?: () => void
 }
 
 type AccountField =
@@ -61,6 +64,7 @@ export function AccountFormModal({
                                      account,
                                      onClose,
                                      onSaved,
+                                     restoreFocus,
                                  }: AccountFormModalProps) {
     const [name, setName] = useState(account?.name ?? '')
     const [type, setType] = useState<AccountType>(account?.type ?? 'CARD')
@@ -79,7 +83,8 @@ export function AccountFormModal({
         useModalAccessibility<HTMLDivElement>({
             canClose: !isSaving,
             initialFocusRef: nameInputRef,
-            onClose: onClose,
+            onClose,
+            restoreFocus,
         })
 
     const focusField = (

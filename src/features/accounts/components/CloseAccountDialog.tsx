@@ -15,13 +15,15 @@ import {
 type CloseAccountDialogProps = {
     account: Account
     onCancel: () => void
-    onClosed: () => void
+    onClosed: () => Promise<void>
+    restoreFocus?: () => void
 }
 
 export function CloseAccountDialog({
                                        account,
                                        onCancel,
                                        onClosed,
+                                       restoreFocus,
                                    }: CloseAccountDialogProps) {
     const [isClosing, setIsClosing] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
@@ -32,6 +34,7 @@ export function CloseAccountDialog({
             canClose: !isClosing,
             initialFocusRef: cancelButtonRef,
             onClose: onCancel,
+            restoreFocus,
         })
 
     const close = async () => {
@@ -40,7 +43,7 @@ export function CloseAccountDialog({
 
         try {
             await closeAccount(account.id)
-            onClosed()
+            await onClosed()
         } catch (error) {
             setErrorMessage(
                 error instanceof ApiError
