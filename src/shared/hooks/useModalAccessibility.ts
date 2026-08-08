@@ -60,6 +60,11 @@ export function useModalAccessibility({
             return
         }
 
+        const previouslyFocused =
+            document.activeElement instanceof HTMLElement
+                ? document.activeElement
+                : null
+
         const previousOverflow =
             document.body.style.overflow
 
@@ -77,7 +82,11 @@ export function useModalAccessibility({
             document.body.style.overflow =
                 previousOverflow
 
-            restoreFocusRef.current?.()
+            if (restoreFocusRef.current) {
+                restoreFocusRef.current()
+            } else {
+                previouslyFocused?.focus()
+            }
         }
     }, [initialFocusRef])
 
