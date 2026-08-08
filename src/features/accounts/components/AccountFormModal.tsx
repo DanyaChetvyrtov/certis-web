@@ -47,6 +47,9 @@ const ACCOUNT_FIELD_ORDER:
 const NAME_ID = 'account-name'
 const NAME_ERROR_ID = `${NAME_ID}-error`
 
+const CURRENCY_ID = 'account-currency'
+const CURRENCY_HINT_ID = `${CURRENCY_ID}-hint`
+
 const BALANCE_ID = 'account-opening-balance'
 const BALANCE_ERROR_ID =
     `${BALANCE_ID}-error`
@@ -67,6 +70,7 @@ export function AccountFormModal({
                                      restoreFocus,
                                  }: AccountFormModalProps) {
     const [name, setName] = useState(account?.name ?? '')
+
     const [type, setType] = useState<AccountType>(account?.type ?? 'CARD')
     const [currency, setCurrency] = useState<Currency>(account?.currency ?? 'RUB')
     const [openingBalance, setOpeningBalance] = useState(
@@ -76,6 +80,16 @@ export function AccountFormModal({
     const [formError, setFormError] = useState('')
     const [isSaving, setIsSaving] = useState(false)
     const isEditing = Boolean(account)
+
+    const setFieldError = (
+        field: AccountField,
+        error?: string,
+    ): void => {
+        setFieldErrors((current) => ({
+            ...current,
+            [field]: error,
+        }))
+    }
 
     const nameInputRef = useRef<HTMLInputElement>(null)
 
@@ -243,9 +257,15 @@ export function AccountFormModal({
                             ref={nameInputRef}
                             id={NAME_ID}
                             name="name"
-                            maxLength={100}
-                            placeholder="For example, Main card"
                             value={name}
+                            onChange={(event) => {
+                                setName(event.target.value)
+
+                                setFieldError(
+                                    'name',
+                                    undefined,
+                                )
+                            }}
                             aria-invalid={
                                 Boolean(fieldErrors.name)
                             }
@@ -254,13 +274,15 @@ export function AccountFormModal({
                                     ? NAME_ERROR_ID
                                     : undefined
                             }
-                            onChange={(event) =>
-                                setName(event.target.value)
-                            }
+                            placeholder="For example, Main card"
+                            maxLength={100}
                         />
 
                         {fieldErrors.name && (
-                            <small id={NAME_ERROR_ID}>
+                            <small
+                                id={NAME_ERROR_ID}
+                                className="field-error"
+                            >
                                 {fieldErrors.name}
                             </small>
                         )}
@@ -337,20 +359,48 @@ export function AccountFormModal({
                             )}
                         </div>
 
-                        <label className="account-form-field">
-                            <span>Currency</span>
+                        <div className="account-form-field">
+                            <label htmlFor={CURRENCY_ID}>
+                                Currency
+                            </label>
+
                             <select
+                                id={CURRENCY_ID}
                                 name="currency"
                                 value={currency}
                                 disabled={isEditing}
-                                onChange={(event) => setCurrency(event.target.value as Currency)}
+                                aria-describedby={
+                                    isEditing
+                                        ? CURRENCY_HINT_ID
+                                        : undefined
+                                }
+                                onChange={(event) =>
+                                    setCurrency(
+                                        event.target.value as Currency,
+                                    )
+                                }
                             >
-                                {currencies.map((item) => (
-                                    <option key={item} value={item}>{item}</option>
-                                ))}
+                                {currencies.map(
+                                    (item) => (
+                                        <option
+                                            key={item}
+                                            value={item}
+                                        >
+                                            {item}
+                                        </option>
+                                    ),
+                                )}
                             </select>
-                            {isEditing && <small className="field-hint">Currency cannot be changed.</small>}
-                        </label>
+
+                            {isEditing && (
+                                <small
+                                    id={CURRENCY_HINT_ID}
+                                    className="field-hint"
+                                >
+                                    Currency cannot be changed.
+                                </small>
+                            )}
+                        </div>
                     </div>
 
                     {formError && (

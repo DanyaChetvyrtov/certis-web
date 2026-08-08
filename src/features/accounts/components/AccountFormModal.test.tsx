@@ -472,6 +472,22 @@ describe('AccountFormModal', () => {
 
         expect(
             currencySelect,
+        ).toHaveAttribute(
+            'aria-describedby',
+            'account-currency-hint',
+        )
+
+        expect(
+            screen.getByText(
+                'Currency cannot be changed.',
+            ),
+        ).toHaveAttribute(
+            'id',
+            'account-currency-hint',
+        )
+
+        expect(
+            currencySelect,
         ).toBeDisabled()
 
         expect(
