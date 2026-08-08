@@ -761,11 +761,21 @@
     .dashboard-shell {
         display: block;
     }
+
+    .dashboard-content {
+        padding-bottom: calc(
+                96px
+                + env(safe-area-inset-bottom)
+        );
+    }
 }
 
 @media (max-width: 760px) {
     .dashboard-content {
-        padding: 26px 18px 36px;
+        padding: 26px 18px calc(
+                96px
+                + env(safe-area-inset-bottom)
+        );
     }
 
     .dashboard-topbar {

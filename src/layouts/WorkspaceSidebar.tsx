@@ -14,6 +14,9 @@ import {
 import {useSession} from '../features/auth/session/SessionContext'
 import {ApiError} from '../shared/api/ApiError'
 import './WorkspaceSidebar.css'
+import {
+    MobileWorkspaceNavigation,
+} from './MobileWorkspaceNavigation'
 import {ProfileModal} from '../features/profile/ProfileModal'
 import {
     createProfilePhotoSrc,
@@ -66,7 +69,13 @@ export function WorkspaceSidebar({
         setProfileModalOpen,
     ] = useState(false)
 
-    const openProfileModal = () => {
+    const openProfileModal = (
+        restoreFocusTarget:
+            HTMLElement | null,
+    ) => {
+        profileRestoreFocusRef.current =
+            restoreFocusTarget
+
         setAccountMenuOpen(false)
         setSignOutError(null)
         setProfileModalOpen(true)
@@ -77,6 +86,10 @@ export function WorkspaceSidebar({
     const [signOutError, setSignOutError] = useState<string | null>(null)
     const accountMenuRef = useRef<HTMLDivElement>(null)
     const accountButtonRef = useRef<HTMLButtonElement>(null)
+
+    const mobileAccountMenuRef = useRef<HTMLDivElement>(null)
+    const mobileAccountButtonRef = useRef<HTMLButtonElement>(null)
+    const profileRestoreFocusRef = useRef<HTMLElement | null>(null)
 
     const displayName = profile
         ? `${profile.name} ${profile.surname.charAt(0)}.`
@@ -103,9 +116,23 @@ export function WorkspaceSidebar({
         ) => {
             const target = event.target
 
+            if (!(target instanceof Node)) {
+                return
+            }
+
+            const isDesktopMenu =
+                accountMenuRef.current
+                    ?.contains(target)
+                ?? false
+
+            const isMobileMenu =
+                mobileAccountMenuRef.current
+                    ?.contains(target)
+                ?? false
+
             if (
-                target instanceof Node
-                && !accountMenuRef.current?.contains(target)
+                !isDesktopMenu
+                && !isMobileMenu
             ) {
                 setAccountMenuOpen(false)
                 setSignOutError(null)
@@ -314,7 +341,11 @@ export function WorkspaceSidebar({
                                         type="button"
                                         role="menuitem"
                                         className="workspace-account-menu-profile"
-                                        onClick={openProfileModal}
+                                        onClick={() =>
+                                            openProfileModal(
+                                                accountButtonRef.current,
+                                            )
+                                        }
                                     >
                                 <span className="workspace-account-menu-label">
                                     <Icon name="user"/>
@@ -369,6 +400,34 @@ export function WorkspaceSidebar({
                 </div>
             </aside>
 
+            <MobileWorkspaceNavigation
+                activePage={activePage}
+                displayName={displayName}
+                initials={initials}
+                profileAvailable={Boolean(profile)}
+                profilePhotoSrc={profilePhotoSrc}
+                isAccountMenuOpen={
+                    isAccountMenuOpen
+                }
+                isSigningOut={isSigningOut}
+                signOutError={signOutError}
+                accountMenuRef={
+                    mobileAccountMenuRef
+                }
+                accountButtonRef={
+                    mobileAccountButtonRef
+                }
+                onToggleAccountMenu={
+                    toggleAccountMenu
+                }
+                onOpenProfile={() =>
+                    openProfileModal(
+                        mobileAccountButtonRef.current,
+                    )
+                }
+                onSignOut={handleSignOut}
+            />
+
             {isProfileModalOpen && profile && (
                 <ProfileModal
                     profile={profile}
@@ -383,7 +442,7 @@ export function WorkspaceSidebar({
                         setProfileModalOpen(false)
                     }
                     restoreFocus={() =>
-                        accountButtonRef.current
+                        profileRestoreFocusRef.current
                             ?.focus()
                     }
                 />)}
