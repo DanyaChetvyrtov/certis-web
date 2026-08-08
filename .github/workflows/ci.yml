@@ -1,0 +1,61 @@
+name: CI Pipeline for React with TypeScript
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        id: install
+        run: npm ci
+
+      - name: Run ESLint
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: npm run lint
+
+      - name: Run tests
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: |
+          mkdir -p reports
+
+          npm test -- \
+            --reporter=default \
+            --reporter=junit \
+            --outputFile=reports/junit.xml
+
+      - name: Publish Vitest Test Report
+        if: ${{ always() && hashFiles('reports/junit.xml') != '' }}
+        uses: mikepenz/action-junit-report@v6
+        with:
+          report_paths: 'reports/junit.xml'
+          check_name: Vitest Test Report
+          detailed_summary: true
+          include_time_in_summary: true
+          require_tests: true
+          fail_on_parse_error: true
+          fail_on_failure: false
+
+      - name: Build application
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: npm run build
