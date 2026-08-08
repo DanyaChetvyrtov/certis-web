@@ -565,6 +565,22 @@
     position: relative;
 }
 
+.account-row-actions > button:focus-visible {
+    outline: 2px solid #10b981;
+    outline-offset: 2px;
+}
+
+.account-action-menu button:focus-visible {
+    outline: 2px solid #10b981;
+    outline-offset: -2px;
+}
+
+.accounts-list-heading h2:focus-visible {
+    outline: 2px solid #10b981;
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
 .account-row-actions > button {
     display: grid;
     width: 42px;

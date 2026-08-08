@@ -35,17 +35,16 @@ const getFocusableElements = (
             !== 'true',
     )
 
-export function useModalAccessibility({
-                                          canClose = true,
-                                          initialFocusRef,
-                                          onClose,
-                                          restoreFocus,
-                                      }: ModalAccessibilityOptions) {
-    const dialogRef =
-        useRef<HTMLElement>(null)
-
-    const restoreFocusRef =
-        useRef(restoreFocus)
+export function useModalAccessibility<
+    T extends HTMLElement = HTMLElement
+>({
+      canClose = true,
+      initialFocusRef,
+      onClose,
+      restoreFocus,
+  }: ModalAccessibilityOptions) {
+    const dialogRef = useRef<T>(null)
+    const restoreFocusRef = useRef(restoreFocus)
 
     useEffect(() => {
         restoreFocusRef.current =
@@ -59,6 +58,11 @@ export function useModalAccessibility({
         if (!dialog) {
             return
         }
+
+        const previouslyFocused =
+            document.activeElement instanceof HTMLElement
+                ? document.activeElement
+                : null
 
         const previousOverflow =
             document.body.style.overflow
@@ -77,7 +81,11 @@ export function useModalAccessibility({
             document.body.style.overflow =
                 previousOverflow
 
-            restoreFocusRef.current?.()
+            if (restoreFocusRef.current) {
+                restoreFocusRef.current()
+            } else {
+                previouslyFocused?.focus()
+            }
         }
     }, [initialFocusRef])
 
