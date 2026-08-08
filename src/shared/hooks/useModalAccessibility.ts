@@ -35,17 +35,16 @@ const getFocusableElements = (
             !== 'true',
     )
 
-export function useModalAccessibility({
-                                          canClose = true,
-                                          initialFocusRef,
-                                          onClose,
-                                          restoreFocus,
-                                      }: ModalAccessibilityOptions) {
-    const dialogRef =
-        useRef<HTMLElement>(null)
-
-    const restoreFocusRef =
-        useRef(restoreFocus)
+export function useModalAccessibility<
+    T extends HTMLElement = HTMLElement
+>({
+      canClose = true,
+      initialFocusRef,
+      onClose,
+      restoreFocus,
+  }: ModalAccessibilityOptions) {
+    const dialogRef = useRef<T>(null)
+    const restoreFocusRef = useRef(restoreFocus)
 
     useEffect(() => {
         restoreFocusRef.current =

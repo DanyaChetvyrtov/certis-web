@@ -15,7 +15,6 @@ import type {
 } from '../api/accountsApi'
 import './AccountModals.css'
 import {
-    useEffect,
     useRef,
     useState,
 } from 'react'
@@ -75,33 +74,23 @@ export function AccountFormModal({
     const isEditing = Boolean(account)
 
     const nameInputRef = useRef<HTMLInputElement>(null)
-    const [fieldToFocus, setFieldToFocus,] = useState<AccountField | null>(null)
 
     const dialogRef =
-        useModalAccessibility({
+        useModalAccessibility<HTMLDivElement>({
             canClose: !isSaving,
             initialFocusRef: nameInputRef,
-            onClose,
+            onClose: onClose,
         })
 
-    useEffect(() => {
-        if (!fieldToFocus || isSaving) {
-            return
-        }
-
-        const input =
-            dialogRef.current
-                ?.querySelector<HTMLInputElement>(
-                    `[name="${fieldToFocus}"]`,
-                )
-
-        input?.focus()
-        setFieldToFocus(null)
-    }, [
-        dialogRef,
-        fieldToFocus,
-        isSaving,
-    ])
+    const focusField = (
+        field: AccountField,
+    ): void => {
+        dialogRef.current
+            ?.querySelector<HTMLInputElement>(
+                `[name="${field}"]`,
+            )
+            ?.focus()
+    }
 
     const validate = (): FieldErrors => {
         const errors: FieldErrors = {}
@@ -147,7 +136,7 @@ export function AccountFormModal({
             )
 
         if (firstError) {
-            setFieldToFocus(firstError)
+            focusField(firstError)
             return
         }
 
@@ -193,11 +182,14 @@ export function AccountFormModal({
                     backendErrors,
                 )
 
-                setFieldToFocus(
+                const firstBackendError =
                     getFirstErrorField(
                         backendErrors,
-                    ),
-                )
+                    )
+
+                if (firstBackendError) {
+                    focusField(firstBackendError)
+                }
             } else {
                 setFormError(
                     'We could not save this account. Please try again.',

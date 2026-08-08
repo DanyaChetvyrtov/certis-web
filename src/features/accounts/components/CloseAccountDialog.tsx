@@ -5,7 +5,6 @@ import type {Account} from '../api/accountsApi'
 import './AccountModals.css'
 import {
     useRef,
-    useEffect,
     useState,
 } from 'react'
 
@@ -29,23 +28,11 @@ export function CloseAccountDialog({
     const cancelButtonRef = useRef<HTMLButtonElement>(null)
 
     const dialogRef =
-        useModalAccessibility({
+        useModalAccessibility<HTMLDivElement>({
             canClose: !isClosing,
-            initialFocusRef:
-            cancelButtonRef,
+            initialFocusRef: cancelButtonRef,
             onClose: onCancel,
         })
-
-    useEffect(() => {
-        const handleEscape = (event: KeyboardEvent) => {
-            if (event.key === 'Escape' && !isClosing) {
-                onCancel()
-            }
-        }
-
-        window.addEventListener('keydown', handleEscape)
-        return () => window.removeEventListener('keydown', handleEscape)
-    }, [isClosing, onCancel])
 
     const close = async () => {
         setIsClosing(true)
@@ -68,11 +55,13 @@ export function CloseAccountDialog({
     return (
         <div className="account-modal-layer" role="presentation">
             <div
+                ref={dialogRef}
                 className="account-confirm-modal"
                 role="alertdialog"
                 aria-modal="true"
                 aria-labelledby="close-account-title"
                 aria-describedby="close-account-description"
+                tabIndex={-1}
             >
                 <span className="account-confirm-icon"><Icon name="trash"/></span>
                 <p>Close account</p>
