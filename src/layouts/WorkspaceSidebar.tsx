@@ -23,15 +23,15 @@ import {
 } from '../features/profile/profilePhoto'
 
 type WorkspaceSidebarProps = {
-    activePage: 'dashboard' | 'accounts' | 'categories'
+    activePage:
+        | 'dashboard'
+        | 'accounts'
+        | 'transactions'
+        | 'categories'
     activeAccounts?: number
 }
 
 const futureNavigation = [
-    {
-        label: 'Transactions',
-        icon: 'receipt' as const,
-    },
     {
         label: 'Budgets',
         icon: 'gauge' as const,
@@ -239,6 +239,23 @@ export function WorkspaceSidebar({
                     >
                         <Icon name="wallet"/>
                         <span>Accounts</span>
+                    </Link>
+
+                    <Link
+                        className={
+                            activePage === 'transactions'
+                                ? 'active'
+                                : undefined
+                        }
+                        to="/transactions"
+                        aria-current={
+                            activePage === 'transactions'
+                                ? 'page'
+                                : undefined
+                        }
+                    >
+                        <Icon name="receipt"/>
+                        <span>Transactions</span>
                     </Link>
 
                     {futureNavigation.map((item) => (
