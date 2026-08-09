@@ -1,0 +1,155 @@
+.category-archive-layer {
+    position: fixed;
+    z-index: 120;
+    inset: 0;
+    display: grid;
+    overflow-y: auto;
+    place-items: center;
+    padding: 30px;
+    background: rgb(4 17 35 / 58%);
+    backdrop-filter: blur(7px);
+    animation: category-archive-fade 180ms ease-out;
+}
+
+.category-archive-dialog {
+    width: min(100%, 480px);
+    border: 1px solid #e4ded3;
+    border-radius: 26px;
+    padding: 34px;
+    color: #0a1c34;
+    background: #fffefa;
+    box-shadow: 0 28px 90px rgb(5 20 40 / 26%);
+    text-align: center;
+    animation: category-archive-rise 220ms ease-out;
+}
+
+.category-archive-icon {
+    display: grid;
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 20px;
+    place-items: center;
+    border-radius: 18px;
+    color: #ad4a4a;
+    background: #f9e9e7;
+}
+
+.category-archive-icon svg {
+    width: 25px;
+    height: 25px;
+}
+
+.category-archive-dialog > p:first-of-type {
+    margin: 0;
+    color: #9b7a43;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .17em;
+    text-transform: uppercase;
+}
+
+.category-archive-dialog h2 {
+    margin: 9px 0 0;
+    color: #0a1c34;
+    font-size: 28px;
+    letter-spacing: -.03em;
+}
+
+#archive-category-description {
+    margin: 14px 0 0;
+    color: #7f8da2;
+    font-size: 13px;
+    line-height: 1.65;
+}
+
+.category-archive-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin: 20px 0 0;
+    color: #a83f3f;
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.5;
+    text-align: left;
+}
+
+.category-archive-error svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 auto;
+}
+
+.category-archive-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 28px;
+}
+
+.category-archive-actions button {
+    min-width: 142px;
+    height: 46px;
+    border: 1px solid #ddd6cb;
+    border-radius: 13px;
+    padding: 0 18px;
+    color: #536278;
+    background: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.category-archive-actions button.danger {
+    border-color: #b84d4d;
+    color: #fff;
+    background: #b84d4d;
+}
+
+.category-archive-actions button:disabled {
+    cursor: wait;
+    opacity: .62;
+}
+
+.category-archive-actions button:focus-visible {
+    outline: 2px solid #10b981;
+    outline-offset: 3px;
+}
+
+@keyframes category-archive-fade {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes category-archive-rise {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(.985);
+    }
+}
+
+@media (max-width: 520px) {
+    .category-archive-layer {
+        padding: 18px;
+    }
+
+    .category-archive-dialog {
+        padding: 28px 20px 22px;
+    }
+
+    .category-archive-actions {
+        flex-direction: column-reverse;
+    }
+
+    .category-archive-actions button {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .category-archive-layer,
+    .category-archive-dialog {
+        animation: none;
+    }
+}

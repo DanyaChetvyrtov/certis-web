@@ -20,7 +20,11 @@ export type IconName =
   | 'edit'
   | 'eye'
   | 'eye-off'
+  | 'briefcase'
+  | 'gift'
   | 'gauge'
+  | 'heart'
+  | 'home'
   | 'list'
   | 'lock'
   | 'mail'
@@ -28,15 +32,20 @@ export type IconName =
   | 'piggy-bank'
   | 'plus'
   | 'receipt'
+  | 'repeat'
   | 'search'
   | 'settings'
   | 'shield'
   | 'target'
+  | 'tag'
   | 'trash'
+  | 'transport'
   | 'trend-down'
   | 'trend-up'
   | 'user'
+  | 'utensils'
   | 'wallet'
+  | 'shopping-cart'
 
 type IconProps = SVGProps<SVGSVGElement> & {
   name: IconName
@@ -74,6 +83,13 @@ const iconPaths: Record<IconName, ReactNode> = {
       <path d="M5 10h14" />
       <path d="M6 10v7M10 10v7M14 10v7M18 10v7" />
       <path d="M4 20h16M3 17h18" />
+    </>
+  ),
+  briefcase: (
+    <>
+      <rect x="3" y="7" width="18" height="13" rx="2" />
+      <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <path d="M3 12h18M10 12v2h4v-2" />
     </>
   ),
   bell: (
@@ -163,6 +179,23 @@ const iconPaths: Record<IconName, ReactNode> = {
       <path d="m12 12 4-4M5 17h14" />
     </>
   ),
+  gift: (
+    <>
+      <rect x="3" y="9" width="18" height="12" rx="2" />
+      <path d="M12 9v12M3 13h18M5 9h14" />
+      <path d="M12 9H8.5a2.5 2.5 0 1 1 2.1-3.9L12 7.2" />
+      <path d="M12 9h3.5a2.5 2.5 0 1 0-2.1-3.9L12 7.2" />
+    </>
+  ),
+  heart: (
+    <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" />
+  ),
+  home: (
+    <>
+      <path d="m3 11 9-8 9 8" />
+      <path d="M5 10v11h14V10M9 21v-7h6v7" />
+    </>
+  ),
   list: (
     <>
       <path d="M8 6h13M8 12h13M8 18h13" />
@@ -202,6 +235,14 @@ const iconPaths: Record<IconName, ReactNode> = {
       <path d="M9 8h6M9 12h6M9 16h3" />
     </>
   ),
+  repeat: (
+    <>
+      <path d="m17 2 4 4-4 4" />
+      <path d="M3 11V9a3 3 0 0 1 3-3h15" />
+      <path d="m7 22-4-4 4-4" />
+      <path d="M21 13v2a3 3 0 0 1-3 3H3" />
+    </>
+  ),
   search: (
     <>
       <circle cx="11" cy="11" r="7" />
@@ -227,10 +268,24 @@ const iconPaths: Record<IconName, ReactNode> = {
       <circle cx="12" cy="12" r="1.5" />
     </>
   ),
+  tag: (
+    <>
+      <path d="M20.6 13.6 12 22.2 2.8 13V3h10l7.8 7.8a2 2 0 0 1 0 2.8Z" />
+      <circle cx="8" cy="8" r="1.4" />
+    </>
+  ),
   trash: (
     <>
       <path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6" />
       <path d="M10 11v6M14 11v6" />
+    </>
+  ),
+  transport: (
+    <>
+      <rect x="5" y="3" width="14" height="17" rx="3" />
+      <path d="M8 7h8M7 12h10M8 20l-2 2M16 20l2 2" />
+      <circle cx="9" cy="16" r="1" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="16" r="1" fill="currentColor" stroke="none" />
     </>
   ),
   'trend-down': (
@@ -251,11 +306,24 @@ const iconPaths: Record<IconName, ReactNode> = {
       <path d="M4.5 21a7.5 7.5 0 0 1 15 0" />
     </>
   ),
+  utensils: (
+    <>
+      <path d="M6 3v8M3 3v5a3 3 0 0 0 6 0V3M6 11v10" />
+      <path d="M15 3v8h5M20 3v18" />
+    </>
+  ),
   wallet: (
     <>
       <path d="M4 7.5h15a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2h12v4" />
       <path d="M3 8h14" />
       <path d="M16 13h5v4h-5a2 2 0 0 1 0-4Z" />
+    </>
+  ),
+  'shopping-cart': (
+    <>
+      <path d="M3 4h2l2.4 10.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 8H7" />
+      <circle cx="10" cy="20" r="1.4" />
+      <circle cx="18" cy="20" r="1.4" />
     </>
   ),
 }

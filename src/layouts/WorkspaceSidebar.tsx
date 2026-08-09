@@ -23,7 +23,7 @@ import {
 } from '../features/profile/profilePhoto'
 
 type WorkspaceSidebarProps = {
-    activePage: 'dashboard' | 'accounts'
+    activePage: 'dashboard' | 'accounts' | 'categories'
     activeAccounts?: number
 }
 
@@ -39,10 +39,6 @@ const futureNavigation = [
     {
         label: 'Goals',
         icon: 'target' as const,
-    },
-    {
-        label: 'Categories',
-        icon: 'list' as const,
     },
 ]
 
@@ -255,6 +251,23 @@ export function WorkspaceSidebar({
                         <span>{item.label}</span>
                     </span>
                     ))}
+
+                    <Link
+                        className={
+                            activePage === 'categories'
+                                ? 'active'
+                                : undefined
+                        }
+                        to="/categories"
+                        aria-current={
+                            activePage === 'categories'
+                                ? 'page'
+                                : undefined
+                        }
+                    >
+                        <Icon name="tag"/>
+                        <span>Categories</span>
+                    </Link>
                 </nav>
 
                 <div className="workspace-sidebar-spacer"/>
