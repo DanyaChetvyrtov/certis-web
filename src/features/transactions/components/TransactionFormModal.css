@@ -1,0 +1,560 @@
+.transaction-modal-layer {
+    position: fixed;
+    z-index: 130;
+    inset: 0;
+    display: grid;
+    overflow-y: auto;
+    place-items: center;
+    padding: 30px;
+    background: rgb(4 17 35 / 58%);
+    backdrop-filter: blur(7px);
+    animation: transaction-modal-fade 180ms ease-out;
+}
+
+.transaction-modal {
+    width: min(100%, 850px);
+    max-height: calc(100svh - 60px);
+    overflow-y: auto;
+    border: 1px solid #e4ded3;
+    border-radius: 28px;
+    padding: 32px 40px 28px;
+    color: #0a1c34;
+    background: #fffefa;
+    box-shadow: 0 28px 90px rgb(5 20 40 / 26%);
+    animation: transaction-modal-rise 220ms ease-out;
+}
+
+.transaction-modal-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid #e9e3da;
+}
+
+.transaction-modal-heading h2 {
+    margin: 0;
+    color: #0a1c34;
+    font-size: 29px;
+    letter-spacing: -.03em;
+}
+
+.transaction-modal-heading p {
+    margin: 8px 0 0;
+    color: #8a97b0;
+    font-size: 13px;
+}
+
+.transaction-modal-heading > button {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid #e3ddd2;
+    border-radius: 13px;
+    color: #5e6c80;
+    background: #fff;
+    cursor: pointer;
+}
+
+.transaction-modal-heading > button svg {
+    width: 19px;
+    height: 19px;
+}
+
+.transaction-modal form {
+    margin-top: 25px;
+}
+
+.transaction-type-fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.transaction-type-fieldset legend,
+.transaction-form-field > label {
+    display: block;
+    margin: 0 0 10px;
+    color: #7787a4;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+}
+
+.transaction-form-field > label span {
+    color: #a7b0c0;
+    font-size: 9px;
+    font-weight: 650;
+}
+
+.transaction-type-options {
+    display: grid;
+    min-height: 56px;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid #ded7cc;
+    border-radius: 15px;
+    padding: 5px;
+    background: #fbf8f3;
+}
+
+.transaction-type-options label {
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    color: #68768d;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 720;
+    transition:
+        color 160ms ease,
+        background 160ms ease;
+}
+
+.transaction-type-options label.selected.expense {
+    color: #dd635c;
+    background: #fae9e6;
+}
+
+.transaction-type-options label.selected.income {
+    color: #0a9e76;
+    background: #e4f8f1;
+}
+
+.transaction-type-options input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.transaction-type-options label:focus-within,
+.transaction-modal-heading > button:focus-visible,
+.transaction-modal-actions button:focus-visible {
+    outline: 2px solid #10b981;
+    outline-offset: 2px;
+}
+
+.transaction-form-field {
+    min-width: 0;
+}
+
+.transaction-amount-field {
+    margin-top: 25px;
+}
+
+.transaction-amount-input {
+    display: grid;
+    min-height: 70px;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid #ddd6cb;
+    border-radius: 16px;
+    padding: 0 17px 0 21px;
+    background: #fff;
+    transition:
+        border-color 160ms ease,
+        box-shadow 160ms ease;
+}
+
+.transaction-amount-input:focus-within {
+    border-color: #13b98a;
+    box-shadow: 0 0 0 4px rgb(19 185 138 / 11%);
+}
+
+.transaction-amount-input.error {
+    border-color: #cb6969;
+}
+
+.transaction-amount-input > span {
+    color: #8e9ab4;
+    font-size: 22px;
+    font-weight: 760;
+}
+
+.transaction-amount-input input {
+    min-width: 0;
+    height: 68px;
+    border: 0;
+    outline: 0;
+    color: #0a1c34;
+    background: transparent;
+    font-size: 24px;
+}
+
+.transaction-amount-input input::placeholder {
+    color: #a2adbf;
+}
+
+.transaction-amount-input strong {
+    min-width: 64px;
+    border: 1px solid #e1dbd1;
+    border-radius: 12px;
+    padding: 10px 13px;
+    color: #4d5c72;
+    background: #fbf8f3;
+    text-align: center;
+    font-size: 12px;
+}
+
+.transaction-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 26px;
+    margin-top: 26px;
+}
+
+.transaction-form-field > input,
+.transaction-select-shell,
+.transaction-date-shell {
+    width: 100%;
+    min-height: 58px;
+    border: 1px solid #ddd6cb;
+    border-radius: 15px;
+    color: #0a1c34;
+    background: #fff;
+}
+
+.transaction-form-field > input {
+    outline: 0;
+    padding: 0 17px;
+    font-size: 13px;
+    transition:
+        border-color 160ms ease,
+        box-shadow 160ms ease;
+}
+
+.transaction-form-field > input::placeholder,
+.transaction-note-field textarea::placeholder {
+    color: #9aa6ba;
+}
+
+.transaction-form-field > input:focus,
+.transaction-select-shell:focus-within,
+.transaction-date-shell:focus-within,
+.transaction-note-field textarea:focus {
+    border-color: #13b98a;
+    box-shadow: 0 0 0 4px rgb(19 185 138 / 11%);
+}
+
+.transaction-form-field > input[aria-invalid='true'],
+.transaction-select-shell:has(select[aria-invalid='true']),
+.transaction-date-shell:has(input[aria-invalid='true']) {
+    border-color: #cb6969;
+}
+
+.transaction-select-shell,
+.transaction-date-shell {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) 18px;
+    align-items: center;
+    gap: 11px;
+    padding: 0 16px;
+    transition:
+        border-color 160ms ease,
+        box-shadow 160ms ease;
+}
+
+.transaction-date-shell {
+    grid-template-columns: 22px minmax(0, 1fr);
+}
+
+.transaction-select-shell > svg,
+.transaction-date-shell > svg {
+    width: 20px;
+    height: 20px;
+    color: #61718a;
+}
+
+.transaction-select-shell > svg:last-child {
+    width: 16px;
+    pointer-events: none;
+}
+
+.transaction-select-shell select,
+.transaction-date-shell input {
+    min-width: 0;
+    height: 56px;
+    border: 0;
+    outline: 0;
+    color: #536278;
+    background: transparent;
+    font-size: 13px;
+}
+
+.transaction-select-shell select {
+    width: calc(100% + 28px);
+    appearance: none;
+    cursor: pointer;
+}
+
+.transaction-date-shell input {
+    width: 100%;
+}
+
+.transaction-field-error {
+    display: block;
+    margin: 7px 2px 0;
+    color: #b44747;
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.4;
+}
+
+.transaction-note-field {
+    margin-top: 25px;
+}
+
+.transaction-note-field textarea {
+    width: 100%;
+    min-height: 112px;
+    resize: vertical;
+    border: 1px solid #ddd6cb;
+    border-radius: 16px;
+    outline: 0;
+    padding: 15px 17px;
+    color: #0a1c34;
+    background: #fff;
+    font: inherit;
+    font-size: 13px;
+    transition:
+        border-color 160ms ease,
+        box-shadow 160ms ease;
+}
+
+.transaction-balance-note {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 25px;
+    border: 1px solid #b9e9dc;
+    border-radius: 16px;
+    padding: 15px 18px;
+    background: #f3fbf8;
+}
+
+.transaction-balance-note > span {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 13px;
+    color: #0bbd89;
+    background: #e1f8f1;
+}
+
+.transaction-balance-note svg {
+    width: 20px;
+    height: 20px;
+}
+
+.transaction-balance-note strong {
+    color: #14243a;
+    font-size: 13px;
+}
+
+.transaction-balance-note p {
+    margin: 5px 0 0;
+    color: #8a97b0;
+    font-size: 11px;
+}
+
+.transaction-form-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin: 18px 0 0;
+    color: #a83f3f;
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.5;
+}
+
+.transaction-form-error svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 auto;
+}
+
+.transaction-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 11px;
+    margin-top: 26px;
+    padding-top: 24px;
+    border-top: 1px solid #e9e3da;
+}
+
+.transaction-modal-actions button {
+    min-width: 118px;
+    height: 46px;
+    border: 1px solid #ddd6cb;
+    border-radius: 13px;
+    padding: 0 18px;
+    color: #536278;
+    background: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.transaction-modal-actions button.primary {
+    min-width: 154px;
+    border-color: #0ebb88;
+    color: #fff;
+    background: #0ebb88;
+    box-shadow: 0 10px 24px rgb(14 187 136 / 19%);
+}
+
+.transaction-modal-actions button:disabled,
+.transaction-modal-heading > button:disabled {
+    cursor: wait;
+    opacity: .62;
+}
+
+.transaction-delete-dialog {
+    width: min(100%, 460px);
+    border: 1px solid #e4ded3;
+    border-radius: 25px;
+    padding: 32px;
+    color: #0a1c34;
+    background: #fffefa;
+    box-shadow: 0 28px 90px rgb(5 20 40 / 26%);
+    text-align: center;
+    animation: transaction-modal-rise 220ms ease-out;
+}
+
+.transaction-delete-icon {
+    display: grid;
+    width: 52px;
+    height: 52px;
+    place-items: center;
+    margin: 0 auto;
+    border-radius: 16px;
+    color: #d95e58;
+    background: #fbe9e7;
+}
+
+.transaction-delete-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.transaction-delete-dialog h2 {
+    margin: 19px 0 0;
+    font-size: 22px;
+    letter-spacing: -.02em;
+}
+
+.transaction-delete-dialog > p:not(.transaction-form-error) {
+    margin: 11px 0 0;
+    color: #7d8aa0;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.transaction-delete-dialog .transaction-form-error {
+    justify-content: center;
+}
+
+.transaction-delete-actions {
+    display: grid;
+    grid-template-columns: 1fr 1.25fr;
+    gap: 11px;
+    margin-top: 26px;
+}
+
+.transaction-delete-actions button {
+    min-height: 46px;
+    border: 1px solid #ddd6cb;
+    border-radius: 13px;
+    padding: 0 15px;
+    color: #536278;
+    background: #fff;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.transaction-delete-actions button.danger {
+    border-color: #d95e58;
+    color: #fff;
+    background: #d95e58;
+}
+
+.transaction-delete-actions button:disabled {
+    cursor: wait;
+    opacity: .62;
+}
+
+@keyframes transaction-modal-fade {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes transaction-modal-rise {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(.985);
+    }
+}
+
+@media (max-width: 720px) {
+    .transaction-modal-layer {
+        align-items: end;
+        padding: 0;
+    }
+
+    .transaction-modal {
+        max-height: 95svh;
+        border-radius: 24px 24px 0 0;
+        padding: 25px 20px;
+    }
+
+    .transaction-form-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 460px) {
+    .transaction-modal-heading h2 {
+        font-size: 25px;
+    }
+
+    .transaction-modal-heading p {
+        line-height: 1.5;
+    }
+
+    .transaction-amount-input {
+        grid-template-columns: 22px minmax(0, 1fr) auto;
+        padding-left: 15px;
+    }
+
+    .transaction-amount-input input {
+        font-size: 20px;
+    }
+
+    .transaction-modal-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .transaction-modal-actions button,
+    .transaction-modal-actions button.primary {
+        min-width: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .transaction-modal-layer,
+    .transaction-modal {
+        animation: none;
+    }
+}

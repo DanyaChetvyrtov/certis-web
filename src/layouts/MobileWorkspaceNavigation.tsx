@@ -12,6 +12,7 @@ import './MobileWorkspaceNavigation.css'
 type ActivePage =
     | 'dashboard'
     | 'accounts'
+    | 'transactions'
     | 'categories'
 
 type MobileWorkspaceNavigationProps = {
@@ -88,6 +89,23 @@ export function MobileWorkspaceNavigation({
                 }
             >
                 <Icon name="wallet"/>
+            </Link>
+
+            <Link
+                className={
+                    activePage === 'transactions'
+                        ? 'active'
+                        : undefined
+                }
+                to="/transactions"
+                aria-label="Transactions"
+                aria-current={
+                    activePage === 'transactions'
+                        ? 'page'
+                        : undefined
+                }
+            >
+                <Icon name="receipt"/>
             </Link>
 
             <Link

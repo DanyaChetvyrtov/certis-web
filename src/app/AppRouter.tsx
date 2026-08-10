@@ -34,6 +34,14 @@ const CategoriesPage = lazy(() =>
     ),
 )
 
+const TransactionsPage = lazy(() =>
+    import('../features/transactions/pages/TransactionsPage').then(
+        (module) => ({
+            default: module.TransactionsPage,
+        }),
+    ),
+)
+
 export function AppRouter() {
     return (
         <Routes>
@@ -59,6 +67,15 @@ export function AppRouter() {
                     element={
                         <Suspense fallback={<SessionCheckPage/>}>
                             <AccountsPage/>
+                        </Suspense>
+                    }
+                />
+
+                <Route
+                    path="/transactions"
+                    element={
+                        <Suspense fallback={<SessionCheckPage/>}>
+                            <TransactionsPage/>
                         </Suspense>
                     }
                 />
