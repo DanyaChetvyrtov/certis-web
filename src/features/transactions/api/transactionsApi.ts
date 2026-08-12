@@ -16,9 +16,11 @@ export type Transaction = {
     categoryId?: string | null
     merchant?: string | null
     note?: string | null
-    date: string
+    occurredAt: string
     createdAt: string
-    recurringTransactionId?: string | null
+    updatedAt: string
+    recurringTransactionTemplateId?: string | null
+    scheduledFor?: string | null
 }
 
 export type TransactionRequest = {
@@ -28,7 +30,7 @@ export type TransactionRequest = {
     categoryId: string | null
     merchant: string | null
     note: string | null
-    date: string
+    occurredAt: string
 }
 
 export type TransactionFilters = {

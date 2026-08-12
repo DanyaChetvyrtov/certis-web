@@ -103,7 +103,7 @@ export function TransactionFormModal({
     )
     const [date, setDate] = useState(
         transaction
-            ? toDateTimeLocalValue(transaction.date)
+            ? toDateTimeLocalValue(transaction.occurredAt)
             : initialDate(),
     )
     const [fieldErrors, setFieldErrors] =
@@ -231,7 +231,7 @@ export function TransactionFormModal({
             categoryId: categoryId || null,
             merchant: normalizedMerchant || null,
             note: normalizedNote || null,
-            date: transactionDate.toISOString(),
+            occurredAt: transactionDate.toISOString(),
         }
     }
 
@@ -273,10 +273,7 @@ export function TransactionFormModal({
                         error.fieldErrors,
                         'categoryId',
                     ),
-                    date: fieldErrorMessage(
-                        error.fieldErrors,
-                        'date',
-                    ),
+                    date: error.fieldErrors?.occurredAt,
                     merchant: fieldErrorMessage(
                         error.fieldErrors,
                         'merchant',

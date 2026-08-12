@@ -24,9 +24,11 @@ const transaction = {
     categoryId: 'category-id',
     merchant: 'Coffee shop',
     note: 'Lunch',
-    date: '2026-08-08T12:30:00Z',
+    occurredAt: '2026-08-08T12:30:00Z',
     createdAt: '2026-08-08T12:31:00Z',
-    recurringTransactionId: null,
+    updatedAt: '2026-08-08T12:31:00Z',
+    recurringTransactionTemplateId: null,
+    scheduledFor: null,
 }
 
 const transactionRequest = {
@@ -36,7 +38,7 @@ const transactionRequest = {
     categoryId: transaction.categoryId,
     merchant: transaction.merchant,
     note: transaction.note,
-    date: transaction.date,
+    occurredAt: transaction.occurredAt,
 }
 
 describe('transactionsApi', () => {

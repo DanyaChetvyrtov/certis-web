@@ -566,7 +566,7 @@ export function TransactionsPage() {
     }, [accountMap, categoryMap, transactions])
 
     const recurringCount = transactions.filter(
-        (transaction) => Boolean(transaction.recurringTransactionId),
+        (transaction) => Boolean(transaction.recurringTransactionTemplateId),
     ).length
 
     const visibleTransactions = useMemo(() => {
@@ -580,7 +580,7 @@ export function TransactionsPage() {
             )
             .filter((transaction) =>
                 !recurringOnly
-                || Boolean(transaction.recurringTransactionId),
+                || Boolean(transaction.recurringTransactionTemplateId),
             )
             .filter((transaction) => {
                 if (!normalizedQuery) {
@@ -604,8 +604,8 @@ export function TransactionsPage() {
                 )
             })
             .sort((first, second) =>
-                new Date(second.date).getTime()
-                - new Date(first.date).getTime(),
+                new Date(second.occurredAt).getTime()
+                - new Date(first.occurredAt).getTime(),
             )
     }, [
         accountMap,
@@ -620,7 +620,7 @@ export function TransactionsPage() {
         const groups = new Map<string, Transaction[]>()
 
         visibleTransactions.forEach((transaction) => {
-            const key = groupDateKey(transaction.date)
+            const key = groupDateKey(transaction.occurredAt)
             const group = groups.get(key) ?? []
 
             group.push(transaction)
@@ -647,7 +647,7 @@ export function TransactionsPage() {
             return false
         }
 
-        const transactionDate = new Date(transaction.date).getTime()
+        const transactionDate = new Date(transaction.occurredAt).getTime()
 
         return (
             !periodRange.from
@@ -1030,11 +1030,11 @@ export function TransactionsPage() {
                                 && groupedTransactions.map((group) => (
                                     <section
                                         className="transaction-date-group"
-                                        key={groupDateKey(group[0].date)}
+                                        key={groupDateKey(group[0].occurredAt)}
                                     >
                                         <h3>
                                             {formatGroupHeading(
-                                                group[0].date,
+                                                group[0].occurredAt,
                                                 anchorDate,
                                             )}
                                         </h3>
@@ -1075,7 +1075,7 @@ export function TransactionsPage() {
                                                             </strong>
                                                             <small>
                                                                 {transaction.note?.trim()
-                                                                    || (transaction.recurringTransactionId
+                                                                    || (transaction.recurringTransactionTemplateId
                                                                         ? 'Recurring transaction'
                                                                         : transaction.type === 'INCOME'
                                                                             ? 'Recorded income'
@@ -1096,8 +1096,8 @@ export function TransactionsPage() {
                                                             {account?.name ?? 'Unknown account'}
                                                         </span>
 
-                                                        <time dateTime={transaction.date}>
-                                                            {new Date(transaction.date)
+                                                        <time dateTime={transaction.occurredAt}>
+                                                            {new Date(transaction.occurredAt)
                                                                 .toLocaleTimeString(
                                                                     'en-US',
                                                                     {
