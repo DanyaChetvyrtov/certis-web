@@ -93,9 +93,11 @@ const expenseTransaction = {
     categoryId: 'groceries',
     merchant: 'Greenfield Market',
     note: 'Weekly groceries',
-    date: '2026-08-08T10:20:00Z',
+    occurredAt: '2026-08-08T10:20:00Z',
     createdAt: '2026-08-08T10:21:00Z',
-    recurringTransactionId: null,
+    updatedAt: '2026-08-08T10:21:00Z',
+    recurringTransactionTemplateId: null,
+    scheduledFor: null,
 }
 
 const incomeTransaction = {
@@ -106,9 +108,11 @@ const incomeTransaction = {
     categoryId: 'salary',
     merchant: 'Salary',
     note: 'August payroll',
-    date: '2026-08-08T09:00:00Z',
+    occurredAt: '2026-08-08T09:00:00Z',
     createdAt: '2026-08-08T09:01:00Z',
-    recurringTransactionId: null,
+    updatedAt: '2026-08-08T09:01:00Z',
+    recurringTransactionTemplateId: null,
+    scheduledFor: null,
 }
 
 const transactionPage = (
@@ -263,7 +267,7 @@ describe('TransactionsPage', () => {
             categoryId: 'groceries',
             merchant: 'Greenfield Market',
             note: 'Weekly groceries',
-            date: expect.any(String),
+            occurredAt: expect.any(String),
         })
     })
 

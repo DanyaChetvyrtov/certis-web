@@ -386,7 +386,7 @@ describe('CloseAccountDialog', () => {
         ).toBeEnabled()
     })
 
-    it('restores focus when the dialog unmounts', () => {
+    it('restores focus when the dialog unmounts ', () => {
         const {
             restoreFocus,
             unmount,
