@@ -39,6 +39,7 @@ export type IconName =
   | 'target'
   | 'tag'
   | 'trash'
+  | 'transfer'
   | 'transport'
   | 'trend-down'
   | 'trend-up'
@@ -241,6 +242,14 @@ const iconPaths: Record<IconName, ReactNode> = {
       <path d="M3 11V9a3 3 0 0 1 3-3h15" />
       <path d="m7 22-4-4 4-4" />
       <path d="M21 13v2a3 3 0 0 1-3 3H3" />
+    </>
+  ),
+  transfer: (
+    <>
+      <path d="M4 8h14" />
+      <path d="m14 4 4 4-4 4" />
+      <path d="M20 16H6" />
+      <path d="m10 20-4-4 4-4" />
     </>
   ),
   search: (

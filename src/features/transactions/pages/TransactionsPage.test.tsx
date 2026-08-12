@@ -64,6 +64,15 @@ const accounts = [
         currency: 'EUR',
         createdAt: '2026-07-31T10:00:00Z',
     },
+    {
+        id: 'savings-account',
+        name: 'Savings',
+        type: 'BANK',
+        openingBalance: 500,
+        balance: 500,
+        currency: 'RUB',
+        createdAt: '2026-08-02T10:00:00Z',
+    },
 ]
 
 const categories = [
@@ -98,6 +107,7 @@ const expenseTransaction = {
     updatedAt: '2026-08-08T10:21:00Z',
     recurringTransactionTemplateId: null,
     scheduledFor: null,
+    transferId: null,
 }
 
 const incomeTransaction = {
@@ -113,7 +123,44 @@ const incomeTransaction = {
     updatedAt: '2026-08-08T09:01:00Z',
     recurringTransactionTemplateId: null,
     scheduledFor: null,
+    transferId: null,
 }
+
+const transfer = {
+    id: 'transfer-id',
+    sourceAccountId: 'rub-account',
+    destinationAccountId: 'savings-account',
+    reversalOfTransferId: null,
+    currency: 'RUB',
+    amount: 250,
+    note: 'Monthly savings',
+    occurredAt: '2026-08-08T11:00:00Z',
+    createdAt: '2026-08-08T11:00:01Z',
+}
+
+const transferPostings = [
+    {
+        ...expenseTransaction,
+        id: 'transfer-expense-id',
+        amount: 250,
+        categoryId: null,
+        merchant: null,
+        note: 'Monthly savings',
+        transferId: 'transfer-id',
+        occurredAt: transfer.occurredAt,
+    },
+    {
+        ...incomeTransaction,
+        id: 'transfer-income-id',
+        accountId: 'savings-account',
+        amount: 250,
+        categoryId: null,
+        merchant: null,
+        note: 'Monthly savings',
+        transferId: 'transfer-id',
+        occurredAt: transfer.occurredAt,
+    },
+]
 
 const transactionPage = (
     items: unknown[],
@@ -127,6 +174,7 @@ const transactionPage = (
 
 const useWorkspaceHandlers = (
     transactionItems: unknown[],
+    transferItems: unknown[] = [],
 ) => {
     server.use(
         http.get(
@@ -142,6 +190,10 @@ const useWorkspaceHandlers = (
             () => HttpResponse.json(
                 transactionPage(transactionItems),
             ),
+        ),
+        http.get(
+            '/api/v1/transfers',
+            () => HttpResponse.json(transferItems),
         ),
     )
 }
@@ -319,5 +371,99 @@ describe('TransactionsPage', () => {
             ).not.toBeInTheDocument()
         })
         expect(deletedTransactionId).toBe('expense-id')
+    })
+
+    it('creates a same-currency transfer from the transaction page', async () => {
+        let requestBody: unknown
+
+        useWorkspaceHandlers([])
+        server.use(
+            http.post('/api/v1/transfers', async ({request}) => {
+                requestBody = await request.json()
+                return HttpResponse.json(transfer, {status: 201})
+            }),
+        )
+
+        renderPage()
+
+        await screen.findByText('No transactions yet')
+        fireEvent.click(screen.getByRole('button', {name: 'Transfer'}))
+        const dialog = screen.getByRole('dialog', {name: 'Transfer money'})
+        const form = within(dialog)
+
+        fireEvent.change(form.getByLabelText('From account'), {
+            target: {value: 'rub-account'},
+        })
+        expect(
+            within(form.getByLabelText('To account'))
+                .queryByRole('option', {name: 'Travel cash · EUR'}),
+        ).not.toBeInTheDocument()
+        fireEvent.change(form.getByLabelText('To account'), {
+            target: {value: 'savings-account'},
+        })
+        fireEvent.change(form.getByLabelText('Amount'), {
+            target: {value: '250'},
+        })
+        fireEvent.change(form.getByLabelText(/Note/), {
+            target: {value: 'Monthly savings'},
+        })
+        fireEvent.click(form.getByRole('button', {name: 'Transfer money'}))
+
+        expect(await screen.findByText('Transfer completed.')).toBeInTheDocument()
+        expect(requestBody).toEqual({
+            sourceAccountId: 'rub-account',
+            destinationAccountId: 'savings-account',
+            amount: 250,
+            note: 'Monthly savings',
+            occurredAt: expect.any(String),
+        })
+    })
+
+    it('collapses transfer postings, excludes them from totals, and reverses the transfer', async () => {
+        const transferItems: unknown[] = [transfer]
+        let reverseRequest: unknown
+        const reversal = {
+            ...transfer,
+            id: 'reversal-id',
+            sourceAccountId: 'savings-account',
+            destinationAccountId: 'rub-account',
+            reversalOfTransferId: 'transfer-id',
+        }
+
+        useWorkspaceHandlers(transferPostings, transferItems)
+        server.use(
+            http.post('/api/v1/transfers/:transferId/reversal', async ({request}) => {
+                reverseRequest = await request.json()
+                transferItems.push(reversal)
+                return HttpResponse.json(reversal, {status: 201})
+            }),
+        )
+
+        renderPage()
+
+        expect(
+            (await screen.findAllByText('Main card → Savings')).length,
+        ).toBeGreaterThan(0)
+        expect(screen.getAllByText('Monthly savings')).toHaveLength(1)
+        const summary = screen.getByRole('region', {name: 'Transaction summary'})
+        expect(within(summary).getAllByText('—')).toHaveLength(4)
+
+        fireEvent.click(screen.getByRole('button', {
+            name: 'Actions for Main card → Savings',
+        }))
+        fireEvent.click(screen.getByRole('menuitem', {name: 'Reverse'}))
+        const dialog = screen.getByRole('dialog', {name: 'Reverse transfer'})
+        fireEvent.change(within(dialog).getByLabelText(/Reason/), {
+            target: {value: 'Transferred by mistake'},
+        })
+        fireEvent.click(within(dialog).getByRole('button', {name: 'Reverse transfer'}))
+
+        expect(
+            await screen.findByText('Transfer reversed. Both account balances were restored.'),
+        ).toBeInTheDocument()
+        expect(reverseRequest).toEqual({
+            note: 'Transferred by mistake',
+            occurredAt: expect.any(String),
+        })
     })
 })
