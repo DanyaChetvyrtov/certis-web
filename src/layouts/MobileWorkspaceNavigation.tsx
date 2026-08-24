@@ -13,6 +13,7 @@ type ActivePage =
     | 'dashboard'
     | 'accounts'
     | 'transactions'
+    | 'budgets'
     | 'categories'
 
 type MobileWorkspaceNavigationProps = {
@@ -106,6 +107,23 @@ export function MobileWorkspaceNavigation({
                 }
             >
                 <Icon name="receipt"/>
+            </Link>
+
+            <Link
+                className={
+                    activePage === 'budgets'
+                        ? 'active'
+                        : undefined
+                }
+                to="/budgets"
+                aria-label="Budgets"
+                aria-current={
+                    activePage === 'budgets'
+                        ? 'page'
+                        : undefined
+                }
+            >
+                <Icon name="gauge"/>
             </Link>
 
             <Link
