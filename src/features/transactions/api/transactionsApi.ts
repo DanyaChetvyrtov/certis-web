@@ -21,6 +21,7 @@ export type Transaction = {
     updatedAt: string
     recurringTransactionTemplateId?: string | null
     scheduledFor?: string | null
+    transferId?: string | null
 }
 
 export type TransactionRequest = {

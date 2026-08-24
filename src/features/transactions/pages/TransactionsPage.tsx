@@ -39,6 +39,12 @@ import type {
     TransactionType,
 } from '../api/transactionsApi'
 import {
+    getTransfers,
+} from '../api/transfersApi'
+import type {
+    Transfer,
+} from '../api/transfersApi'
+import {
     DeleteTransactionDialog,
 } from '../components/DeleteTransactionDialog'
 import {
@@ -47,10 +53,22 @@ import {
 import {
     TransactionFormModal,
 } from '../components/TransactionFormModal'
+import {
+    RecurringTransactionsView,
+} from '../components/RecurringTransactionsView'
+import {
+    ReverseTransferDialog,
+} from '../components/ReverseTransferDialog'
+import {
+    TransferActionMenu,
+} from '../components/TransferActionMenu'
+import {
+    TransferFormModal,
+} from '../components/TransferFormModal'
 import './TransactionsPage.css'
 
 type LoadState = 'loading' | 'ready' | 'error'
-type ActivityType = 'ALL' | TransactionType
+type ActivityType = 'ALL' | TransactionType | 'TRANSFER'
 type PeriodPreset = 'THIS_MONTH' | 'LAST_30_DAYS' | 'ALL_TIME'
 
 type Notice = {
@@ -65,6 +83,15 @@ type FormState = {
 
 type DeleteState = {
     transaction: Transaction
+    restoreFocus: () => void
+}
+
+type TransferFormState = {
+    restoreFocus: () => void
+}
+
+type ReverseTransferState = {
+    transfer: Transfer
     restoreFocus: () => void
 }
 
@@ -298,6 +325,7 @@ const addAmount = (
 export function TransactionsPage() {
     const [transactions, setTransactions] =
         useState<Transaction[]>([])
+    const [transfers, setTransfers] = useState<Transfer[]>([])
     const [accounts, setAccounts] = useState<Account[]>([])
     const [categories, setCategories] = useState<Category[]>([])
     const [resourceState, setResourceState] =
@@ -313,14 +341,20 @@ export function TransactionsPage() {
     const [activityType, setActivityType] =
         useState<ActivityType>('ALL')
     const [searchQuery, setSearchQuery] = useState('')
-    const [recurringOnly, setRecurringOnly] = useState(false)
+    const [activeView, setActiveView] =
+        useState<'HISTORY' | 'RECURRING'>('HISTORY')
     const [formState, setFormState] =
         useState<FormState | null>(null)
     const [deleteState, setDeleteState] =
         useState<DeleteState | null>(null)
+    const [transferFormState, setTransferFormState] =
+        useState<TransferFormState | null>(null)
+    const [reverseTransferState, setReverseTransferState] =
+        useState<ReverseTransferState | null>(null)
     const [notice, setNotice] = useState<Notice | null>(null)
     const [anchorDate] = useState(() => new Date())
     const newTransactionButtonRef = useRef<HTMLButtonElement>(null)
+    const newTransferButtonRef = useRef<HTMLButtonElement>(null)
     const quickFiltersRef = useRef<HTMLElement>(null)
 
     const periodRange = useMemo(
@@ -334,14 +368,16 @@ export function TransactionsPage() {
         void Promise.all([
             getAccounts(),
             getCategories(),
+            getTransfers(),
         ]).then(
-            ([loadedAccounts, loadedCategories]) => {
+            ([loadedAccounts, loadedCategories, loadedTransfers]) => {
                 if (!isActive) {
                     return
                 }
 
                 setAccounts(loadedAccounts)
                 setCategories(loadedCategories)
+                setTransfers(loadedTransfers)
                 setResourceState('ready')
             },
             (error: unknown) => {
@@ -424,6 +460,24 @@ export function TransactionsPage() {
         [categories],
     )
 
+    const transferMap = useMemo(
+        () => new Map(
+            transfers.map((transfer) => [transfer.id, transfer]),
+        ),
+        [transfers],
+    )
+
+    const reversedTransferIds = useMemo(
+        () => new Set(
+            transfers.flatMap((transfer) =>
+                transfer.reversalOfTransferId
+                    ? [transfer.reversalOfTransferId]
+                    : [],
+            ),
+        ),
+        [transfers],
+    )
+
     const selectedAccount = accountFilter
         ? accountMap.get(accountFilter)
         : undefined
@@ -434,6 +488,10 @@ export function TransactionsPage() {
         const expenseCounts = new Map<Currency, number>()
 
         transactions.forEach((transaction) => {
+            if (transaction.transferId) {
+                return
+            }
+
             const account = accountMap.get(transaction.accountId)
 
             if (!account) {
@@ -488,10 +546,14 @@ export function TransactionsPage() {
             cashFlow,
             averageSpend,
             incomeCount: transactions.filter(
-                (transaction) => transaction.type === 'INCOME',
+                (transaction) =>
+                    !transaction.transferId
+                    && transaction.type === 'INCOME',
             ).length,
             expenseCount: transactions.filter(
-                (transaction) => transaction.type === 'EXPENSE',
+                (transaction) =>
+                    !transaction.transferId
+                    && transaction.type === 'EXPENSE',
             ).length,
         }
     }, [accountMap, transactions])
@@ -501,7 +563,10 @@ export function TransactionsPage() {
         const grouped = new Map<string, CategorySpending>()
 
         transactions.forEach((transaction) => {
-            if (transaction.type !== 'EXPENSE') {
+            if (
+                transaction.transferId
+                || transaction.type !== 'EXPENSE'
+            ) {
                 return
             }
 
@@ -573,15 +638,16 @@ export function TransactionsPage() {
         const normalizedQuery =
             searchQuery.trim().toLocaleLowerCase()
 
-        return transactions
-            .filter((transaction) =>
-                activityType === 'ALL'
-                || transaction.type === activityType,
-            )
-            .filter((transaction) =>
-                !recurringOnly
-                || Boolean(transaction.recurringTransactionTemplateId),
-            )
+        const filtered = transactions
+            .filter((transaction) => {
+                if (activityType === 'ALL') return true
+                if (activityType === 'TRANSFER') {
+                    return Boolean(transaction.transferId)
+                }
+
+                return !transaction.transferId
+                    && transaction.type === activityType
+            })
             .filter((transaction) => {
                 if (!normalizedQuery) {
                     return true
@@ -591,12 +657,24 @@ export function TransactionsPage() {
                 const category = transaction.categoryId
                     ? categoryMap.get(transaction.categoryId)
                     : undefined
+                const transfer = transaction.transferId
+                    ? transferMap.get(transaction.transferId)
+                    : undefined
+                const source = transfer
+                    ? accountMap.get(transfer.sourceAccountId)
+                    : undefined
+                const destination = transfer
+                    ? accountMap.get(transfer.destinationAccountId)
+                    : undefined
 
                 return [
                     transaction.merchant,
                     transaction.note,
                     account?.name,
                     category?.name,
+                    transfer?.note,
+                    source?.name,
+                    destination?.name,
                 ].some((value) =>
                     value
                         ?.toLocaleLowerCase()
@@ -607,12 +685,22 @@ export function TransactionsPage() {
                 new Date(second.occurredAt).getTime()
                 - new Date(first.occurredAt).getTime(),
             )
+
+        const seenTransfers = new Set<string>()
+
+        return filtered.filter((transaction) => {
+            if (!transaction.transferId) return true
+            if (seenTransfers.has(transaction.transferId)) return false
+
+            seenTransfers.add(transaction.transferId)
+            return true
+        })
     }, [
         accountMap,
         activityType,
         categoryMap,
-        recurringOnly,
         searchQuery,
+        transferMap,
         transactions,
     ])
 
@@ -715,6 +803,52 @@ export function TransactionsPage() {
         })
     }
 
+    const reloadWorkspace = () => {
+        setLoadError('')
+        setResourceState('loading')
+        setTransactionState('loading')
+        setReloadRevision((current) => current + 1)
+    }
+
+    const handleTransferSaved = (savedTransfer: Transfer) => {
+        setTransfers((current) => [
+            savedTransfer,
+            ...current.filter((transfer) => transfer.id !== savedTransfer.id),
+        ])
+        setTransferFormState(null)
+        setNotice({
+            kind: 'success',
+            message: 'Transfer completed.',
+        })
+        reloadWorkspace()
+    }
+
+    const openTransferForm = (restoreFocusTarget: HTMLButtonElement) => {
+        setTransferFormState({
+            restoreFocus: () => restoreFocusTarget.focus(),
+        })
+    }
+
+    const openReverseTransfer = (
+        transfer: Transfer,
+        restoreFocusTarget: HTMLButtonElement,
+    ) => {
+        setReverseTransferState({
+            transfer,
+            restoreFocus: () => restoreFocusTarget.focus(),
+        })
+    }
+
+    const handleTransferReversed = (reversal: Transfer) => {
+        setTransfers((current) => [reversal, ...current])
+        setReverseTransferState(null)
+        setNotice({
+            kind: 'success',
+            message: 'Transfer reversed. Both account balances were restored.',
+        })
+        reloadWorkspace()
+    }
+
     const loadState: LoadState =
         resourceState === 'error'
         || transactionState === 'error'
@@ -727,9 +861,30 @@ export function TransactionsPage() {
     const fallbackCurrency = selectedAccount?.currency
     const dateLabel = formatPeriodLabel(periodRange)
 
+    if (activeView === 'RECURRING') {
+        return (
+            <div className="transactions-workspace">
+                <WorkspaceSidebar
+                    activePage="transactions"
+                    activeAccounts={accounts.filter((account) => !account.closedAt).length}
+                />
+                <main className="transactions-main">
+                    <RecurringTransactionsView
+                        accounts={accounts}
+                        categories={categories}
+                        onHistory={() => setActiveView('HISTORY')}
+                    />
+                </main>
+            </div>
+        )
+    }
+
     return (
         <div className="transactions-workspace">
-            <WorkspaceSidebar activePage="transactions"/>
+            <WorkspaceSidebar
+                activePage="transactions"
+                activeAccounts={accounts.filter((account) => !account.closedAt).length}
+            />
 
             <main className="transactions-main">
                 <header className="transactions-page-header">
@@ -753,6 +908,15 @@ export function TransactionsPage() {
                             {dateLabel}
                         </button>
                         <button
+                            ref={newTransferButtonRef}
+                            className="new-transfer-button"
+                            type="button"
+                            onClick={(event) => openTransferForm(event.currentTarget)}
+                        >
+                            <Icon name="transfer"/>
+                            Transfer
+                        </button>
+                        <button
                             ref={newTransactionButtonRef}
                             className="new-transaction-button"
                             type="button"
@@ -768,6 +932,30 @@ export function TransactionsPage() {
                         </button>
                     </div>
                 </header>
+
+                <div
+                    className="transaction-view-tabs"
+                    role="tablist"
+                    aria-label="Transaction view"
+                >
+                    <button
+                        className="active"
+                        type="button"
+                        role="tab"
+                        aria-selected="true"
+                    >
+                        History
+                    </button>
+                    <button
+                        type="button"
+                        role="tab"
+                        aria-selected="false"
+                        onClick={() => setActiveView('RECURRING')}
+                    >
+                        <Icon name="repeat"/>
+                        Recurring
+                    </button>
+                </div>
 
                 {notice && (
                     <div
@@ -916,7 +1104,7 @@ export function TransactionsPage() {
                                 role="tablist"
                                 aria-label="Transaction type"
                             >
-                                {(['ALL', 'INCOME', 'EXPENSE'] as const)
+                                {(['ALL', 'INCOME', 'EXPENSE', 'TRANSFER'] as const)
                                     .map((type) => (
                                         <button
                                             className={
@@ -934,7 +1122,9 @@ export function TransactionsPage() {
                                                 ? 'All'
                                                 : type === 'INCOME'
                                                     ? 'Income'
-                                                    : 'Expense'}
+                                                    : type === 'EXPENSE'
+                                                        ? 'Expense'
+                                                        : 'Transfers'}
                                         </button>
                                     ))}
                             </div>
@@ -1048,13 +1238,35 @@ export function TransactionsPage() {
                                                     transaction.categoryId,
                                                 )
                                                 : undefined
-                                            const icon: IconName = category
+                                            const transfer = transaction.transferId
+                                                ? transferMap.get(transaction.transferId)
+                                                : undefined
+                                            const sourceAccount = transfer
+                                                ? accountMap.get(transfer.sourceAccountId)
+                                                : undefined
+                                            const destinationAccount = transfer
+                                                ? accountMap.get(transfer.destinationAccountId)
+                                                : undefined
+                                            const isReversal = Boolean(
+                                                transfer?.reversalOfTransferId,
+                                            )
+                                            const isReversed = transfer
+                                                ? reversedTransferIds.has(transfer.id)
+                                                : false
+                                            const transferLabel = transfer
+                                                ? `${sourceAccount?.name ?? 'Unknown account'} → ${destinationAccount?.name ?? 'Unknown account'}`
+                                                : ''
+                                            const icon: IconName = transfer
+                                                ? 'transfer'
+                                                : category
                                                 && isCategoryIcon(category.icon)
                                                 ? category.icon
                                                 : transaction.type === 'INCOME'
                                                     ? 'cash'
                                                     : 'receipt'
-                                            const accent = category?.color
+                                            const accent = transfer
+                                                ? '#6174c9'
+                                                : category?.color
                                                 ?? (transaction.type === 'INCOME'
                                                     ? '#10b981'
                                                     : '#df655e')
@@ -1062,7 +1274,7 @@ export function TransactionsPage() {
                                             return (
                                                 <article
                                                     className="transaction-row"
-                                                    key={transaction.id}
+                                                    key={transfer?.id ?? transaction.id}
                                                     style={accentStyle(accent)}
                                                 >
                                                     <div className="transaction-identity">
@@ -1071,10 +1283,21 @@ export function TransactionsPage() {
                                                         </span>
                                                         <div>
                                                             <strong>
-                                                                {transactionTitle(transaction)}
+                                                                {transfer
+                                                                    ? isReversal
+                                                                        ? `Reversal · ${transferLabel}`
+                                                                        : transferLabel
+                                                                    : transactionTitle(transaction)}
                                                             </strong>
                                                             <small>
-                                                                {transaction.note?.trim()
+                                                                {transfer
+                                                                    ? transfer.note?.trim()
+                                                                        || (isReversal
+                                                                            ? 'Transfer reversal'
+                                                                            : isReversed
+                                                                                ? 'Reversed transfer'
+                                                                                : 'Account transfer')
+                                                                    : transaction.note?.trim()
                                                                     || (transaction.recurringTransactionTemplateId
                                                                         ? 'Recurring transaction'
                                                                         : transaction.type === 'INCOME'
@@ -1082,18 +1305,26 @@ export function TransactionsPage() {
                                                                             : 'Recorded expense')}
                                                             </small>
                                                             <em>
-                                                                {category?.name ?? 'Uncategorized'} · {account?.name ?? 'Unknown account'}
+                                                                {transfer
+                                                                    ? `Transfer · ${transferLabel}`
+                                                                    : `${category?.name ?? 'Uncategorized'} · ${account?.name ?? 'Unknown account'}`}
                                                             </em>
                                                         </div>
                                                     </div>
 
                                                     <div className="transaction-details">
                                                         <span className="transaction-category-cell">
-                                                            {category?.name ?? 'Uncategorized'}
+                                                            {transfer
+                                                                ? isReversal
+                                                                    ? 'Reversal'
+                                                                    : 'Transfer'
+                                                                : category?.name ?? 'Uncategorized'}
                                                         </span>
 
                                                         <span className="transaction-account-cell">
-                                                            {account?.name ?? 'Unknown account'}
+                                                            {transfer
+                                                                ? transferLabel
+                                                                : account?.name ?? 'Unknown account'}
                                                         </span>
 
                                                         <time dateTime={transaction.occurredAt}>
@@ -1110,12 +1341,19 @@ export function TransactionsPage() {
 
                                                         <strong
                                                             className={
-                                                                transaction.type === 'INCOME'
+                                                                transfer
+                                                                    ? 'transaction-amount transfer'
+                                                                    : transaction.type === 'INCOME'
                                                                     ? 'transaction-amount income'
                                                                     : 'transaction-amount expense'
                                                             }
                                                         >
-                                                            {account
+                                                            {transfer
+                                                                ? formatMoney(
+                                                                    transfer.amount,
+                                                                    transfer.currency,
+                                                                )
+                                                                : account
                                                                 ? formatMoney(
                                                                     transaction.type === 'INCOME'
                                                                         ? transaction.amount
@@ -1126,17 +1364,33 @@ export function TransactionsPage() {
                                                                 : transaction.amount}
                                                         </strong>
 
-                                                        <TransactionActionMenu
-                                                            transaction={transaction}
-                                                            onEdit={(
-                                                                transactionToEdit,
-                                                                restoreFocusTarget,
-                                                            ) => openForm(
-                                                                transactionToEdit,
-                                                                restoreFocusTarget,
+                                                        {transfer
+                                                            ? !isReversal && !isReversed
+                                                                ? (
+                                                                    <TransferActionMenu
+                                                                        transfer={transfer}
+                                                                        label={transferLabel}
+                                                                        onReverse={openReverseTransfer}
+                                                                    />
+                                                                )
+                                                                : (
+                                                                    <span className="transfer-state-pill">
+                                                                        {isReversal ? 'Reversal' : 'Reversed'}
+                                                                    </span>
+                                                                )
+                                                            : (
+                                                                <TransactionActionMenu
+                                                                    transaction={transaction}
+                                                                    onEdit={(
+                                                                        transactionToEdit,
+                                                                        restoreFocusTarget,
+                                                                    ) => openForm(
+                                                                        transactionToEdit,
+                                                                        restoreFocusTarget,
+                                                                    )}
+                                                                    onDelete={openDeleteDialog}
+                                                                />
                                                             )}
-                                                            onDelete={openDeleteDialog}
-                                                        />
                                                     </div>
                                                 </article>
                                             )
@@ -1319,11 +1573,7 @@ export function TransactionsPage() {
                         </section>
 
                         <section
-                            className={
-                                recurringOnly
-                                    ? 'recurring-transactions-card active'
-                                    : 'recurring-transactions-card'
-                            }
+                            className="recurring-transactions-card"
                         >
                             <span><Icon name="repeat"/></span>
                             <div>
@@ -1334,12 +1584,9 @@ export function TransactionsPage() {
                             </div>
                             <button
                                 type="button"
-                                disabled={recurringCount === 0}
-                                onClick={() => setRecurringOnly(
-                                    (current) => !current,
-                                )}
+                                onClick={() => setActiveView('RECURRING')}
                             >
-                                {recurringOnly ? 'Show all' : 'View'}
+                                Manage
                             </button>
                         </section>
                     </aside>
@@ -1363,6 +1610,25 @@ export function TransactionsPage() {
                     onCancel={() => setDeleteState(null)}
                     onDeleted={handleDeleted}
                     restoreFocus={deleteState.restoreFocus}
+                />
+            )}
+
+            {transferFormState && (
+                <TransferFormModal
+                    accounts={accounts}
+                    onClose={() => setTransferFormState(null)}
+                    onSaved={handleTransferSaved}
+                    restoreFocus={transferFormState.restoreFocus}
+                />
+            )}
+
+            {reverseTransferState && (
+                <ReverseTransferDialog
+                    accounts={accounts}
+                    transfer={reverseTransferState.transfer}
+                    onClose={() => setReverseTransferState(null)}
+                    onReversed={handleTransferReversed}
+                    restoreFocus={reverseTransferState.restoreFocus}
                 />
             )}
         </div>
