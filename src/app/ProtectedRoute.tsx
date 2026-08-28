@@ -23,7 +23,7 @@ export function ProtectedRoute() {
   if (status === 'unauthenticated') {
     return (
       <Navigate
-        to="/"
+        to="/auth#sign-in"
         replace
         state={{ notice: 'Your session could not be verified. Sign in again.' }}
       />
