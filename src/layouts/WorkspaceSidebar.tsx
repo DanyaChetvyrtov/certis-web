@@ -27,15 +27,12 @@ type WorkspaceSidebarProps = {
         | 'dashboard'
         | 'accounts'
         | 'transactions'
+        | 'budgets'
         | 'categories'
     activeAccounts?: number
 }
 
 const futureNavigation = [
-    {
-        label: 'Budgets',
-        icon: 'gauge' as const,
-    },
     {
         label: 'Goals',
         icon: 'target' as const,
@@ -256,6 +253,23 @@ export function WorkspaceSidebar({
                     >
                         <Icon name="receipt"/>
                         <span>Transactions</span>
+                    </Link>
+
+                    <Link
+                        className={
+                            activePage === 'budgets'
+                                ? 'active'
+                                : undefined
+                        }
+                        to="/budgets"
+                        aria-current={
+                            activePage === 'budgets'
+                                ? 'page'
+                                : undefined
+                        }
+                    >
+                        <Icon name="gauge"/>
+                        <span>Budgets</span>
                     </Link>
 
                     {futureNavigation.map((item) => (
