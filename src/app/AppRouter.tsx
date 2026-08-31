@@ -18,6 +18,12 @@ const DashboardPage = lazy(() =>
     })),
 )
 
+const LandingPage = lazy(() =>
+    import('../features/landing/pages/LandingPage').then((module) => ({
+        default: module.LandingPage,
+    })),
+)
+
 const AccountsPage = lazy(() =>
     import('../features/accounts/pages/AccountsPage').then(
         (module) => ({
@@ -51,9 +57,18 @@ const BudgetsPage = lazy(() =>
 export function AppRouter() {
     return (
         <Routes>
+            <Route
+                path="/"
+                element={
+                    <Suspense fallback={<SessionCheckPage/>}>
+                        <LandingPage/>
+                    </Suspense>
+                }
+            />
+
             <Route element={<PublicRoute/>}>
                 <Route
-                    path="/"
+                    path="/auth"
                     element={<AuthPage/>}
                 />
             </Route>
