@@ -1,4 +1,5 @@
 import type { ReactNode, SVGProps } from 'react'
+import compactCrestUrl from '../assets/certis-crest-compact.webp'
 
 export type IconName =
   | 'alert'
@@ -357,25 +358,12 @@ export function Icon({ name, ...props }: IconProps) {
 export function CertisLogo({ className }: { className?: string }) {
   return (
     <div className={className}>
-      <svg
+      <img
         className="certis-mark"
-        viewBox="0 0 48 48"
-        fill="none"
+        src={compactCrestUrl}
+        alt=""
         aria-hidden="true"
-      >
-        <path
-          d="M24 3.5c4.3 0 15.6 11.3 15.6 15.6S28.3 44.5 24 44.5 8.4 33.2 8.4 28.9 19.7 3.5 24 3.5Z"
-          stroke="currentColor"
-          strokeWidth="2.4"
-        />
-        <circle cx="19" cy="15" r="4.5" fill="#13bf8b" />
-        <path
-          d="M25.5 30.5h8"
-          stroke="#d0a04e"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-      </svg>
+      />
       <span>Certis</span>
     </div>
   )

@@ -22,6 +22,10 @@ describe('LandingPage', () => {
         name: /preview of the certis personal finance dashboard/i,
       }),
     ).toBeInTheDocument()
+    expect(screen.getByText('demo@digital-hustle.ru')).toBeInTheDocument()
+    expect(
+      screen.getAllByText(/Digital Hustle/i).length,
+    ).toBeGreaterThan(0)
 
     const startPlanningLinks = screen.getAllByRole('link', {
       name: /start planning/i,

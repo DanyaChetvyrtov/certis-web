@@ -117,7 +117,7 @@ function BrandPanel() {
           <Icon name="piggy-bank" />
           Build stability. Fund what&apos;s next.
         </p>
-        <small>Certis • Private by design</small>
+        <small>Certis by Digital Hustle • Private by design</small>
       </div>
     </aside>
   )

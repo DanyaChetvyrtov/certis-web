@@ -2,30 +2,33 @@ import { Link } from 'react-router-dom'
 import type { CSSProperties, ReactNode } from 'react'
 import { Icon } from '../../../components/Icons'
 import type { IconName } from '../../../components/Icons'
+import compactCrestUrl from '../../../assets/certis-crest-compact.webp'
+import detailedCrestUrl from '../../../assets/certis-crest-detailed.webp'
 import './LandingPage.css'
 
-function BrandMark({ compact = false }: { compact?: boolean }) {
+type BrandMarkProps = {
+  compact?: boolean
+  detailed?: boolean
+}
+
+function BrandMark({ compact = false, detailed = false }: BrandMarkProps) {
+  const className = [
+    'landing-brand',
+    compact ? 'landing-brand-compact' : '',
+    detailed ? 'landing-brand-detailed' : '',
+  ].filter(Boolean).join(' ')
+
   return (
-    <span className={`landing-brand${compact ? ' landing-brand-compact' : ''}`}>
+    <span className={className}>
       <span className="landing-brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 36 36" fill="none">
-          <path
-            d="M24.8 10.8a10 10 0 1 0 .1 14.3"
-            stroke="currentColor"
-            strokeWidth="4.2"
-            strokeLinecap="round"
-          />
-          <path
-            d="M25 10.8 28.7 8"
-            stroke="#10b981"
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-        </svg>
+        <img
+          src={detailed ? detailedCrestUrl : compactCrestUrl}
+          alt=""
+        />
       </span>
       <span className="landing-brand-copy">
         <strong>Certis</strong>
-        {!compact && <small>Personal finance</small>}
+        {!compact && !detailed && <small>by Digital Hustle</small>}
       </span>
     </span>
   )
@@ -107,7 +110,7 @@ function DashboardPreview() {
             <span>DC</span>
             <div>
               <strong>Danil Chetvyrtov</strong>
-              <small>danil@certis.app</small>
+              <small>demo@digital-hustle.ru</small>
             </div>
           </div>
         </aside>
@@ -364,7 +367,7 @@ export function LandingPage() {
         </nav>
 
         <div className="landing-hero-content" id="top">
-          <div className="hero-mark"><BrandMark compact /></div>
+          <div className="hero-mark"><BrandMark detailed /></div>
           <p className="landing-kicker"><span>Personal finance, made clear</span></p>
           <h1>Your money, with a clear<br />sense of <em>direction.</em></h1>
           <p className="landing-hero-copy">
@@ -383,8 +386,8 @@ export function LandingPage() {
         </div>
       </section>
 
-      <main className="landing-story" id="product">
-        <section className="landing-section-intro">
+      <main className="landing-story">
+        <section className="landing-section-intro" id="product">
           <p>The whole picture</p>
           <h2>A clearer way to manage money.</h2>
           <span>Built around the decisions you make every month — not around financial jargon.</span>
@@ -486,7 +489,10 @@ export function LandingPage() {
         </section>
 
         <footer className="landing-footer">
-          <div><strong>Certis</strong><small>Clarity for every financial decision.</small></div>
+          <div>
+            <strong>Certis</strong>
+            <small>A Digital Hustle product · Clarity for every financial decision.</small>
+          </div>
           <div>
             <a href="#product">Product</a>
             <a href="#security">Privacy</a>

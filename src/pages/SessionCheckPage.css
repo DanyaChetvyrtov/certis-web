@@ -24,7 +24,7 @@
 .session-check-logo .certis-mark {
   width: 42px;
   height: 42px;
-  color: #d7e0eb;
+  object-fit: contain;
 }
 
 .session-check-logo > span {

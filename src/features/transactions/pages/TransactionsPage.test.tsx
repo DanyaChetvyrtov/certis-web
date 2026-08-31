@@ -261,9 +261,15 @@ describe('TransactionsPage', () => {
                 '/api/v1/transactions',
                 async ({request}) => {
                     requestBody = await request.json()
+                    const createdTransaction = requestBody as {
+                        occurredAt: string
+                    }
 
                     return HttpResponse.json(
-                        expenseTransaction,
+                        {
+                            ...expenseTransaction,
+                            occurredAt: createdTransaction.occurredAt,
+                        },
                         {status: 201},
                     )
                 },
