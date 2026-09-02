@@ -6,11 +6,16 @@ import {
     useState,
 } from 'react'
 import {ApiError} from '../../../shared/api/ApiError'
+import type {Currency} from '../../../shared/currency'
 import {
-    getCategories,
+    getCategoryCards,
     restoreCategory,
 } from '../api/categoriesApi'
-import type {Category} from '../api/categoriesApi'
+import type {
+    Category,
+    CategoryCard,
+    CategoryCardSort,
+} from '../api/categoriesApi'
 
 export type CategoryLoadState =
     | 'loading'
@@ -36,9 +41,32 @@ const categoryRestoreErrorMessage = (
         ? error.message
         : 'We could not restore this category. Please try again.'
 
-export function useCategories() {
+const currentMonth = (): string => {
+    const today = new Date()
+    const month = String(today.getMonth() + 1).padStart(2, '0')
+
+    return `${today.getFullYear()}-${month}`
+}
+
+const emptyCategoryCard = (category: Category): CategoryCard => ({
+    ...category,
+    monthlyTransactionCount: 0,
+    monthlyAmount: 0,
+    monthlySharePercentage: 0,
+})
+
+export function useCategories(initialCurrency: Currency) {
     const [categories, setCategories] =
-        useState<Category[]>([])
+        useState<CategoryCard[]>([])
+    const [month] = useState(currentMonth)
+    const [currency, setCurrency] =
+        useState<Currency>(initialCurrency)
+    const [sort, setSort] =
+        useState<CategoryCardSort>('AMOUNT_DESC')
+    const [page, setPage] = useState(0)
+    const [pageSize, setPageSize] = useState(20)
+    const [totalElements, setTotalElements] = useState(0)
+    const [totalPages, setTotalPages] = useState(0)
     const [loadState, setLoadState] =
         useState<CategoryLoadState>('loading')
     const [loadError, setLoadError] = useState('')
@@ -55,13 +83,23 @@ export function useCategories() {
         setLoadError('')
 
         try {
-            const loadedCategories = await getCategories()
+            const response = await getCategoryCards({
+                month,
+                currency,
+                page,
+                size: pageSize,
+                sort,
+            })
 
             if (requestId !== loadRequestIdRef.current) {
                 return
             }
 
-            setCategories(loadedCategories)
+            setCategories(response.categories)
+            setPage(response.page)
+            setPageSize(response.size)
+            setTotalElements(response.totalElements)
+            setTotalPages(response.totalPages)
             setLoadState('ready')
         } catch (error) {
             if (requestId !== loadRequestIdRef.current) {
@@ -71,34 +109,22 @@ export function useCategories() {
             setLoadError(categoryLoadErrorMessage(error))
             setLoadState('error')
         }
-    }, [])
+    }, [currency, month, page, pageSize, sort])
 
     useEffect(() => {
-        const requestId = ++loadRequestIdRef.current
+        let isActive = true
 
-        void getCategories().then(
-            (loadedCategories) => {
-                if (requestId !== loadRequestIdRef.current) {
-                    return
-                }
-
-                setCategories(loadedCategories)
-                setLoadState('ready')
-            },
-            (error: unknown) => {
-                if (requestId !== loadRequestIdRef.current) {
-                    return
-                }
-
-                setLoadError(categoryLoadErrorMessage(error))
-                setLoadState('error')
-            },
-        )
+        queueMicrotask(() => {
+            if (isActive) {
+                void loadCategories()
+            }
+        })
 
         return () => {
+            isActive = false
             loadRequestIdRef.current += 1
         }
-    }, [])
+    }, [loadCategories])
 
     useEffect(() => {
         if (!notice) {
@@ -136,11 +162,18 @@ export function useCategories() {
             isEditing
                 ? current.map((category) =>
                     category.id === savedCategory.id
-                        ? savedCategory
+                        ? {
+                            ...category,
+                            ...savedCategory,
+                        }
                         : category,
                 )
-                : [savedCategory, ...current],
+                : [emptyCategoryCard(savedCategory), ...current],
         )
+        if (!isEditing) {
+            setTotalElements((current) => current + 1)
+            setTotalPages(Math.ceil((totalElements + 1) / pageSize))
+        }
         setLoadError('')
         setLoadState('ready')
         setNotice({
@@ -149,6 +182,16 @@ export function useCategories() {
                 ? 'Category updated.'
                 : 'Category created.',
         })
+    }, [pageSize, totalElements])
+
+    const changeCurrency = useCallback((nextCurrency: Currency) => {
+        setPage(0)
+        setCurrency(nextCurrency)
+    }, [])
+
+    const changeSort = useCallback((nextSort: CategoryCardSort) => {
+        setPage(0)
+        setSort(nextSort)
     }, [])
 
     const markCategoryArchived = useCallback((
@@ -205,13 +248,23 @@ export function useCategories() {
     return {
         activeCategories,
         archivedCategories,
+        changeCurrency,
+        changeSort,
+        currency,
         loadCategories,
         loadError,
         loadState,
         markCategoryArchived,
+        month,
         notice,
+        page,
+        pageSize,
         restoringCategoryId,
         restoreArchivedCategory,
         saveCategory,
+        setPage,
+        sort,
+        totalElements,
+        totalPages,
     }
 }

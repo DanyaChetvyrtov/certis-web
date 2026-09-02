@@ -9,10 +9,12 @@ import {
 } from 'vitest'
 import {server} from '../../../test/server'
 import {
+    assignTransactionCategories,
     createTransaction,
     deleteTransaction,
     getAllTransactions,
     getTransactions,
+    getUncategorizedTransactions,
     updateTransaction,
 } from './transactionsApi'
 
@@ -111,6 +113,89 @@ describe('transactionsApi', () => {
             'transaction-2',
         ])
         expect(requestedPages.sort()).toEqual(['0', '1', '2'])
+    })
+
+    it('loads uncategorized transactions using the assignment query contract', async () => {
+        const response = {
+            month: '2026-09',
+            currency: 'EUR',
+            type: 'EXPENSE',
+            items: [{
+                id: transaction.id,
+                merchant: transaction.merchant,
+                note: transaction.note,
+                amount: transaction.amount,
+                occurredAt: transaction.occurredAt,
+                account: {
+                    id: 'account-id',
+                    name: 'Daily card',
+                    type: 'CARD',
+                },
+            }],
+            page: 1,
+            size: 20,
+            totalElements: 21,
+            totalPages: 2,
+        }
+
+        server.use(
+            http.get('/api/v1/transactions/uncategorized', ({request}) => {
+                expect(
+                    Object.fromEntries(
+                        new URL(request.url).searchParams,
+                    ),
+                ).toEqual({
+                    month: '2026-09',
+                    currency: 'EUR',
+                    type: 'EXPENSE',
+                    page: '1',
+                    size: '20',
+                    accountId: 'account-id',
+                    search: 'coffee',
+                })
+
+                return HttpResponse.json(response)
+            }),
+        )
+
+        await expect(getUncategorizedTransactions({
+            month: '2026-09',
+            currency: 'EUR',
+            type: 'EXPENSE',
+            accountId: 'account-id',
+            search: 'coffee',
+            page: 1,
+        })).resolves.toEqual(response)
+    })
+
+    it('assigns categories to multiple transactions atomically', async () => {
+        const assignments = [
+            {
+                transactionId: 'transaction-one',
+                categoryId: 'food',
+            },
+            {
+                transactionId: 'transaction-two',
+                categoryId: 'transport',
+            },
+        ]
+
+        server.use(
+            http.patch(
+                '/api/v1/transactions/category-assignments',
+                async ({request}) => {
+                    await expect(request.json()).resolves.toEqual({
+                        assignments,
+                    })
+
+                    return new HttpResponse(null, {status: 204})
+                },
+            ),
+        )
+
+        await expect(
+            assignTransactionCategories(assignments),
+        ).resolves.toBeUndefined()
     })
 
     it('creates and updates transactions using the same request shape', async () => {

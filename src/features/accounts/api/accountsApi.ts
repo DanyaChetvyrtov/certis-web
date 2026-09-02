@@ -1,11 +1,13 @@
 import { apiRequest } from '../../../shared/api/client'
+import {currencies} from '../../../shared/currency'
+import type {Currency} from '../../../shared/currency'
 
 export const accountTypes = ['CASH', 'BANK', 'CARD', 'INVESTMENT'] as const
-export const currencies = ['RUB', 'EUR', 'USD'] as const
+export {currencies}
+export type {Currency}
 
 export type AccountType = (typeof accountTypes)[number]
-export type AccountCurrency = (typeof currencies)[number]
-export type Currency = AccountCurrency
+export type AccountCurrency = Currency
 
 export type Account = {
   id: string

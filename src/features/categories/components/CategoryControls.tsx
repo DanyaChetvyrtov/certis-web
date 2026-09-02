@@ -1,6 +1,14 @@
 import type {RefObject} from 'react'
 import {Icon} from '../../../components/Icons'
-import type {CategoryType} from '../api/categoriesApi'
+import {
+    currencies,
+    currencyLabels,
+} from '../../../shared/currency'
+import type {Currency} from '../../../shared/currency'
+import type {
+    CategoryCardSort,
+    CategoryType,
+} from '../api/categoriesApi'
 
 export type CategoryStatus =
     | 'ACTIVE'
@@ -14,10 +22,14 @@ type CategoryControlsProps = {
     archivedCount: number
     archivedStatusRef: RefObject<HTMLButtonElement | null>
     categoryCounts: CategoryCounts
+    currency: Currency
     searchQuery: string
+    selectedSort: CategoryCardSort
     selectedStatus: CategoryStatus
     selectedType: CategoryType
+    onCurrencyChange: (currency: Currency) => void
     onSearchQueryChange: (searchQuery: string) => void
+    onSortChange: (sort: CategoryCardSort) => void
     onStatusChange: (status: CategoryStatus) => void
     onTypeChange: (type: CategoryType) => void
 }
@@ -28,10 +40,14 @@ export function CategoryControls({
     archivedCount,
     archivedStatusRef,
     categoryCounts,
+    currency,
     searchQuery,
+    selectedSort,
     selectedStatus,
     selectedType,
+    onCurrencyChange,
     onSearchQueryChange,
+    onSortChange,
     onStatusChange,
     onTypeChange,
 }: CategoryControlsProps) {
@@ -42,6 +58,7 @@ export function CategoryControls({
                     <h2>Your categories</h2>
                     <p>
                         Keep transactions consistent with a reusable set.
+                        {' '}Counts reflect the current page.
                     </p>
                 </div>
 
@@ -118,24 +135,62 @@ export function CategoryControls({
                     </button>
                 </div>
 
-                <label className="category-search-field">
-                    <Icon name="search"/>
-                    <span className="sr-only">
-                        Search categories
-                    </span>
-                    <input
-                        type="search"
-                        placeholder={
-                            selectedStatus === 'ACTIVE'
-                                ? 'Search categories'
-                                : 'Search archived categories'
-                        }
-                        value={searchQuery}
-                        onChange={(event) =>
-                            onSearchQueryChange(event.target.value)
-                        }
-                    />
-                </label>
+                <div className="category-toolbar-actions">
+                    <label className="category-currency-field">
+                        <span>Currency</span>
+                        <select
+                            aria-label="Statistics currency"
+                            value={currency}
+                            onChange={(event) =>
+                                onCurrencyChange(
+                                    event.target.value as Currency,
+                                )
+                            }
+                        >
+                            {currencies.map((item) => (
+                                <option value={item} key={item}>
+                                    {item} · {currencyLabels[item]}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+
+                    <label className="category-search-field">
+                        <Icon name="search"/>
+                        <span className="sr-only">
+                            Search categories
+                        </span>
+                        <input
+                            type="search"
+                            placeholder={
+                                selectedStatus === 'ACTIVE'
+                                    ? 'Search categories'
+                                    : 'Search archived categories'
+                            }
+                            value={searchQuery}
+                            onChange={(event) =>
+                                onSearchQueryChange(event.target.value)
+                            }
+                        />
+                    </label>
+
+                    <label className="category-sort-field">
+                        <span className="sr-only">Sort categories</span>
+                        <select
+                            aria-label="Sort categories"
+                            value={selectedSort}
+                            onChange={(event) =>
+                                onSortChange(
+                                    event.target.value as CategoryCardSort,
+                                )
+                            }
+                        >
+                            <option value="AMOUNT_DESC">Most spent</option>
+                            <option value="AMOUNT_ASC">Least spent</option>
+                            <option value="NAME">Name</option>
+                        </select>
+                    </label>
+                </div>
             </div>
         </>
     )

@@ -5,6 +5,7 @@ import {
 } from 'react'
 import {Icon} from '../../../components/Icons'
 import {WorkspaceSidebar} from '../../../layouts/WorkspaceSidebar'
+import {useSession} from '../../auth/session/SessionContext'
 import type {
     Category,
     CategoryType,
@@ -12,21 +13,35 @@ import type {
 import {
     CategoryArchiveDialog,
 } from '../components/CategoryArchiveDialog'
+import {
+    CategoryAnalyticsPanels,
+} from '../components/CategoryAnalyticsPanels'
 import {CategoryCard} from '../components/CategoryCard'
+import {
+    CategoryPagination,
+} from '../components/CategoryPagination'
 import {
     CategoryControls,
 } from '../components/CategoryControls'
-import type {
-    CategoryStatus,
-} from '../components/CategoryControls'
+import type {CategoryStatus} from '../components/CategoryControls'
 import {
     CategoryFormModal,
 } from '../components/CategoryFormModal'
+import {
+    UncategorizedTransactionsModal,
+} from '../components/UncategorizedTransactionsModal'
 import {useCategories} from '../hooks/useCategories'
+import {
+    useCategoryAnalytics,
+} from '../hooks/useCategoryAnalytics'
 import './CategoriesPage.css'
 
 type ArchiveDialogState = {
     category: Category
+    restoreFocus: () => void
+}
+
+type UncategorizedModalState = {
     restoreFocus: () => void
 }
 
@@ -36,18 +51,29 @@ const categoryTypeLabel: Record<CategoryType, string> = {
 }
 
 export function CategoriesPage() {
+    const {profile} = useSession()
     const {
         activeCategories,
         archivedCategories,
+        changeCurrency,
+        changeSort,
+        currency,
         loadCategories,
         loadError,
         loadState,
         markCategoryArchived,
+        month,
         notice,
+        page,
+        pageSize,
         restoringCategoryId,
         restoreArchivedCategory,
         saveCategory,
-    } = useCategories()
+        setPage,
+        sort,
+        totalElements,
+        totalPages,
+    } = useCategories(profile?.preferredCurrency ?? 'RUB')
     const [selectedType, setSelectedType] =
         useState<CategoryType>('EXPENSE')
     const [selectedStatus, setSelectedStatus] =
@@ -58,9 +84,17 @@ export function CategoriesPage() {
         useState<Category | null>(null)
     const [archiveDialog, setArchiveDialog] =
         useState<ArchiveDialogState | null>(null)
+    const [uncategorizedModal, setUncategorizedModal] =
+        useState<UncategorizedModalState | null>(null)
     const restoreFocusRef = useRef<HTMLElement | null>(null)
     const activeStatusRef = useRef<HTMLButtonElement>(null)
     const archivedStatusRef = useRef<HTMLButtonElement>(null)
+    const {
+        analytics,
+        loadAnalytics,
+        loadError: analyticsLoadError,
+        loadState: analyticsLoadState,
+    } = useCategoryAnalytics(month, currency, selectedType)
 
     const statusCategories =
         selectedStatus === 'ACTIVE'
@@ -92,9 +126,6 @@ export function CategoriesPage() {
                         .toLocaleLowerCase()
                         .includes(normalizedQuery)
                 ),
-            )
-            .sort((first, second) =>
-                first.name.localeCompare(second.name),
             )
     }, [
         searchQuery,
@@ -130,6 +161,7 @@ export function CategoriesPage() {
         const isEditing = Boolean(editingCategory)
 
         saveCategory(savedCategory, isEditing)
+        void loadAnalytics()
         setSelectedType(savedCategory.type)
         setSelectedStatus('ACTIVE')
 
@@ -161,6 +193,7 @@ export function CategoriesPage() {
         archivedCategory: Category,
     ) => {
         markCategoryArchived(archivedCategory)
+        void loadAnalytics()
         setArchiveDialog(null)
     }
 
@@ -171,25 +204,48 @@ export function CategoriesPage() {
             await restoreArchivedCategory(category)
 
         if (wasRestored) {
+            void loadAnalytics()
             window.requestAnimationFrame(
                 () => activeStatusRef.current?.focus(),
             )
         }
     }
 
+    const openUncategorizedTransactions = (
+        restoreFocusTarget: HTMLButtonElement,
+    ) => {
+        setUncategorizedModal({
+            restoreFocus: () => {
+                if (restoreFocusTarget.isConnected) {
+                    restoreFocusTarget.focus()
+                }
+            },
+        })
+    }
+
+    const handleTransactionsAssigned = async () => {
+        await Promise.all([
+            loadCategories(),
+            loadAnalytics(),
+        ])
+    }
+
     const activeTypeCopy =
         categoryTypeLabel[selectedType].toLocaleLowerCase()
     const isStatusEmpty = statusCategories.length === 0
+    const hasNoCategories = totalElements === 0
     const emptyStateTitle = isStatusEmpty
-        ? selectedStatus === 'ACTIVE'
+        ? hasNoCategories && selectedStatus === 'ACTIVE'
             ? 'Create your first category'
-            : 'No archived categories'
+            : selectedStatus === 'ACTIVE'
+                ? 'No active categories on this page'
+                : 'No archived categories on this page'
         : `No ${activeTypeCopy} categories found`
     const emptyStateDescription = isStatusEmpty
-        ? selectedStatus === 'ACTIVE'
+        ? hasNoCategories && selectedStatus === 'ACTIVE'
             ? 'Add a reusable label for your transactions and budgets.'
-            : 'Categories you archive will stay available here for restoration.'
-        : 'Try changing the category type or search query.'
+            : 'Try another page or change the category status.'
+        : 'Try changing the category type or search query on this page.'
 
     return (
         <div className="categories-workspace">
@@ -240,10 +296,14 @@ export function CategoriesPage() {
                         archivedCount={archivedCategories.length}
                         archivedStatusRef={archivedStatusRef}
                         categoryCounts={categoryCounts}
+                        currency={currency}
                         searchQuery={searchQuery}
+                        selectedSort={sort}
                         selectedStatus={selectedStatus}
                         selectedType={selectedType}
+                        onCurrencyChange={changeCurrency}
                         onSearchQueryChange={setSearchQuery}
+                        onSortChange={changeSort}
                         onStatusChange={setSelectedStatus}
                         onTypeChange={setSelectedType}
                     />
@@ -327,6 +387,7 @@ export function CategoriesPage() {
                                     {visibleCategories.map((category) => (
                                         <CategoryCard
                                             category={category}
+                                            currency={currency}
                                             isRestoring={
                                                 restoringCategoryId === category.id
                                             }
@@ -345,32 +406,35 @@ export function CategoriesPage() {
                             )}
                     </div>
 
-                    {loadState === 'ready'
+                    {loadState === 'ready' && (
+                        <CategoryPagination
+                            page={page}
+                            pageSize={pageSize}
+                            totalElements={totalElements}
+                            totalPages={totalPages}
+                            onPageChange={setPage}
+                        />
+                    )}
+
+                </section>
+
+                <CategoryAnalyticsPanels
+                    analytics={analytics}
+                    currency={currency}
+                    loadError={analyticsLoadError}
+                    loadState={analyticsLoadState}
+                    selectedType={selectedType}
+                    showCreateCategory={
+                        loadState === 'ready'
                         && selectedStatus === 'ACTIVE'
                         && activeCategories.length > 0
-                        && (
-                            <footer className="categories-card-footer">
-                                <div>
-                                    <span><Icon name="tag"/></span>
-                                    <div>
-                                        <strong>Need another category?</strong>
-                                        <p>
-                                            Create only what you actually use — the list stays easy to scan.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <button
-                                    type="button"
-                                    onClick={(event) =>
-                                        openCategoryForm(event.currentTarget)
-                                    }
-                                >
-                                    Add category
-                                </button>
-                            </footer>
-                        )}
-                </section>
+                    }
+                    onAddCategory={openCategoryForm}
+                    onReviewUncategorized={
+                        openUncategorizedTransactions
+                    }
+                    onRetry={() => void loadAnalytics()}
+                />
             </main>
 
             {isFormOpen && (
@@ -390,6 +454,18 @@ export function CategoriesPage() {
                     onCancel={() => setArchiveDialog(null)}
                     onArchived={handleCategoryArchived}
                     restoreFocus={archiveDialog.restoreFocus}
+                />
+            )}
+
+            {uncategorizedModal && analytics && (
+                <UncategorizedTransactionsModal
+                    analytics={analytics}
+                    currency={currency}
+                    month={month}
+                    type={selectedType}
+                    onAssigned={handleTransactionsAssigned}
+                    onClose={() => setUncategorizedModal(null)}
+                    restoreFocus={uncategorizedModal.restoreFocus}
                 />
             )}
         </div>

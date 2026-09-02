@@ -24,8 +24,9 @@ import type {
     Account,
     Currency,
 } from '../../accounts/api/accountsApi'
+import {useSession} from '../../auth/session/SessionContext'
 import {
-    getCategories,
+    getAllCategoryCards,
     isCategoryIcon,
 } from '../../categories/api/categoriesApi'
 import type {
@@ -123,6 +124,12 @@ const periodLabels: Record<PeriodPreset, string> = {
     THIS_MONTH: 'This month',
     LAST_30_DAYS: 'Last 30 days',
     ALL_TIME: 'All time',
+}
+
+const toYearMonth = (date: Date): string => {
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+
+    return `${date.getFullYear()}-${month}`
 }
 
 const startOfLocalDay = (
@@ -323,6 +330,8 @@ const addAmount = (
 }
 
 export function TransactionsPage() {
+    const {profile} = useSession()
+    const preferredCurrency = profile?.preferredCurrency ?? 'RUB'
     const [transactions, setTransactions] =
         useState<Transaction[]>([])
     const [transfers, setTransfers] = useState<Transfer[]>([])
@@ -367,7 +376,11 @@ export function TransactionsPage() {
 
         void Promise.all([
             getAccounts(),
-            getCategories(),
+            getAllCategoryCards({
+                month: toYearMonth(anchorDate),
+                currency: preferredCurrency,
+                sort: 'NAME',
+            }),
             getTransfers(),
         ]).then(
             ([loadedAccounts, loadedCategories, loadedTransfers]) => {
@@ -393,7 +406,7 @@ export function TransactionsPage() {
         return () => {
             isActive = false
         }
-    }, [reloadRevision])
+    }, [anchorDate, preferredCurrency, reloadRevision])
 
     useEffect(() => {
         let isActive = true

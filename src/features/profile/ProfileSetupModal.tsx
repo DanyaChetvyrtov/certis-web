@@ -6,6 +6,11 @@ import {
 import type {FormEvent} from 'react'
 import {Icon} from '../../components/Icons'
 import {ApiError} from '../../shared/api/ApiError'
+import {
+    currencies,
+    currencyLabels,
+} from '../../shared/currency'
+import type {Currency} from '../../shared/currency'
 import {createProfile} from './api/profileApi'
 import type {Profile} from './api/profileApi'
 import {
@@ -127,6 +132,8 @@ export function ProfileSetupModal({
             ...EMPTY_PROFILE_FORM,
         })
     const [errors, setErrors] = useState<ProfileFieldErrors>({})
+    const [preferredCurrency, setPreferredCurrency] =
+        useState<Currency | ''>('')
     const [notice, setNotice] = useState<string | null>(null)
     const [isSubmitting, setSubmitting] = useState(false)
     const [isSigningOut, setSigningOut] = useState(false)
@@ -184,12 +191,14 @@ export function ProfileSetupModal({
         setNotice(null)
 
         try {
-            const profile =
-                await createProfile(
-                    normalizeProfileForm(
-                        values,
-                    ),
-                )
+            const profileRequest = {
+                ...normalizeProfileForm(values),
+                ...(preferredCurrency
+                    ? {preferredCurrency}
+                    : {}),
+            }
+
+            const profile = await createProfile(profileRequest)
 
             onComplete(profile)
         } catch (error) {
@@ -296,6 +305,41 @@ export function ProfileSetupModal({
                         max={getLatestBirthDate()}
                         disabled={isBusy}
                     />
+
+                    <div className="profile-field">
+                        <label htmlFor="profile-preferred-currency">
+                            Preferred currency
+                        </label>
+
+                        <div className="profile-input-shell profile-select-shell">
+                            <Icon name="wallet"/>
+                            <select
+                                id="profile-preferred-currency"
+                                name="preferredCurrency"
+                                value={preferredCurrency}
+                                disabled={isBusy}
+                                onChange={(event) => {
+                                    setPreferredCurrency(
+                                        event.target.value as Currency | '',
+                                    )
+                                    setNotice(null)
+                                }}
+                            >
+                                <option value="">
+                                    Use server default (RUB)
+                                </option>
+                                {currencies.map((currency) => (
+                                    <option value={currency} key={currency}>
+                                        {currencyLabels[currency]} · {currency}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <small className="profile-field-hint">
+                            Used as the initial currency for financial summaries.
+                        </small>
+                    </div>
 
                     {notice && (
                         <div className="profile-form-notice" role="alert">

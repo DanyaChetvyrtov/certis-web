@@ -23,6 +23,7 @@ const profile = {
     name: 'Daniel',
     surname: 'Carter',
     dateOfBirth: '2000-01-01',
+    preferredCurrency: 'RUB' as const,
     photoUrl:
         'http://localhost:8080/api/v1/profiles/profile-id/photo',
 }
@@ -94,6 +95,10 @@ describe('profileApi', () => {
 
     it('returns the profile created by onboarding', async () => {
         let receivedBody: unknown
+        const createdProfile = {
+            ...profile,
+            preferredCurrency: 'EUR' as const,
+        }
 
         server.use(
             http.post(
@@ -103,7 +108,7 @@ describe('profileApi', () => {
                         await request.json()
 
                     return HttpResponse.json(
-                        profile,
+                        createdProfile,
                         {
                             status: 201,
                         },
@@ -118,14 +123,42 @@ describe('profileApi', () => {
                 surname: profile.surname,
                 dateOfBirth:
                 profile.dateOfBirth,
+                preferredCurrency: 'EUR',
             }),
-        ).resolves.toEqual(profile)
+        ).resolves.toEqual(createdProfile)
 
         expect(receivedBody).toEqual({
             name: profile.name,
             surname: profile.surname,
             dateOfBirth:
             profile.dateOfBirth,
+            preferredCurrency: 'EUR',
+        })
+    })
+
+    it('omits the optional preferred currency when none is selected', async () => {
+        let receivedBody: unknown
+
+        server.use(
+            http.post(
+                '/api/v1/profiles',
+                async ({request}) => {
+                    receivedBody = await request.json()
+                    return HttpResponse.json(profile, {status: 201})
+                },
+            ),
+        )
+
+        await createProfile({
+            name: profile.name,
+            surname: profile.surname,
+            dateOfBirth: profile.dateOfBirth,
+        })
+
+        expect(receivedBody).toEqual({
+            name: profile.name,
+            surname: profile.surname,
+            dateOfBirth: profile.dateOfBirth,
         })
     })
 

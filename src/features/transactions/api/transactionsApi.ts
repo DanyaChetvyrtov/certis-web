@@ -1,4 +1,5 @@
 import {apiRequest} from '../../../shared/api/client'
+import type {Currency} from '../../../shared/currency'
 
 export const transactionTypes = [
     'EXPENSE',
@@ -52,8 +53,53 @@ export type TransactionPage = {
     totalPages: number
 }
 
+export type UncategorizedTransactionAccount = {
+    id: string
+    name: string
+    type: 'CASH' | 'BANK' | 'CARD' | 'INVESTMENT'
+}
+
+export type UncategorizedTransaction = {
+    id: string
+    merchant?: string | null
+    note?: string | null
+    amount: number
+    occurredAt: string
+    account: UncategorizedTransactionAccount
+}
+
+export type UncategorizedTransactionsRequest = {
+    month: string
+    currency: Currency
+    type: TransactionType
+    accountId?: string
+    search?: string
+    page?: number
+    size?: number
+}
+
+export type UncategorizedTransactionsResponse = {
+    month: string
+    currency: Currency
+    type: TransactionType
+    items: UncategorizedTransaction[]
+    page: number
+    size: number
+    totalElements: number
+    totalPages: number
+}
+
+export type TransactionCategoryAssignment = {
+    transactionId: string
+    categoryId: string
+}
+
 const TRANSACTIONS_PATH = '/api/v1/transactions'
 const MAX_PAGE_SIZE = 100
+const UNCATEGORIZED_TRANSACTIONS_PATH =
+    `${TRANSACTIONS_PATH}/uncategorized`
+const CATEGORY_ASSIGNMENTS_PATH =
+    `${TRANSACTIONS_PATH}/category-assignments`
 
 const transactionPath = (
     transactionId: string,
@@ -101,6 +147,39 @@ export const getTransactions = (
             fallbackMessage: 'We could not load your transactions. Please try again.',
         },
     )
+
+export const getUncategorizedTransactions = (
+    request: UncategorizedTransactionsRequest,
+    signal?: AbortSignal,
+) => {
+    const query = new URLSearchParams({
+        month: request.month,
+        currency: request.currency,
+        type: request.type,
+        page: String(request.page ?? 0),
+        size: String(request.size ?? 20),
+    })
+
+    addQueryParameter(query, 'accountId', request.accountId)
+    addQueryParameter(query, 'search', request.search)
+
+    return apiRequest<UncategorizedTransactionsResponse>(
+        `${UNCATEGORIZED_TRANSACTIONS_PATH}?${query}`,
+        {
+            signal,
+            fallbackMessage: 'We could not load uncategorized transactions. Please try again.',
+        },
+    )
+}
+
+export const assignTransactionCategories = (
+    assignments: TransactionCategoryAssignment[],
+) =>
+    apiRequest<void>(CATEGORY_ASSIGNMENTS_PATH, {
+        method: 'PATCH',
+        body: {assignments},
+        fallbackMessage: 'We could not assign the selected categories. Please try again.',
+    })
 
 export const getAllTransactions = async (
     filters: Omit<TransactionFilters, 'page' | 'size'> = {},
