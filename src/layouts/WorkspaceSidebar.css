@@ -31,7 +31,7 @@
 .workspace-logo .certis-mark {
     width: 39px;
     height: 39px;
-    color: #d7e0eb;
+    object-fit: contain;
 }
 
 .workspace-logo > span {
