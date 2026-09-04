@@ -160,6 +160,22 @@
   font-size: 14px;
 }
 
+.profile-select-shell select {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: #15283f;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+}
+
+.profile-select-shell select:disabled {
+  cursor: wait;
+}
+
 .profile-input-shell input::placeholder {
   color: #a7b1bf;
 }
@@ -172,6 +188,14 @@
   display: block;
   margin-top: 6px;
   color: #b54141;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.profile-field-hint {
+  display: block;
+  margin-top: 6px;
+  color: #79879a;
   font-size: 11px;
   line-height: 1.4;
 }

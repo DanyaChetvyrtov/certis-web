@@ -1,5 +1,6 @@
 import {ApiError} from '../../../shared/api/ApiError'
 import {apiRequest} from '../../../shared/api/client'
+import type {Currency} from '../../../shared/currency'
 
 export type ProfileRequest = {
     name: string
@@ -7,11 +8,17 @@ export type ProfileRequest = {
     dateOfBirth: string
 }
 
-export type CreateProfileRequest = ProfileRequest
-export type UpdateProfileRequest = ProfileRequest
+export type CreateProfileRequest = ProfileRequest & {
+    preferredCurrency?: Currency
+}
+
+export type UpdateProfileRequest = ProfileRequest & {
+    preferredCurrency?: Currency
+}
 
 export type Profile = ProfileRequest & {
     id: string
+    preferredCurrency: Currency
     photoUrl?: string
 }
 

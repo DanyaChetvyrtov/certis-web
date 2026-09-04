@@ -2,7 +2,8 @@ import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import {Icon} from '../../../components/Icons'
 import type {IconName} from '../../../components/Icons'
 import {WorkspaceSidebar} from '../../../layouts/WorkspaceSidebar'
-import {getCategories, isCategoryIcon} from '../../categories/api/categoriesApi'
+import {useSession} from '../../auth/session/SessionContext'
+import {getAllCategoryCards, isCategoryIcon} from '../../categories/api/categoriesApi'
 import type {Category} from '../../categories/api/categoriesApi'
 import type {Budget, BudgetAllocation, BudgetCategoryType, BudgetOptimization} from '../api/budgetsApi'
 import {applyOptimization, dismissOptimization, generateOptimization, getBudget, getLatestOptimization} from '../api/budgetsApi'
@@ -30,6 +31,8 @@ function AllocationRow({item, currency}: {item: BudgetAllocation; currency: stri
 }
 
 export function BudgetsPage() {
+    const {profile} = useSession()
+    const preferredCurrency = profile?.preferredCurrency ?? 'RUB'
     const [month, setMonth] = useState(todayMonth)
     const [budget, setBudget] = useState<Budget | null>(null)
     const [categories, setCategories] = useState<Category[]>([])
@@ -45,7 +48,11 @@ export function BudgetsPage() {
         try {
             const [loadedBudget, loadedCategories] = await Promise.all([
                 getBudget(month, signal),
-                getCategories(),
+                getAllCategoryCards({
+                    month,
+                    currency: preferredCurrency,
+                    sort: 'NAME',
+                }, signal),
             ])
             setBudget(loadedBudget)
             setCategories(loadedCategories)
@@ -56,7 +63,7 @@ export function BudgetsPage() {
             setError(caught instanceof Error ? caught.message : 'We could not load your budget.')
             setStatus('error')
         }
-    }, [month])
+    }, [month, preferredCurrency])
 
     useEffect(() => {
         const controller = new AbortController()

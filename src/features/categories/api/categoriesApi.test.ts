@@ -11,8 +11,11 @@ import {server} from '../../../test/server'
 import {
     archiveCategory,
     createCategory,
-    getCategories,
+    getAllCategoryCards,
+    getCategoryAnalytics,
+    getCategoryCards,
     getCategory,
+    getCategoryOptions,
     restoreCategory,
     updateCategory,
 } from './categoriesApi'
@@ -24,18 +27,182 @@ const category = {
     icon: 'shopping-cart',
     color: '#E6655A',
     archivedAt: null,
+    monthlyTransactionCount: 11,
+    monthlyAmount: 40470,
+    monthlySharePercentage: 32,
+}
+
+const categoryCards = {
+    month: '2026-09',
+    currency: 'RUB',
+    categories: [category],
+    page: 1,
+    size: 10,
+    totalElements: 11,
+    totalPages: 2,
+}
+
+const categoryAnalytics = {
+    month: '2026-09',
+    currency: 'RUB',
+    type: 'EXPENSE',
+    totalTransactionCount: 4,
+    categorizedTransactionCount: 3,
+    uncategorizedTransactionCount: 1,
+    totalSum: 200,
+    categorizedSum: 150,
+    uncategorizedSum: 50,
+    coveragePercentage: 75,
+    topExpenseCategories: [{
+        categoryId: category.id,
+        name: category.name,
+        color: category.color,
+        amount: 100,
+        sharePercentage: 50,
+    }],
 }
 
 describe('categoriesApi', () => {
-    it('loads all categories for the authenticated user', async () => {
+    it('loads category cards for the requested month', async () => {
         server.use(
             http.get(
                 '/api/v1/categories',
-                () => HttpResponse.json([category]),
+                ({request}) => {
+                    expect(
+                        Object.fromEntries(
+                            new URL(request.url).searchParams,
+                        ),
+                    ).toEqual({
+                        month: '2026-09',
+                        currency: 'EUR',
+                        page: '1',
+                        size: '10',
+                        sort: 'AMOUNT_ASC',
+                    })
+
+                    return HttpResponse.json(categoryCards)
+                },
             ),
         )
 
-        await expect(getCategories()).resolves.toEqual([category])
+        await expect(
+            getCategoryCards({
+                month: '2026-09',
+                currency: 'EUR',
+                page: 1,
+                size: 10,
+                sort: 'AMOUNT_ASC',
+            }),
+        ).resolves.toEqual(categoryCards)
+    })
+
+    it('uses backend defaults for omitted paging and sorting values', async () => {
+        server.use(
+            http.get('/api/v1/categories', ({request}) => {
+                expect(
+                    Object.fromEntries(
+                        new URL(request.url).searchParams,
+                    ),
+                ).toEqual({
+                    month: '2026-09',
+                    currency: 'RUB',
+                    page: '0',
+                    size: '20',
+                    sort: 'AMOUNT_DESC',
+                })
+
+                return HttpResponse.json({
+                    ...categoryCards,
+                    page: 0,
+                    size: 20,
+                })
+            }),
+        )
+
+        await getCategoryCards({
+            month: '2026-09',
+            currency: 'RUB',
+        })
+    })
+
+    it('loads every category page for selection controls', async () => {
+        const requestedPages: string[] = []
+
+        server.use(
+            http.get('/api/v1/categories', ({request}) => {
+                const page = new URL(request.url).searchParams.get('page') ?? ''
+                requestedPages.push(page)
+
+                return HttpResponse.json({
+                    ...categoryCards,
+                    categories: [{
+                        ...category,
+                        id: `category-${page}`,
+                    }],
+                    page: Number(page),
+                    size: 100,
+                    totalElements: 201,
+                    totalPages: 3,
+                })
+            }),
+        )
+
+        await expect(getAllCategoryCards({
+            month: '2026-09',
+            currency: 'RUB',
+            sort: 'NAME',
+        })).resolves.toHaveLength(3)
+        expect(requestedPages).toEqual(['0', '1', '2'])
+    })
+
+    it('loads category analytics using the backend contract', async () => {
+        server.use(
+            http.get('/api/v1/categories/analytics', ({request}) => {
+                expect(
+                    Object.fromEntries(
+                        new URL(request.url).searchParams,
+                    ),
+                ).toEqual({
+                    month: '2026-09',
+                    currency: 'RUB',
+                    type: 'EXPENSE',
+                    topLimit: '4',
+                })
+
+                return HttpResponse.json(categoryAnalytics)
+            }),
+        )
+
+        await expect(getCategoryAnalytics({
+            month: '2026-09',
+            currency: 'RUB',
+            type: 'EXPENSE',
+        })).resolves.toEqual(categoryAnalytics)
+    })
+
+    it('loads active category options for a transaction type', async () => {
+        const options = [{
+            id: category.id,
+            name: category.name,
+            icon: category.icon,
+            color: category.color,
+        }]
+
+        server.use(
+            http.get('/api/v1/categories/options', ({request}) => {
+                expect(
+                    Object.fromEntries(
+                        new URL(request.url).searchParams,
+                    ),
+                ).toEqual({type: 'EXPENSE'})
+
+                return HttpResponse.json(options)
+            }),
+        )
+
+        await expect(
+            getCategoryOptions('EXPENSE'),
+        ).resolves.toEqual(options)
     })
 
     it('loads one category by id', async () => {

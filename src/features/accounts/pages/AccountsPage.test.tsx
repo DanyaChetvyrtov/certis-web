@@ -17,6 +17,7 @@ vi.mock('../../auth/session/SessionContext', () => ({
             name: 'Daniel',
             surname: 'Carter',
             dateOfBirth: '2000-01-01',
+            preferredCurrency: 'RUB',
         },
     }),
 }))

@@ -26,6 +26,7 @@ vi.mock('../../auth/session/SessionContext', () => ({
             name: 'Daniel',
             surname: 'Carter',
             dateOfBirth: '2000-01-01',
+            preferredCurrency: 'RUB',
         },
     }),
 }))
@@ -93,6 +94,21 @@ const categories = [
         archivedAt: null,
     },
 ]
+
+const categoryCardsResponse = {
+    month: '2026-09',
+    currency: 'RUB',
+    categories: categories.map((category) => ({
+        ...category,
+        monthlyTransactionCount: 0,
+        monthlyAmount: 0,
+        monthlySharePercentage: 0,
+    })),
+    page: 0,
+    size: 100,
+    totalElements: categories.length,
+    totalPages: 1,
+}
 
 const expenseTransaction = {
     id: 'expense-id',
@@ -183,7 +199,7 @@ const useWorkspaceHandlers = (
         ),
         http.get(
             '/api/v1/categories',
-            () => HttpResponse.json(categories),
+            () => HttpResponse.json(categoryCardsResponse),
         ),
         http.get(
             '/api/v1/transactions',
