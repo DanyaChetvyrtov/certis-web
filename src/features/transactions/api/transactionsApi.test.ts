@@ -13,6 +13,7 @@ import {
     createTransaction,
     deleteTransaction,
     getAllTransactions,
+    getMonthlyTransactionAnalytics,
     getTransactions,
     getUncategorizedTransactions,
     updateTransaction,
@@ -44,6 +45,40 @@ const transactionRequest = {
 }
 
 describe('transactionsApi', () => {
+    it('loads monthly transaction analytics using the dashboard query contract', async () => {
+        const response = {
+            month: '2026-09',
+            currency: 'RUB',
+            income: {
+                transactionCount: 5,
+                amount: 120000,
+            },
+            expenses: {
+                transactionCount: 18,
+                amount: 47500,
+            },
+            netCashFlow: 72500,
+        }
+
+        server.use(
+            http.get('/api/v1/transactions/analytics/monthly', ({request}) => {
+                expect(
+                    Object.fromEntries(new URL(request.url).searchParams),
+                ).toEqual({
+                    month: '2026-09',
+                    currency: 'RUB',
+                })
+
+                return HttpResponse.json(response)
+            }),
+        )
+
+        await expect(getMonthlyTransactionAnalytics({
+            month: '2026-09',
+            currency: 'RUB',
+        })).resolves.toEqual(response)
+    })
+
     it('loads a filtered page using the backend query contract', async () => {
         server.use(
             http.get('/api/v1/transactions', ({request}) => {

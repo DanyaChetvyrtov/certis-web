@@ -10,12 +10,14 @@ import {
 import type { AccountCurrency } from '../../accounts/api/accountsApi'
 
 export type CashFlowPoint = {
+  bucketStart?: string
   label: string
   income: number
   expenses: number
 }
 
 type CashFlowChartProps = {
+  description?: string
   currency: AccountCurrency
   data: CashFlowPoint[]
 }
@@ -30,15 +32,16 @@ const formatMoney = (value: number, currency: AccountCurrency) =>
     style: 'currency',
     currency,
     currencyDisplay: 'narrowSymbol',
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(value)
 
-export function CashFlowChart({ currency, data }: CashFlowChartProps) {
+export function CashFlowChart({ currency, data, description = 'Income and expenses for the last six months' }: CashFlowChartProps) {
   return (
     <div
       className="cash-flow-chart"
       role="img"
-      aria-label="Income and expenses for the last six months"
+      aria-label={description}
     >
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
@@ -62,7 +65,8 @@ export function CashFlowChart({ currency, data }: CashFlowChartProps) {
             vertical={false}
           />
           <XAxis
-            dataKey="label"
+            dataKey={data[0]?.bucketStart ? 'bucketStart' : 'label'}
+            tickFormatter={(value: string) => data.find(point => point.bucketStart === value)?.label ?? value}
             axisLine={false}
             tickLine={false}
             tick={{ fill: '#8996aa', fontSize: 11 }}
@@ -76,6 +80,7 @@ export function CashFlowChart({ currency, data }: CashFlowChartProps) {
             width={52}
           />
           <Tooltip
+            labelFormatter={(value) => data.find(point => point.bucketStart === value)?.label ?? value}
             cursor={{ stroke: '#cad3dd', strokeDasharray: '4 4' }}
             contentStyle={{
               border: '1px solid #dde3e9',
