@@ -1,5 +1,6 @@
-import {useCallback, useEffect, useMemo, useState} from 'react'
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import type {ReactNode} from 'react'
+import {Link} from 'react-router-dom'
 import {Icon} from '../components/Icons'
 import {WorkspaceSidebar} from '../layouts/WorkspaceSidebar'
 import type {IconName} from '../components/Icons'
@@ -10,11 +11,22 @@ import type {
     AccountType,
 } from '../features/accounts/api/accountsApi'
 import {useSession} from '../features/auth/session/SessionContext'
+import {getCategoryOptions} from '../features/categories/api/categoriesApi'
+import type {Category} from '../features/categories/api/categoriesApi'
 import {BudgetRing} from '../features/dashboard/components/BudgetRing'
-import {CashFlowChart} from '../features/dashboard/components/CashFlowChart'
-import type {CashFlowPoint} from '../features/dashboard/components/CashFlowChart'
+import {CashFlowPanel} from '../features/dashboard/components/CashFlowPanel'
+import {
+    useMonthlyTransactionAnalytics,
+} from '../features/dashboard/hooks/useMonthlyTransactionAnalytics'
+import {
+    useRecentTransactions,
+} from '../features/dashboard/hooks/useRecentTransactions'
 import {ProfileSetupModal} from '../features/profile/ProfileSetupModal'
 import type {Profile} from '../features/profile/api/profileApi'
+import type {
+    Transaction,
+} from '../features/transactions/api/transactionsApi'
+import {TransactionFormModal} from '../features/transactions/components/TransactionFormModal'
 import {ApiError} from '../shared/api/ApiError'
 import './DashboardPage.css'
 
@@ -45,15 +57,6 @@ const formatMoney = (value: number, currency: AccountCurrency) =>
         maximumFractionDigits: 2,
     }).format(value)
 
-const compactMoney = (value: number, currency: AccountCurrency) =>
-    new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency,
-        currencyDisplay: 'narrowSymbol',
-        notation: 'compact',
-        maximumFractionDigits: 1,
-    }).format(value)
-
 const getDateCopy = () =>
     new Intl.DateTimeFormat('en-US', {
         weekday: 'long',
@@ -75,22 +78,58 @@ const getGreeting = () => {
     return 'Good evening'
 }
 
-const createCashFlowData = (): CashFlowPoint[] => {
-    const formatter = new Intl.DateTimeFormat('en-US', {month: 'short'})
+const getCurrentMonth = (): string => {
     const now = new Date()
 
-    return Array.from({length: 6}, (_, index) => {
-        const date = new Date(now.getFullYear(), now.getMonth() - 5 + index, 1)
-
-        return {
-            label: formatter.format(date),
-            income: 0,
-            expenses: 0,
-        }
-    })
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 }
 
-const cashFlowData = createCashFlowData()
+const transactionCountHint = (transactionCount: number): string => {
+    if (transactionCount === 0) {
+        return 'No transactions this month'
+    }
+
+    return `${transactionCount} ${transactionCount === 1 ? 'transaction' : 'transactions'} this month`
+}
+
+const transactionTitle = (transaction: Transaction): string =>
+    transaction.merchant?.trim()
+    || transaction.note?.trim()
+    || (transaction.transferId
+        ? 'Account transfer'
+        : transaction.type === 'INCOME'
+            ? 'Income transaction'
+            : 'Expense transaction')
+
+const formatTransactionDate = (dateValue: string): string =>
+    new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+    }).format(new Date(dateValue))
+
+const formatTransactionAmount = (
+    transaction: Transaction,
+    currency: AccountCurrency | undefined,
+): string => {
+    const amount = Number(transaction.amount)
+    const signedAmount = transaction.type === 'INCOME'
+        ? amount
+        : -amount
+
+    if (!currency) {
+        return new Intl.NumberFormat('en-US', {
+            maximumFractionDigits: 2,
+        }).format(signedAmount)
+    }
+
+    const formatted = formatMoney(signedAmount, currency)
+        .replace(/^-/, '−')
+
+    return transaction.type === 'INCOME' && amount > 0
+        ? `+${formatted}`
+        : formatted
+}
+
 
 type SummaryCardProps = {
     label: string
@@ -119,16 +158,23 @@ type PanelHeaderProps = {
     eyebrow?: string
     title: string
     action?: string
+    actionHref?: string
 }
 
-function PanelHeader({eyebrow, title, action}: PanelHeaderProps) {
+function PanelHeader({eyebrow, title, action, actionHref}: PanelHeaderProps) {
     return (
         <header className="dashboard-panel-header">
             <div>
                 {eyebrow && <p>{eyebrow}</p>}
                 <h2>{title}</h2>
             </div>
-            {action && (
+            {action && actionHref && (
+                <Link to={actionHref}>
+                    {action}
+                    <Icon name="chevron-right"/>
+                </Link>
+            )}
+            {action && !actionHref && (
                 <button type="button" disabled title={`${action} — coming soon`}>
                     {action}
                     <Icon name="chevron-right"/>
@@ -168,8 +214,65 @@ export function DashboardPage() {
     const [accountsStatus, setAccountsStatus] = useState<AccountsStatus>('loading')
     const [accountsNotice, setAccountsNotice] = useState<string | null>(null)
     const [requestedCurrency, setRequestedCurrency] =
-        useState<AccountCurrency>('RUB')
+        useState<AccountCurrency>(profile?.preferredCurrency ?? 'RUB')
+    const [dashboardRevision, setDashboardRevision] = useState(0)
+    const [transactionCategories, setTransactionCategories] = useState<Category[]>([])
+    const [isTransactionOpen, setIsTransactionOpen] = useState(false)
+    const [isPreparingTransaction, setIsPreparingTransaction] = useState(false)
+    const [transactionNotice, setTransactionNotice] = useState<{
+        kind: 'success' | 'error' | 'no-accounts'
+        message: string
+    } | null>(null)
+    const addTransactionButtonRef = useRef<HTMLButtonElement>(null)
+    const transactionRequestIdRef = useRef(0)
     const isProfileSetupOpen = profile === null
+
+    useEffect(() => () => { transactionRequestIdRef.current += 1 }, [])
+
+    const openTransactionForm = async () => {
+        const requestId = ++transactionRequestIdRef.current
+        setIsPreparingTransaction(true)
+        setTransactionNotice(null)
+
+        try {
+            const [loadedAccounts, expenses, income] = await Promise.all([
+                getAccounts(),
+                getCategoryOptions('EXPENSE'),
+                getCategoryOptions('INCOME'),
+            ])
+            if (requestId !== transactionRequestIdRef.current) return
+
+            setAccounts(loadedAccounts)
+            setAccountsStatus('ready')
+            setAccountsNotice(null)
+            if (!loadedAccounts.some(account => !account.closedAt)) {
+                setTransactionNotice({
+                    kind: 'no-accounts',
+                    message: 'Create an account before adding a transaction.',
+                })
+                return
+            }
+
+            setTransactionCategories([
+                ...expenses.map(category => ({...category, type: 'EXPENSE' as const})),
+                ...income.map(category => ({...category, type: 'INCOME' as const})),
+            ])
+            setIsTransactionOpen(true)
+        } catch (error) {
+            if (requestId !== transactionRequestIdRef.current) return
+            setTransactionNotice({
+                kind: 'error',
+                message: error instanceof ApiError ? error.message
+                    : 'We could not load the transaction form. Please try again.',
+            })
+        } finally {
+            if (requestId === transactionRequestIdRef.current) setIsPreparingTransaction(false)
+        }
+    }
+
+    const restoreTransactionFocus = useCallback(() => {
+        addTransactionButtonRef.current?.focus()
+    }, [])
 
     useEffect(() => {
         let isActive = true
@@ -230,6 +333,35 @@ export function DashboardPage() {
         ? requestedCurrency
         : availableCurrencies[0] ?? requestedCurrency
 
+    const currentMonth = getCurrentMonth()
+    const {
+        analytics: monthlyAnalytics,
+        loadState: monthlyAnalyticsState,
+    } = useMonthlyTransactionAnalytics(
+        currentMonth,
+        selectedCurrency,
+        !isProfileSetupOpen,
+        dashboardRevision,
+    )
+    const {
+        transactions: recentTransactions,
+        loadState: recentTransactionsState,
+        reload: reloadRecentTransactions,
+    } = useRecentTransactions(!isProfileSetupOpen)
+
+    const handleTransactionSaved = () => {
+        setIsTransactionOpen(false)
+        setTransactionNotice({kind: 'success', message: 'Transaction added.'})
+        setDashboardRevision(revision => revision + 1)
+        reloadRecentTransactions()
+        void retryAccounts()
+    }
+
+    const accountMap = useMemo(
+        () => new Map(accounts.map((account) => [account.id, account])),
+        [accounts],
+    )
+
     const visibleAccounts = activeAccounts.filter(
         (account) => account.currency === selectedCurrency,
     )
@@ -240,7 +372,32 @@ export function DashboardPage() {
     const profileName = profile?.name ?? 'there'
 
     const completeProfileSetup = (createdProfile: Profile) => {
+        setRequestedCurrency(createdProfile.preferredCurrency)
         setProfile(createdProfile)
+    }
+
+    const monthlySummaryValue = (amount: number | undefined): string => {
+        if (monthlyAnalyticsState === 'loading' || monthlyAnalyticsState === 'idle') {
+            return 'Loading…'
+        }
+
+        if (monthlyAnalyticsState === 'error') {
+            return '—'
+        }
+
+        return formatMoney(amount ?? 0, selectedCurrency)
+    }
+
+    const monthlySummaryHint = (transactionCount: number | undefined): string => {
+        if (monthlyAnalyticsState === 'loading' || monthlyAnalyticsState === 'idle') {
+            return 'Loading this month'
+        }
+
+        if (monthlyAnalyticsState === 'error') {
+            return 'Monthly summary unavailable'
+        }
+
+        return transactionCountHint(transactionCount ?? 0)
     }
 
     return (
@@ -281,14 +438,28 @@ export function DashboardPage() {
                         <button
                             type="button"
                             className="dashboard-primary-action"
-                            disabled
-                            title="Add transaction — coming soon"
+                            ref={addTransactionButtonRef}
+                            disabled={isProfileSetupOpen || isPreparingTransaction}
+                            aria-busy={isPreparingTransaction}
+                            onClick={() => void openTransactionForm()}
                         >
                             <Icon name="plus"/>
-                            Add transaction
+                            {isPreparingTransaction ? 'Loading form…' : 'Add transaction'}
                         </button>
                     </div>
                 </header>
+
+                {transactionNotice && (
+                    <div className={`dashboard-transaction-notice ${transactionNotice.kind}`}
+                        role={transactionNotice.kind === 'error' ? 'alert' : 'status'}>
+                        <span>{transactionNotice.message}</span>
+                        {transactionNotice.kind === 'no-accounts' && <Link to="/accounts">Go to accounts</Link>}
+                        {transactionNotice.kind === 'error' && (
+                            <button type="button" disabled={isPreparingTransaction}
+                                onClick={() => void openTransactionForm()}>Try again</button>
+                        )}
+                    </div>
+                )}
 
                 <section className="dashboard-summary" aria-label="Financial summary">
                     <SummaryCard
@@ -310,15 +481,15 @@ export function DashboardPage() {
                     />
                     <SummaryCard
                         label="Income"
-                        value={formatMoney(0, selectedCurrency)}
-                        hint="No transactions this month"
+                        value={monthlySummaryValue(monthlyAnalytics?.income.amount)}
+                        hint={monthlySummaryHint(monthlyAnalytics?.income.transactionCount)}
                         icon="trend-up"
                         tone="green"
                     />
                     <SummaryCard
                         label="Expenses"
-                        value={formatMoney(0, selectedCurrency)}
-                        hint="No transactions this month"
+                        value={monthlySummaryValue(monthlyAnalytics?.expenses.amount)}
+                        hint={monthlySummaryHint(monthlyAnalytics?.expenses.transactionCount)}
                         icon="trend-down"
                         tone="red"
                     />
@@ -332,24 +503,8 @@ export function DashboardPage() {
                 </section>
 
                 <section className="dashboard-overview-grid">
-                    <article className="dashboard-panel cash-flow-panel">
-                        <PanelHeader eyebrow="Last 6 months" title="Cash flow" action="View report"/>
-                        <div className="cash-flow-meta">
-                            <div className="chart-legend">
-                <span className="legend-income">
-                  <i/> Income <strong>{compactMoney(0, selectedCurrency)}</strong>
-                </span>
-                                <span className="legend-expenses">
-                  <i/> Expenses <strong>{compactMoney(0, selectedCurrency)}</strong>
-                </span>
-                            </div>
-                            <span className="cash-flow-net">Net {formatMoney(0, selectedCurrency)}</span>
-                        </div>
-                        <CashFlowChart data={cashFlowData} currency={selectedCurrency}/>
-                        <p className="chart-empty-copy">
-                            Your cash-flow trend will appear after you add transactions.
-                        </p>
-                    </article>
+                    <CashFlowPanel currency={selectedCurrency} enabled={!isProfileSetupOpen}
+                        refreshRevision={dashboardRevision}/>
 
                     <article className="dashboard-panel budget-panel">
                         <PanelHeader eyebrow="This month" title="Budget overview" action="Manage"/>
@@ -369,7 +524,7 @@ export function DashboardPage() {
 
                 <section className="dashboard-detail-grid">
                     <article className="dashboard-panel accounts-panel">
-                        <PanelHeader title="Accounts" action="View all"/>
+                        <PanelHeader title="Accounts" action="View all" actionHref="/accounts"/>
                         <div className="accounts-panel-summary">
                             <span>Combined balance</span>
                             <strong>
@@ -471,19 +626,96 @@ export function DashboardPage() {
                     </article>
 
                     <article className="dashboard-panel transactions-panel">
-                        <PanelHeader title="Recent transactions" action="View all"/>
-                        <EmptyState icon="receipt" title="No transactions yet">
-                            Income and expenses will appear here in chronological order.
-                        </EmptyState>
-                        <div className="transaction-preview-list" aria-hidden="true">
-                            {[0, 1, 2].map((item) => (
-                                <span key={item}>
-                  <i/>
-                  <i/>
-                  <i/>
-                </span>
-                            ))}
-                        </div>
+                        <PanelHeader
+                            title="Recent transactions"
+                            action="View all"
+                            actionHref="/transactions"
+                        />
+
+                        {(recentTransactionsState === 'loading'
+                            || recentTransactionsState === 'idle') && (
+                            <div
+                                className="transaction-preview-list"
+                                aria-label="Loading recent transactions"
+                            >
+                                {[0, 1, 2].map((item) => (
+                                    <span key={item}>
+                                        <i/>
+                                        <i/>
+                                        <i/>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+
+                        {recentTransactionsState === 'error' && (
+                            <div className="recent-transactions-error" role="alert">
+                                <Icon name="alert"/>
+                                <p>We could not load your recent transactions.</p>
+                                <button
+                                    type="button"
+                                    onClick={reloadRecentTransactions}
+                                >
+                                    Try again
+                                </button>
+                            </div>
+                        )}
+
+                        {recentTransactionsState === 'ready'
+                            && recentTransactions.length === 0 && (
+                            <EmptyState icon="receipt" title="No transactions yet">
+                                Income and expenses will appear here with the newest first.
+                            </EmptyState>
+                        )}
+
+                        {recentTransactionsState === 'ready'
+                            && recentTransactions.length > 0 && (
+                            <div className="recent-transactions-list">
+                                {recentTransactions.map((transaction) => {
+                                    const account = accountMap.get(transaction.accountId)
+                                    const transactionTone = transaction.transferId
+                                        ? 'transfer'
+                                        : transaction.type.toLowerCase()
+
+                                    return (
+                                        <article
+                                            className="recent-transaction-row"
+                                            key={transaction.id}
+                                        >
+                                            <span
+                                                className={`recent-transaction-icon recent-transaction-icon-${transactionTone}`}
+                                            >
+                                                <Icon
+                                                    name={transaction.transferId
+                                                        ? 'transfer'
+                                                        : transaction.type === 'INCOME'
+                                                            ? 'cash'
+                                                            : 'receipt'}
+                                                />
+                                            </span>
+                                            <div className="recent-transaction-copy">
+                                                <strong>{transactionTitle(transaction)}</strong>
+                                                <small>
+                                                    {account?.name ?? 'Unknown account'}
+                                                    {' · '}
+                                                    <time dateTime={transaction.occurredAt}>
+                                                        {formatTransactionDate(transaction.occurredAt)}
+                                                    </time>
+                                                </small>
+                                            </div>
+                                            <strong
+                                                className={`recent-transaction-amount recent-transaction-amount-${transactionTone}`}
+                                            >
+                                                {formatTransactionAmount(
+                                                    transaction,
+                                                    account?.currency,
+                                                )}
+                                            </strong>
+                                        </article>
+                                    )
+                                })}
+                            </div>
+                        )}
                     </article>
                 </section>
             </main>
@@ -492,6 +724,16 @@ export function DashboardPage() {
                 <ProfileSetupModal
                     onComplete={completeProfileSetup}
                     onSignOut={signOut}
+                />
+            )}
+
+            {isTransactionOpen && (
+                <TransactionFormModal
+                    accounts={accounts}
+                    categories={transactionCategories}
+                    onClose={() => setIsTransactionOpen(false)}
+                    onSaved={handleTransactionSaved}
+                    restoreFocus={restoreTransactionFocus}
                 />
             )}
         </div>

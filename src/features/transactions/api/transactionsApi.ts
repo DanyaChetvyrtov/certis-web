@@ -53,6 +53,52 @@ export type TransactionPage = {
     totalPages: number
 }
 
+export type MonthlyTransactionTotal = {
+    transactionCount: number
+    amount: number
+}
+
+export type CashFlowRange = 'DAY' | 'WEEK' | 'MONTH' | 'SIX_MONTHS' | 'YEAR'
+export type CashFlowRequest = {
+    range: CashFlowRange
+    currency: Currency
+    anchorDate: string
+    timeZone: string
+}
+export type CashFlowAmounts = {
+    income: number
+    expenses: number
+    netCashFlow: number
+}
+export type CashFlowAnalytics = {
+    range: CashFlowRange
+    currency: Currency
+    granularity: 'HOUR' | 'DAY' | 'MONTH'
+    from: string
+    toExclusive: string
+    totals: CashFlowAmounts
+    points: (CashFlowAmounts & {bucketStart: string})[]
+}
+
+export const getCashFlowAnalytics = (request: CashFlowRequest) =>
+    apiRequest<CashFlowAnalytics>(
+        `/api/v1/transactions/analytics/cash-flow?${new URLSearchParams(request)}`,
+        {fallbackMessage: 'We could not load cash flow. Please try again.'},
+    )
+
+export type MonthlyTransactionAnalyticsRequest = {
+    month: string
+    currency: Currency
+}
+
+export type MonthlyTransactionAnalytics = {
+    month: string
+    currency: Currency
+    income: MonthlyTransactionTotal
+    expenses: MonthlyTransactionTotal
+    netCashFlow: number
+}
+
 export type UncategorizedTransactionAccount = {
     id: string
     name: string
@@ -96,6 +142,8 @@ export type TransactionCategoryAssignment = {
 
 const TRANSACTIONS_PATH = '/api/v1/transactions'
 const MAX_PAGE_SIZE = 100
+const MONTHLY_TRANSACTION_ANALYTICS_PATH =
+    `${TRANSACTIONS_PATH}/analytics/monthly`
 const UNCATEGORIZED_TRANSACTIONS_PATH =
     `${TRANSACTIONS_PATH}/uncategorized`
 const CATEGORY_ASSIGNMENTS_PATH =
@@ -147,6 +195,24 @@ export const getTransactions = (
             fallbackMessage: 'We could not load your transactions. Please try again.',
         },
     )
+
+export const getMonthlyTransactionAnalytics = (
+    request: MonthlyTransactionAnalyticsRequest,
+    signal?: AbortSignal,
+) => {
+    const query = new URLSearchParams({
+        month: request.month,
+        currency: request.currency,
+    })
+
+    return apiRequest<MonthlyTransactionAnalytics>(
+        `${MONTHLY_TRANSACTION_ANALYTICS_PATH}?${query}`,
+        {
+            signal,
+            fallbackMessage: 'We could not load your monthly summary. Please try again.',
+        },
+    )
+}
 
 export const getUncategorizedTransactions = (
     request: UncategorizedTransactionsRequest,
