@@ -96,7 +96,8 @@ export function useModalAccessibility<
             const dialog =
                 dialogRef.current
 
-            if (!dialog) {
+            // Nested controls handle their own keyboard events before the dialog.
+            if (!dialog || event.defaultPrevented) {
                 return
             }
 

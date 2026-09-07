@@ -1,3 +1,4 @@
+import {selectOption} from '../../../test/selectOption'
 import {
     fireEvent,
     render,
@@ -413,10 +414,7 @@ describe('CategoriesPage', () => {
             expect(analyticsCurrencies).toEqual(['RUB'])
         })
 
-        fireEvent.change(
-            screen.getByRole('combobox', {name: 'Statistics currency'}),
-            {target: {value: 'USD'}},
-        )
+        await selectOption(screen.getByRole('combobox', {name: 'Statistics currency'}), 'USD · US dollar')
 
         expect(await screen.findByText('$250')).toBeInTheDocument()
         expect(requestedCurrencies).toEqual(['RUB', 'USD'])
@@ -572,10 +570,7 @@ describe('CategoriesPage', () => {
                 .map((heading) => heading.textContent),
         ).toEqual(['Utilities', 'Groceries'])
 
-        fireEvent.change(
-            screen.getByRole('combobox', {name: 'Sort categories'}),
-            {target: {value: 'AMOUNT_ASC'}},
-        )
+        await selectOption(screen.getByRole('combobox', {name: 'Sort categories'}), 'Least spent')
 
         expect(
             await screen.findByText('₽100'),

@@ -1,3 +1,4 @@
+import {Select, SelectOption} from '../../../components/Select'
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import {Icon} from '../../../components/Icons'
 import {WorkspaceSidebar} from '../../../layouts/WorkspaceSidebar'
@@ -331,12 +332,12 @@ export function AccountsPage() {
                             <p>Balance by type</p>
                             <label>
                                 <span className="sr-only">Summary currency</span>
-                                <select
+                                <Select
                                     value={currency}
-                                    onChange={(event) => setCurrency(event.target.value as Currency)}
+                                    onValueChange={(value) => setCurrency(value as Currency)}
                                 >
-                                    {currencies.map((item) => <option value={item} key={item}>{item}</option>)}
-                                </select>
+                                    {currencies.map((item) => <SelectOption value={item} key={item}>{item}</SelectOption>)}
+                                </Select>
                             </label>
                         </div>
 
@@ -418,15 +419,14 @@ export function AccountsPage() {
                             </label>
                             <label className="account-sort-field">
                                 <span className="sr-only">Sort accounts</span>
-                                <select
+                                <Select
                                     value={sort}
-                                    onChange={(event) => setSort(event.target.value as AccountSort)}
+                                    onValueChange={(value) => setSort(value as AccountSort)}
                                 >
-                                    <option value="newest">Newest</option>
-                                    <option value="name">Name</option>
-                                    <option value="balance">Balance</option>
-                                </select>
-                                <Icon name="chevron-down"/>
+                                    <SelectOption value="newest">Newest</SelectOption>
+                                    <SelectOption value="name">Name</SelectOption>
+                                    <SelectOption value="balance">Balance</SelectOption>
+                                </Select>
                             </label>
                         </div>
                     </div>

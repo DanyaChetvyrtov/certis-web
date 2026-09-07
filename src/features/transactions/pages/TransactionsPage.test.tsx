@@ -1,3 +1,4 @@
+import {selectOption} from '../../../test/selectOption'
 import {
     fireEvent,
     render,
@@ -310,14 +311,8 @@ describe('TransactionsPage', () => {
             form.getByLabelText('Amount'),
             {target: {value: '4860'}},
         )
-        fireEvent.change(
-            form.getByLabelText('Account'),
-            {target: {value: 'rub-account'}},
-        )
-        fireEvent.change(
-            form.getByLabelText(/Category/),
-            {target: {value: 'groceries'}},
-        )
+        await selectOption(form.getByLabelText('Account'), 'Main card · RUB')
+        await selectOption(form.getByLabelText(/Category/), 'Groceries')
         fireEvent.change(
             form.getByLabelText(/Merchant/),
             {target: {value: 'Greenfield Market'}},
@@ -413,16 +408,13 @@ describe('TransactionsPage', () => {
         const dialog = screen.getByRole('dialog', {name: 'Transfer money'})
         const form = within(dialog)
 
-        fireEvent.change(form.getByLabelText('From account'), {
-            target: {value: 'rub-account'},
-        })
+        await selectOption(form.getByLabelText('From account'), 'Main card · RUB')
+        fireEvent.keyDown(form.getByLabelText('To account'), {key: 'ArrowDown'})
+        expect(await screen.findByRole('option', {name: /Savings/})).toBeInTheDocument()
         expect(
-            within(form.getByLabelText('To account'))
-                .queryByRole('option', {name: 'Travel cash · EUR'}),
+            screen.queryByRole('option', {name: 'Travel cash · EUR'}),
         ).not.toBeInTheDocument()
-        fireEvent.change(form.getByLabelText('To account'), {
-            target: {value: 'savings-account'},
-        })
+        fireEvent.click(screen.getByRole('option', {name: /Savings/}))
         fireEvent.change(form.getByLabelText('Amount'), {
             target: {value: '250'},
         })

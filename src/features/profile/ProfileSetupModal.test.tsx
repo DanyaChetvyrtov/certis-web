@@ -1,3 +1,4 @@
+import {selectOption} from '../../test/selectOption'
 import {
     fireEvent,
     render,
@@ -55,10 +56,7 @@ describe('ProfileSetupModal', () => {
         )
 
         fillRequiredFields()
-        fireEvent.change(
-            screen.getByLabelText('Preferred currency'),
-            {target: {value: 'EUR'}},
-        )
+        await selectOption(screen.getByLabelText('Preferred currency'), 'Euro · EUR')
         fireEvent.click(
             screen.getByRole('button', {name: 'Open my dashboard'}),
         )

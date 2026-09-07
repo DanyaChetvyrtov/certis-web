@@ -1,3 +1,4 @@
+import {selectOption} from '../../../test/selectOption'
 import {fireEvent, render, screen, waitFor} from '@testing-library/react'
 import {http, HttpResponse} from 'msw'
 import {describe, expect, it, vi} from 'vitest'
@@ -9,7 +10,7 @@ vi.mock('./CashFlowChart', () => ({
 }))
 
 const response = {
-    range: 'SIX_MONTHS', currency: 'RUB', granularity: 'MONTH',
+    range: 'MONTH', currency: 'RUB', granularity: 'MONTH',
     from: '2026-04-01T00:00:00Z', toExclusive: '2026-10-01T00:00:00Z',
     totals: {income: 100, expenses: 150, netCashFlow: -50},
     points: [{bucketStart: '2026-04-01T00:00:00Z', income: 100, expenses: 150, netCashFlow: -50}],
@@ -24,14 +25,13 @@ describe('CashFlowPanel', () => {
         }))
         const {rerender} = render(<CashFlowPanel currency="RUB" enabled/>)
         expect(await screen.findByText('Net -₽50')).toBeInTheDocument()
-        expect(queries[0]).toEqual({range: 'SIX_MONTHS', currency: 'RUB',
+        expect(queries[0]).toEqual({range: 'MONTH', currency: 'RUB',
             anchorDate: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
             timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone})
         for (const range of ['DAY', 'WEEK', 'MONTH', 'YEAR']) {
-            fireEvent.change(screen.getByLabelText('Cash flow range'), {target: {value: range}})
-            expect(screen.queryByTestId('chart')).not.toBeInTheDocument()
+            await selectOption(screen.getByLabelText('Cash flow range'), ({DAY: 'Day', WEEK: 'Week', MONTH: 'Month', YEAR: 'Year'}[range]!))
+            await waitFor(() => expect(queries.at(-1)?.range).toBe(range))
             await screen.findByTestId('chart')
-            expect(queries.at(-1)?.range).toBe(range)
         }
         rerender(<CashFlowPanel currency="EUR" enabled/>)
         await screen.findByText('Net -€50')

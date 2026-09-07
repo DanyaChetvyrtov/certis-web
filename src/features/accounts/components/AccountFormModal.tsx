@@ -1,3 +1,4 @@
+import {Select, SelectOption} from '../../../components/Select'
 import type {FormEvent} from 'react'
 import {Icon} from '../../../components/Icons'
 import {ApiError} from '../../../shared/api/ApiError'
@@ -369,7 +370,7 @@ export function AccountFormModal({
                                 Currency
                             </label>
 
-                            <select
+                            <Select
                                 id={CURRENCY_ID}
                                 name="currency"
                                 value={currency}
@@ -379,23 +380,23 @@ export function AccountFormModal({
                                         ? CURRENCY_HINT_ID
                                         : undefined
                                 }
-                                onChange={(event) =>
+                                onValueChange={(value) =>
                                     setCurrency(
-                                        event.target.value as Currency,
+                                        value as Currency,
                                     )
                                 }
                             >
                                 {currencies.map(
                                     (item) => (
-                                        <option
+                                        <SelectOption
                                             key={item}
                                             value={item}
                                         >
                                             {item}
-                                        </option>
+                                        </SelectOption>
                                     ),
                                 )}
-                            </select>
+                            </Select>
 
                             {isEditing && (
                                 <small

@@ -1,3 +1,4 @@
+import {Select, SelectOption} from '../../../components/Select'
 import {
     useMemo,
     useRef,
@@ -62,7 +63,7 @@ export function TransferFormModal({
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
     const [formError, setFormError] = useState('')
     const [saving, setSaving] = useState(false)
-    const sourceRef = useRef<HTMLSelectElement>(null)
+    const sourceRef = useRef<HTMLButtonElement>(null)
 
     const dialogRef = useModalAccessibility<HTMLDivElement>({
         canClose: !saving,
@@ -198,21 +199,20 @@ export function TransferFormModal({
                             <label htmlFor="transfer-source">From account</label>
                             <div className="transaction-select-shell">
                                 <Icon name="wallet"/>
-                                <select
+                                <Select
                                     ref={sourceRef}
                                     id="transfer-source"
                                     value={sourceAccountId}
                                     aria-invalid={Boolean(fieldErrors.sourceAccountId)}
-                                    onChange={(event) => changeSource(event.target.value)}
+                                    onValueChange={(value) => changeSource(value)}
                                 >
-                                    <option value="">Select source</option>
+                                    <SelectOption value="">Select source</SelectOption>
                                     {activeAccounts.map((account) => (
-                                        <option value={account.id} key={account.id}>
+                                        <SelectOption value={account.id} key={account.id}>
                                             {accountLabel(account)}
-                                        </option>
+                                        </SelectOption>
                                     ))}
-                                </select>
-                                <Icon name="chevron-down"/>
+                                </Select>
                             </div>
                             {fieldErrors.sourceAccountId && <small className="transaction-field-error">{fieldErrors.sourceAccountId}</small>}
                         </div>
@@ -223,20 +223,19 @@ export function TransferFormModal({
                             <label htmlFor="transfer-destination">To account</label>
                             <div className="transaction-select-shell">
                                 <Icon name="bank"/>
-                                <select
+                                <Select
                                     id="transfer-destination"
                                     value={destinationAccountId}
                                     aria-invalid={Boolean(fieldErrors.destinationAccountId)}
-                                    onChange={(event) => setDestinationAccountId(event.target.value)}
+                                    onValueChange={(value) => setDestinationAccountId(value)}
                                 >
-                                    <option value="">Select destination</option>
+                                    <SelectOption value="">Select destination</SelectOption>
                                     {destinationAccounts.map((account) => (
-                                        <option value={account.id} key={account.id}>
+                                        <SelectOption value={account.id} key={account.id}>
                                             {accountLabel(account)}
-                                        </option>
+                                        </SelectOption>
                                     ))}
-                                </select>
-                                <Icon name="chevron-down"/>
+                                </Select>
                             </div>
                             {fieldErrors.destinationAccountId && <small className="transaction-field-error">{fieldErrors.destinationAccountId}</small>}
                         </div>

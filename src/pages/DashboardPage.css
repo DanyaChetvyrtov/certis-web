@@ -108,33 +108,46 @@
     background: var(--dashboard-green);
 }
 
-.dashboard-actions .dashboard-primary-action {
-    gap: 9px;
-    min-width: 148px;
-    padding: 0 17px;
-    border-color: var(--dashboard-green);
-    color: #fff;
-    background: var(--dashboard-green);
-    font-size: 12px;
-    font-weight: 750;
+.dashboard-currency-action {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    gap: 10px;
+    padding-left: 14px;
+    border: 1px solid #dfdad1;
+    border-radius: 13px;
+    color: #8492a8;
+    background: #fff;
+    box-shadow: 0 8px 20px rgb(45 36 24 / 5%);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .1em;
+    text-transform: uppercase;
 }
 
-.dashboard-primary-action svg {
-    width: 18px;
-    height: 18px;
-}
-
-.dashboard-actions .dashboard-primary-action:not(:disabled) {
+.dashboard-currency-action .certis-select {
+    min-width: 82px;
+    min-height: 42px;
+    border: 0;
+    border-left: 1px solid #ebe6de;
+    border-radius: 0 12px 12px 0;
+    padding: 0 12px;
+    color: #253950;
+    background: transparent;
     cursor: pointer;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-transform: none;
 }
 
-.dashboard-actions .dashboard-primary-action:disabled {
-    opacity: .65;
+.dashboard-currency-action .certis-select:disabled {
+    cursor: not-allowed;
 }
 
-.dashboard-actions .dashboard-primary-action:focus-visible {
-    outline: 3px solid #0c6c55;
-    outline-offset: 3px;
+.dashboard-currency-action .certis-select:focus-visible {
+    outline: 2px solid var(--dashboard-green);
+    outline-offset: -2px;
 }
 
 .dashboard-transaction-notice {
@@ -345,7 +358,7 @@
     margin-top: 24px;
 }
 
-.cash-flow-panel select {
+.cash-flow-panel .certis-select {
     border: 1px solid #dbe1e7;
     border-radius: 8px;
     padding: 7px 10px;
@@ -507,7 +520,7 @@
 
 .accounts-panel-summary {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: 10px;
     margin-top: 20px;
@@ -524,27 +537,6 @@
     color: #14263d;
     font-size: 18px;
     letter-spacing: -0.02em;
-}
-
-.accounts-panel-summary select {
-    padding: 5px 21px 5px 7px;
-    border: 1px solid #dbe1e7;
-    border-radius: 8px;
-    outline: 0;
-    color: #56667b;
-    background: #f8fafc;
-    font-size: 9px;
-    font-weight: 750;
-}
-
-.accounts-panel-summary select:focus-visible {
-    border-color: var(--dashboard-green);
-    box-shadow: 0 0 0 3px rgb(16 185 129 / 12%);
-}
-
-.accounts-panel-summary select:disabled {
-    appearance: none;
-    padding-right: 7px;
 }
 
 .accounts-list {
@@ -631,6 +623,30 @@
 .dashboard-secondary-action svg {
     width: 14px;
     height: 14px;
+}
+
+.dashboard-panel-create-action:not(:disabled) {
+    cursor: pointer;
+    transition:
+        border-color 160ms ease,
+        color 160ms ease,
+        background-color 160ms ease;
+}
+
+.dashboard-panel-create-action:not(:disabled):hover {
+    border-color: #9ddbc8;
+    color: #087a5b;
+    background: #effaf6;
+}
+
+.dashboard-panel-create-action:focus-visible {
+    outline: 2px solid var(--dashboard-green);
+    outline-offset: 2px;
+}
+
+.dashboard-panel-create-action:disabled {
+    cursor: wait;
+    opacity: .65;
 }
 
 .dashboard-empty-state {
@@ -977,9 +993,8 @@
         width: 100%;
     }
 
-    .dashboard-actions .dashboard-primary-action {
-        min-width: 0;
-        flex: 1;
+    .dashboard-currency-action {
+        margin-left: auto;
     }
 
     .dashboard-detail-grid {
@@ -1036,13 +1051,6 @@
         height: 106px;
     }
 
-    .accounts-panel-summary {
-        grid-template-columns: 1fr auto;
-    }
-
-    .accounts-panel-summary > span {
-        grid-column: 1 / -1;
-    }
 }
 
 @media (prefers-reduced-motion: reduce) {

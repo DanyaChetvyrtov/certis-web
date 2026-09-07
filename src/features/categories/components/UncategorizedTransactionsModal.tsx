@@ -1,3 +1,4 @@
+import {Select, SelectOption} from '../../../components/Select'
 import {useRef} from 'react'
 import {Icon} from '../../../components/Icons'
 import type {Currency} from '../../../shared/currency'
@@ -200,21 +201,21 @@ export function UncategorizedTransactionsModal({
                         </label>
                         <label className="uncategorized-account-field">
                             <span>Account</span>
-                            <select
+                            <Select
                                 aria-label="Filter by account"
                                 value={accountId}
                                 disabled={optionState === 'loading'}
-                                onChange={(event) =>
-                                    changeAccount(event.target.value)
+                                onValueChange={(value) =>
+                                    changeAccount(value)
                                 }
                             >
-                                <option value="">All accounts</option>
+                                <SelectOption value="">All accounts</SelectOption>
                                 {visibleAccounts.map((account) => (
-                                    <option value={account.id} key={account.id}>
+                                    <SelectOption value={account.id} key={account.id}>
                                         {account.name}
-                                    </option>
+                                    </SelectOption>
                                 ))}
-                            </select>
+                            </Select>
                         </label>
                     </div>
 

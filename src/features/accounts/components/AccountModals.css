@@ -83,7 +83,7 @@
 }
 
 .account-form-field input,
-.account-form-field select {
+.account-form-field .certis-select {
   width: 100%;
   height: 50px;
   border: 1px solid #dcd5c9;
@@ -98,7 +98,7 @@
 }
 
 .account-form-field input:focus,
-.account-form-field select:focus {
+.account-form-field .certis-select:focus {
   border-color: #13b98a;
   box-shadow: 0 0 0 4px rgb(19 185 138 / 11%);
 }
@@ -107,7 +107,7 @@
   border-color: #cb6969;
 }
 
-.account-form-field select:disabled {
+.account-form-field .certis-select:disabled {
   color: #738197;
   background: #f5f2ed;
 }

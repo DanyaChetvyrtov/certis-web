@@ -1,3 +1,4 @@
+import {Select, SelectOption} from '../../../components/Select'
 import {useEffect, useMemo, useRef, useState} from 'react'
 import type {CSSProperties} from 'react'
 import {Icon} from '../../../components/Icons'
@@ -245,7 +246,7 @@ export function RecurringTransactionsView({accounts, categories, onHistory}: Pro
 
         <div className="recurring-content-grid">
             <section className="recurring-list-card">
-                <header><div><h2>Recurring transactions</h2><p>Rules that create real transactions on their due date</p></div><div className="recurring-list-tools"><label><Icon name="search"/><span className="sr-only">Search schedules</span><input type="search" placeholder="Search schedules" value={query} onChange={(event) => setQuery(event.target.value)}/></label><select aria-label="Schedule status" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}><option value="ALL">All statuses</option><option value="ACTIVE">Active</option><option value="PAUSED">Paused</option><option value="COMPLETED">Completed</option><option value="CANCELLED">Cancelled</option></select></div></header>
+                <header><div><h2>Recurring transactions</h2><p>Rules that create real transactions on their due date</p></div><div className="recurring-list-tools"><label><Icon name="search"/><span className="sr-only">Search schedules</span><input type="search" placeholder="Search schedules" value={query} onChange={(event) => setQuery(event.target.value)}/></label><Select aria-label="Schedule status" value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}><SelectOption value="ALL">All statuses</SelectOption><SelectOption value="ACTIVE">Active</SelectOption><SelectOption value="PAUSED">Paused</SelectOption><SelectOption value="COMPLETED">Completed</SelectOption><SelectOption value="CANCELLED">Cancelled</SelectOption></Select></div></header>
                 <div className="recurring-table-heading"><span>Rule</span><span>Repeats</span><span>Next</span><span>Amount</span><span>Status</span><span/></div>
                 {loadState === 'loading' && <div className="transaction-loading-state" aria-label="Loading recurring transactions">{[1,2,3,4].map((item) => <span key={item}/>)}</div>}
                 {loadState === 'error' && <div className="transaction-empty-state" role="alert"><span><Icon name="alert"/></span><h3>Schedules could not be loaded</h3><p>{loadError}</p><button type="button" onClick={() => {setLoadState('loading'); setReload((value) => value + 1)}}>Try again</button></div>}

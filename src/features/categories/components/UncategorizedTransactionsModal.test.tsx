@@ -1,3 +1,4 @@
+import {selectOption} from '../../../test/selectOption'
 import {
     fireEvent,
     render,
@@ -172,8 +173,8 @@ describe('UncategorizedTransactionsModal', () => {
             expect(secondCategory).toBeEnabled()
         })
 
-        fireEvent.change(firstCategory, {target: {value: 'food'}})
-        fireEvent.change(secondCategory, {target: {value: 'transport'}})
+        await selectOption(firstCategory, 'Food')
+        await selectOption(secondCategory, 'Transport')
         fireEvent.click(
             screen.getByRole('button', {name: 'Assign 2'}),
         )
@@ -220,7 +221,7 @@ describe('UncategorizedTransactionsModal', () => {
         })
         await waitFor(() => expect(categorySelect).toBeEnabled())
 
-        fireEvent.change(categorySelect, {target: {value: 'food'}})
+        await selectOption(categorySelect, 'Food')
         fireEvent.click(
             screen.getByRole('button', {name: 'Assign 1'}),
         )

@@ -242,7 +242,7 @@
 }
 
 .transaction-form-field > input[aria-invalid='true'],
-.transaction-select-shell:has(select[aria-invalid='true']),
+.transaction-select-shell:has(.certis-select[aria-invalid='true']),
 .transaction-date-shell:has(input[aria-invalid='true']) {
     border-color: #cb6969;
 }
@@ -270,12 +270,7 @@
     color: #61718a;
 }
 
-.transaction-select-shell > svg:last-child {
-    width: 16px;
-    pointer-events: none;
-}
-
-.transaction-select-shell select,
+.transaction-select-shell .certis-select,
 .transaction-date-shell input {
     min-width: 0;
     height: 56px;
@@ -286,9 +281,10 @@
     font-size: 13px;
 }
 
-.transaction-select-shell select {
-    width: calc(100% + 28px);
-    appearance: none;
+.transaction-select-shell .certis-select {
+    width: 100%;
+    padding: 0;
+    grid-column: 2 / -1;
     cursor: pointer;
 }
 

@@ -1,3 +1,4 @@
+import {Select, SelectOption} from '../../../components/Select'
 import {useMemo, useRef, useState} from 'react'
 import type {FormEvent} from 'react'
 import {Icon} from '../../../components/Icons'
@@ -240,18 +241,18 @@ export function RecurringTransactionFormModal({
                     <div className="recurring-fields-grid">
                         <div className="recurring-field">
                             <label htmlFor="recurring-account">Account</label>
-                            <select id="recurring-account" value={accountId} onChange={(event) => setAccountId(event.target.value)}>
-                                <option value="">Select account</option>
-                                {availableAccounts.map((account) => <option value={account.id} key={account.id}>{account.name} · {account.currency}</option>)}
-                            </select>
+                            <Select id="recurring-account" value={accountId} onValueChange={(value) => setAccountId(value)}>
+                                <SelectOption value="">Select account</SelectOption>
+                                {availableAccounts.map((account) => <SelectOption value={account.id} key={account.id}>{account.name} · {account.currency}</SelectOption>)}
+                            </Select>
                             {errors.accountId && <small>{errors.accountId}</small>}
                         </div>
                         <div className="recurring-field">
                             <label htmlFor="recurring-category">Category</label>
-                            <select id="recurring-category" value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
-                                <option value="">Uncategorized</option>
-                                {availableCategories.map((category) => <option value={category.id} key={category.id}>{category.name}</option>)}
-                            </select>
+                            <Select id="recurring-category" value={categoryId} onValueChange={(value) => setCategoryId(value)}>
+                                <SelectOption value="">Uncategorized</SelectOption>
+                                {availableCategories.map((category) => <SelectOption value={category.id} key={category.id}>{category.name}</SelectOption>)}
+                            </Select>
                             {errors.categoryId && <small>{errors.categoryId}</small>}
                         </div>
                         <div className="recurring-field">

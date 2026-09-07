@@ -1,3 +1,4 @@
+import {selectOption} from '../../../test/selectOption'
 import {fireEvent, render, screen, within} from '@testing-library/react'
 import {http, HttpResponse} from 'msw'
 import {describe, expect, it, vi} from 'vitest'
@@ -97,8 +98,8 @@ describe('RecurringTransactionsView', () => {
         const dialog = within(screen.getByRole('dialog', {name: 'New recurring transaction'}))
         fireEvent.change(dialog.getByLabelText('Name'), {target: {value: 'Apartment rent'}})
         fireEvent.change(dialog.getByLabelText('Amount'), {target: {value: '35000'}})
-        fireEvent.change(dialog.getByLabelText('Account'), {target: {value: account.id}})
-        fireEvent.change(dialog.getByLabelText('Category'), {target: {value: category.id}})
+        await selectOption(dialog.getByLabelText('Account'), `${account.name} · ${account.currency}`)
+        await selectOption(dialog.getByLabelText('Category'), category.name)
         fireEvent.change(dialog.getByLabelText('First occurrence'), {target: {value: '2026-09-01'}})
         fireEvent.click(dialog.getByRole('button', {name: 'Create schedule'}))
 
