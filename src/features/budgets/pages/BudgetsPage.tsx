@@ -1,5 +1,6 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import {Icon} from '../../../components/Icons'
+import {LoadingIndicator} from '../../../components/LoadingIndicator'
 import type {IconName} from '../../../components/Icons'
 import {WorkspaceSidebar} from '../../../layouts/WorkspaceSidebar'
 import {useSession} from '../../auth/session/SessionContext'
@@ -104,7 +105,16 @@ export function BudgetsPage() {
 
     return <div className="budgets-workspace"><WorkspaceSidebar activePage="budgets"/><main className="budgets-main">
         <header className="budgets-header"><div><h1>Budgets</h1><p>Plan your month, track actual spending and protect your savings.</p></div><div className="budgets-header-actions"><label className="budget-month"><Icon name="calendar"/><span>{formatMonth(month)}</span><input aria-label="Budget month" type="month" value={month} onChange={(event) => {setStatus('loading'); setError(''); setMonth(event.target.value)}}/></label><button ref={editButtonRef} type="button" className="edit-budget" onClick={() => setModalOpen(true)} disabled={status !== 'ready'}><Icon name={budget ? 'edit' : 'plus'}/>{budget ? 'Edit budget' : 'Create budget'}</button></div></header>
-        {status === 'loading' && <div className="budget-state" role="status">Loading your budget…</div>}
+        {status === 'loading' && (
+            <div className="budget-state budget-loading-state">
+                <LoadingIndicator
+                    label="Loading your budget"
+                    layout="panel"
+                    showLabel
+                    size="medium"
+                />
+            </div>
+        )}
         {status === 'error' && <div className="budget-state error" role="alert">{error}<button type="button" onClick={() => {setStatus('loading'); setError(''); void load()}}>Try again</button></div>}
         {status === 'ready' && !budget && <div className="budget-state budget-empty"><Icon name="gauge"/><h2>No budget for {formatMonth(month)}</h2><p>Create a monthly plan and allocate your expense categories.</p><button type="button" onClick={() => setModalOpen(true)}>Create budget</button></div>}
         {budget && <>

@@ -29,6 +29,7 @@ export type IconName =
   | 'list'
   | 'lock'
   | 'mail'
+  | 'moon'
   | 'more'
   | 'piggy-bank'
   | 'plus'
@@ -37,6 +38,7 @@ export type IconName =
   | 'search'
   | 'settings'
   | 'shield'
+  | 'sun'
   | 'target'
   | 'tag'
   | 'trash'
@@ -217,6 +219,9 @@ const iconPaths: Record<IconName, ReactNode> = {
       <path d="m4 7 8 6 8-6" />
     </>
   ),
+  moon: (
+    <path d="M20.8 15.2A8.5 8.5 0 0 1 8.8 3.3 8.6 8.6 0 1 0 20.8 15.2Z" />
+  ),
   more: (
     <>
       <circle cx="5" cy="12" r="1" fill="currentColor" stroke="none" />
@@ -269,6 +274,12 @@ const iconPaths: Record<IconName, ReactNode> = {
     <>
       <path d="M12 3 5 6v5c0 4.6 2.8 8.2 7 10 4.2-1.8 7-5.4 7-10V6l-7-3Z" />
       <path d="m9 12 2 2 4-4" />
+    </>
+  ),
+  sun: (
+    <>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
     </>
   ),
   target: (

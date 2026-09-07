@@ -12,21 +12,21 @@
 
         display: grid;
         min-height: calc(
-                66px
+                60px
                 + env(safe-area-inset-bottom)
         );
         grid-template-columns:
             repeat(5, minmax(0, 1fr));
-        align-items: start;
+        align-items: center;
 
         padding:
-                8px
+                6px
                 max(
                         16px,
                         env(safe-area-inset-right)
                 )
                 calc(
-                        8px
+                        6px
                         + env(safe-area-inset-bottom)
                 )
                 max(
@@ -48,10 +48,10 @@
     }
 
     .workspace-mobile-navigation > a,
-    .workspace-mobile-account-trigger {
+    .workspace-mobile-more-trigger {
         display: grid;
-        width: 48px;
-        height: 48px;
+        width: 44px;
+        height: 44px;
         place-items: center;
         justify-self: center;
 
@@ -76,33 +76,40 @@
     }
 
     .workspace-mobile-navigation > a:hover,
-    .workspace-mobile-account-trigger:hover {
+    .workspace-mobile-more-trigger:hover {
         color: #dbe4ee;
         background:
                 rgb(255 255 255 / 5%);
     }
 
-    .workspace-mobile-navigation > a.active {
+    .workspace-mobile-navigation > a.active,
+    .workspace-mobile-more-trigger.active {
         color: #11c493;
         background:
                 rgb(17 196 147 / 10%);
     }
 
     .workspace-mobile-navigation > a:focus-visible,
-    .workspace-mobile-account-trigger:focus-visible {
+    .workspace-mobile-more-trigger:focus-visible {
         outline: 2px solid #10b981;
         outline-offset: 2px;
     }
 
-    .workspace-mobile-account {
+    .workspace-mobile-more {
         position: relative;
         display: grid;
         place-items: center;
     }
 
-    .workspace-mobile-account-trigger {
+    .workspace-mobile-more-trigger {
         padding: 0;
         font: inherit;
+        cursor: pointer;
+    }
+
+    .workspace-mobile-more-trigger svg {
+        width: 24px;
+        height: 24px;
     }
 
     .workspace-mobile-avatar {
@@ -130,20 +137,14 @@
         object-fit: cover;
     }
 
-    .workspace-mobile-account-trigger[
+    .workspace-mobile-more-trigger[
         aria-expanded='true'
     ] {
         background:
                 rgb(255 255 255 / 6%);
     }
 
-    .workspace-mobile-account-trigger[
-        aria-expanded='true'
-    ] .workspace-mobile-avatar {
-        border-color: #10b981;
-    }
-
-    .workspace-mobile-account-menu {
+    .workspace-mobile-more-menu {
         top: auto;
         right: 0;
         bottom: calc(100% + 14px);
@@ -153,12 +154,86 @@
                 260px,
                 calc(100vw - 24px)
         );
+        max-height: calc(
+                100vh
+                - 86px
+                - env(safe-area-inset-bottom)
+        );
+        max-height: calc(
+                100dvh
+                - 86px
+                - env(safe-area-inset-bottom)
+        );
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    .workspace-mobile-overflow-link {
+        display: flex;
+        width: 100%;
+        min-height: 42px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 0 10px;
+        border: 0;
+        border-radius: 10px;
+        color: #d7e0eb;
+        background: transparent;
+        font: inherit;
+        font-size: 12px;
+        text-align: left;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .workspace-mobile-overflow-link:hover,
+    .workspace-mobile-overflow-link.active {
+        color: #82e2c5;
+        background: rgb(17 196 147 / 10%);
+    }
+
+    .workspace-mobile-overflow-link:focus-visible {
+        outline: 2px solid #10b981;
+        outline-offset: -2px;
+    }
+
+    .workspace-mobile-overflow-link > svg {
+        width: 17px;
+        height: 17px;
+    }
+
+    .workspace-mobile-profile-summary {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        gap: 10px;
+        padding: 7px 10px 4px;
+    }
+
+    .workspace-mobile-profile-summary strong,
+    .workspace-mobile-profile-summary small {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .workspace-mobile-profile-summary strong {
+        color: #f4f7fa;
+        font-size: 12px;
+    }
+
+    .workspace-mobile-profile-summary small {
+        margin-top: 4px;
+        color: #7f90aa;
+        font-size: 10px;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .workspace-mobile-navigation > a,
-    .workspace-mobile-account-trigger {
+    .workspace-mobile-more-trigger {
         transition: none;
     }
 }

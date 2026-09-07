@@ -35,6 +35,7 @@ type MobileWorkspaceNavigationProps = {
 
     onToggleAccountMenu: () => void
     onOpenProfile: () => void
+    onOpenSettings: () => void
     onSignOut: () => Promise<void>
 }
 
@@ -51,6 +52,7 @@ export function MobileWorkspaceNavigation({
                                               accountButtonRef,
                                               onToggleAccountMenu,
                                               onOpenProfile,
+                                              onOpenSettings,
                                               onSignOut,
                                           }: MobileWorkspaceNavigationProps) {
     return (
@@ -126,75 +128,99 @@ export function MobileWorkspaceNavigation({
                 <Icon name="gauge"/>
             </Link>
 
-            <Link
-                className={
-                    activePage === 'categories'
-                        ? 'active'
-                        : undefined
-                }
-                to="/categories"
-                aria-label="Categories"
-                aria-current={
-                    activePage === 'categories'
-                        ? 'page'
-                        : undefined
-                }
-            >
-                <Icon name="tag"/>
-            </Link>
-
             <div
                 ref={accountMenuRef}
-                className="workspace-mobile-account"
+                className="workspace-mobile-more"
             >
                 <button
                     ref={accountButtonRef}
-                    className="workspace-mobile-account-trigger"
+                    className={
+                        activePage === 'categories'
+                        || isAccountMenuOpen
+                            ? 'workspace-mobile-more-trigger active'
+                            : 'workspace-mobile-more-trigger'
+                    }
                     type="button"
-                    aria-label="Account menu"
+                    aria-label="More"
                     aria-haspopup="menu"
                     aria-expanded={
                         isAccountMenuOpen
                     }
-                    aria-controls="workspace-mobile-account-menu"
+                    aria-controls="workspace-mobile-more-menu"
                     onClick={
                         onToggleAccountMenu
                     }
                 >
-                    <span
-                        className="workspace-mobile-avatar"
-                        aria-hidden="true"
-                    >
-                        {profilePhotoSrc
-                            ? (
-                                <img
-                                    src={
-                                        profilePhotoSrc
-                                    }
-                                    alt=""
-                                />
-                            )
-                            : initials}
-                    </span>
+                    <Icon name="more"/>
                 </button>
 
                 {isAccountMenuOpen && (
                     <div
-                        id="workspace-mobile-account-menu"
+                        id="workspace-mobile-more-menu"
                         className="
                             workspace-account-menu
-                            workspace-mobile-account-menu
+                            workspace-mobile-more-menu
                         "
                         role="menu"
                     >
-                        <div className="workspace-account-menu-header">
-                            <strong>
-                                {displayName}
-                            </strong>
+                        <Link
+                            className={
+                                activePage === 'categories'
+                                    ? 'workspace-mobile-overflow-link active'
+                                    : 'workspace-mobile-overflow-link'
+                            }
+                            to="/categories"
+                            role="menuitem"
+                            aria-current={
+                                activePage === 'categories'
+                                    ? 'page'
+                                    : undefined
+                            }
+                        >
+                            <span className="workspace-account-menu-label">
+                                <Icon name="tag"/>
+                                <span>Categories</span>
+                            </span>
+                            <Icon name="chevron-right"/>
+                        </Link>
 
-                            <small>
-                                Certis account
-                            </small>
+                        <button
+                            className="workspace-mobile-overflow-link"
+                            type="button"
+                            role="menuitem"
+                            onClick={onOpenSettings}
+                        >
+                            <span className="workspace-account-menu-label">
+                                <Icon name="settings"/>
+                                <span>Settings</span>
+                            </span>
+                            <Icon name="chevron-right"/>
+                        </button>
+
+                        <div
+                            className="workspace-account-menu-divider"
+                            aria-hidden="true"
+                        />
+
+                        <div className="workspace-mobile-profile-summary">
+                            <span
+                                className="workspace-mobile-avatar"
+                                aria-hidden="true"
+                            >
+                                {profilePhotoSrc
+                                    ? (
+                                        <img
+                                            src={profilePhotoSrc}
+                                            alt=""
+                                        />
+                                    )
+                                    : initials}
+                            </span>
+
+                            <div>
+                                <strong>{displayName}</strong>
+                                <small>Certis account</small>
+                            </div>
                         </div>
 
                         {profileAvailable && (

@@ -110,8 +110,7 @@
     color: #11c493;
 }
 
-.workspace-nav-disabled,
-.workspace-settings-link {
+.workspace-nav-disabled {
     cursor: default;
     opacity: 0.72;
 }
@@ -158,8 +157,26 @@
 }
 
 .workspace-settings-link {
+    width: 100%;
     margin-top: 18px;
     padding-inline: 16px;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: color 150ms ease,
+    background 150ms ease;
+}
+
+.workspace-settings-link:hover {
+    color: #f1f5f9;
+    background: rgb(255 255 255 / 4%);
+}
+
+.workspace-settings-link:focus-visible {
+    outline: 2px solid #10b981;
+    outline-offset: 2px;
 }
 
 .workspace-person-menu {
@@ -392,7 +409,8 @@
 
 @media (prefers-reduced-motion: reduce) {
     .workspace-person,
-    .workspace-person > svg {
+    .workspace-person > svg,
+    .workspace-settings-link {
         transition: none;
     }
 

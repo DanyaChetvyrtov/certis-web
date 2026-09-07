@@ -239,9 +239,79 @@ describe('TransactionsPage', () => {
         expect(screen.getAllByText('Groceries').length).toBeGreaterThan(0)
         expect(screen.getAllByText('₽185,000').length).toBeGreaterThan(0)
         expect(screen.getAllByText('₽4,860').length).toBeGreaterThan(0)
+        expect(screen.getByText('+₽185,000'))
+            .toHaveClass('transaction-amount', 'income')
+        expect(screen.getByText('−₽4,860'))
+            .toHaveClass('transaction-amount', 'expense')
         expect(
             screen.getByRole('link', {name: 'Transactions'}),
         ).toHaveAttribute('aria-current', 'page')
+    })
+
+    it('loads transactions for a custom date range', async () => {
+        const queries: Array<Record<string, string>> = []
+
+        useWorkspaceHandlers([
+            expenseTransaction,
+            incomeTransaction,
+        ])
+        server.use(
+            http.get('/api/v1/transactions', ({request}) => {
+                queries.push(Object.fromEntries(
+                    new URL(request.url).searchParams,
+                ))
+
+                return HttpResponse.json(transactionPage([
+                    expenseTransaction,
+                    incomeTransaction,
+                ]))
+            }),
+        )
+
+        renderPage()
+
+        await screen.findByText('Greenfield Market')
+        await selectOption(
+            screen.getByLabelText('Period'),
+            'Custom range',
+        )
+
+        fireEvent.change(
+            screen.getByLabelText('From'),
+            {target: {value: '2026-07-10'}},
+        )
+        fireEvent.change(
+            screen.getByLabelText('To'),
+            {target: {value: '2026-08-12'}},
+        )
+        fireEvent.click(
+            screen.getByRole('button', {name: 'Apply range'}),
+        )
+
+        await waitFor(() => {
+            expect(queries.at(-1)).toEqual({
+                from: new Date(
+                    2026,
+                    6,
+                    10,
+                ).toISOString(),
+                to: new Date(
+                    2026,
+                    7,
+                    12,
+                    23,
+                    59,
+                    59,
+                    999,
+                ).toISOString(),
+                page: '0',
+                size: '100',
+            })
+        })
+
+        expect(
+            screen.getByRole('button', {name: /Jul 10 – Aug 12, 2026/}),
+        ).toBeInTheDocument()
     })
 
     it('does not compare category spending across currencies', async () => {

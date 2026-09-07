@@ -3,6 +3,7 @@ import {useEffect, useState} from 'react'
 import {getCashFlowAnalytics} from '../../transactions/api/transactionsApi'
 import type {CashFlowAnalytics, CashFlowRange} from '../../transactions/api/transactionsApi'
 import type {Currency} from '../../../shared/currency'
+import {LoadingIndicator} from '../../../components/LoadingIndicator'
 import {CashFlowChart} from './CashFlowChart'
 
 const ranges: [CashFlowRange, string][] = [
@@ -53,7 +54,14 @@ export function CashFlowPanel({currency, enabled, refreshRevision = 0}: {
                     {ranges.map(([value, label]) => <SelectOption key={value} value={value}>{label}</SelectOption>)}
                 </Select>
             </header>
-            {!current && <p role="status">Loading cash flow…</p>}
+            {!current && (
+                <LoadingIndicator
+                    label="Loading cash flow"
+                    layout="panel"
+                    showLabel
+                    size="medium"
+                />
+            )}
             {current?.error && <div className="accounts-error" role="alert">
                 <p>We could not load cash flow.</p>
                 <button type="button" onClick={() => setRevision(value => value + 1)}>Try again</button>
