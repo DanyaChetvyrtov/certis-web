@@ -1,4 +1,5 @@
 import {CertisLogo} from '../components/Icons'
+import {LoadingIndicator} from '../components/LoadingIndicator'
 import './SessionCheckPage.css'
 
 type SessionCheckPageProps = {
@@ -40,7 +41,11 @@ export function SessionCheckPage({
                 </>
             ) : (
                 <>
-                    <span className="session-spinner" aria-hidden="true"/>
+                    <LoadingIndicator
+                        label="Checking your session"
+                        size="large"
+                        tone="light"
+                    />
                     <h1>Checking your session</h1>
                     <p>Connecting securely to Certis…</p>
                 </>

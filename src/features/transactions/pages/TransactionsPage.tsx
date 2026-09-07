@@ -71,7 +71,11 @@ import './TransactionsPage.css'
 
 type LoadState = 'loading' | 'ready' | 'error'
 type ActivityType = 'ALL' | TransactionType | 'TRANSFER'
-type PeriodPreset = 'THIS_MONTH' | 'LAST_30_DAYS' | 'ALL_TIME'
+type PeriodPreset =
+    | 'THIS_MONTH'
+    | 'LAST_30_DAYS'
+    | 'CUSTOM'
+    | 'ALL_TIME'
 
 type Notice = {
     kind: 'success' | 'error'
@@ -104,6 +108,11 @@ type PeriodRange = {
     end?: Date
 }
 
+type CustomPeriod = {
+    from: string
+    to: string
+}
+
 type TransactionAccentStyle = CSSProperties & {
     '--transaction-accent': string
 }
@@ -124,6 +133,7 @@ const currencySymbols: Record<Currency, string> = {
 const periodLabels: Record<PeriodPreset, string> = {
     THIS_MONTH: 'This month',
     LAST_30_DAYS: 'Last 30 days',
+    CUSTOM: 'Custom range',
     ALL_TIME: 'All time',
 }
 
@@ -155,12 +165,74 @@ const endOfLocalDay = (
         999,
     )
 
+const toDateInputValue = (
+    date: Date,
+): string => [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+].join('-')
+
+const parseLocalDate = (
+    value: string,
+): Date | undefined => {
+    const parts = value
+        .split('-')
+        .map(Number)
+
+    if (
+        parts.length !== 3
+        || parts.some((part) => !Number.isInteger(part))
+    ) {
+        return undefined
+    }
+
+    const [year, month, day] = parts
+    const date = new Date(year, month - 1, day)
+
+    return date.getFullYear() === year
+        && date.getMonth() === month - 1
+        && date.getDate() === day
+        ? date
+        : undefined
+}
+
+const getDefaultCustomPeriod = (
+    anchorDate: Date,
+): CustomPeriod => ({
+    from: toDateInputValue(new Date(
+        anchorDate.getFullYear(),
+        anchorDate.getMonth(),
+        1,
+    )),
+    to: toDateInputValue(anchorDate),
+})
+
 const getPeriodRange = (
     period: PeriodPreset,
     anchorDate: Date,
+    customPeriod: CustomPeriod,
 ): PeriodRange => {
     if (period === 'ALL_TIME') {
         return {}
+    }
+
+    if (period === 'CUSTOM') {
+        const start = parseLocalDate(customPeriod.from)
+        const endDate = parseLocalDate(customPeriod.to)
+
+        if (!start || !endDate || start > endDate) {
+            return {}
+        }
+
+        const end = endOfLocalDay(endDate)
+
+        return {
+            from: start.toISOString(),
+            to: end.toISOString(),
+            start,
+            end,
+        }
     }
 
     const end = endOfLocalDay(anchorDate)
@@ -363,13 +435,48 @@ export function TransactionsPage() {
         useState<ReverseTransferState | null>(null)
     const [notice, setNotice] = useState<Notice | null>(null)
     const [anchorDate] = useState(() => new Date())
+    const [customPeriod, setCustomPeriod] =
+        useState<CustomPeriod>(() =>
+            getDefaultCustomPeriod(anchorDate),
+        )
+    const [customPeriodDraft, setCustomPeriodDraft] =
+        useState<CustomPeriod>(() =>
+            getDefaultCustomPeriod(anchorDate),
+        )
     const newTransactionButtonRef = useRef<HTMLButtonElement>(null)
     const newTransferButtonRef = useRef<HTMLButtonElement>(null)
     const quickFiltersRef = useRef<HTMLElement>(null)
 
     const periodRange = useMemo(
-        () => getPeriodRange(period, anchorDate),
-        [anchorDate, period],
+        () => getPeriodRange(
+            period,
+            anchorDate,
+            customPeriod,
+        ),
+        [
+            anchorDate,
+            customPeriod,
+            period,
+        ],
+    )
+
+    const customPeriodStart =
+        parseLocalDate(customPeriodDraft.from)
+    const customPeriodEnd =
+        parseLocalDate(customPeriodDraft.to)
+    const customPeriodIsReversed = Boolean(
+        customPeriodStart
+        && customPeriodEnd
+        && customPeriodStart > customPeriodEnd,
+    )
+    const canApplyCustomPeriod = Boolean(
+        customPeriodStart
+        && customPeriodEnd
+        && !customPeriodIsReversed
+        && (
+            customPeriod.from !== customPeriodDraft.from
+            || customPeriod.to !== customPeriodDraft.to
+        ),
     )
 
     useEffect(() => {
@@ -1505,11 +1612,18 @@ export function TransactionsPage() {
                                 <Select
                                     id="transaction-period-filter"
                                     value={period}
-                                    onValueChange={(value) =>
-                                        setPeriod(
-                                            value as PeriodPreset,
-                                        )
-                                    }
+                                    onValueChange={(value) => {
+                                        const nextPeriod =
+                                            value as PeriodPreset
+
+                                        setPeriod(nextPeriod)
+
+                                        if (nextPeriod === 'CUSTOM') {
+                                            setCustomPeriodDraft(
+                                                customPeriod,
+                                            )
+                                        }
+                                    }}
                                 >
                                     {Object.entries(periodLabels)
                                         .map(([value, label]) => (
@@ -1519,6 +1633,64 @@ export function TransactionsPage() {
                                         ))}
                                 </Select>
                             </div>
+
+                            {period === 'CUSTOM' && (
+                                <form
+                                    className="custom-period-filter"
+                                    onSubmit={(event) => {
+                                        event.preventDefault()
+
+                                        if (canApplyCustomPeriod) {
+                                            setCustomPeriod(
+                                                customPeriodDraft,
+                                            )
+                                        }
+                                    }}
+                                >
+                                    <label>
+                                        <span>From</span>
+                                        <input
+                                            type="date"
+                                            value={customPeriodDraft.from}
+                                            max={customPeriodDraft.to || undefined}
+                                            onChange={(event) =>
+                                                setCustomPeriodDraft((current) => ({
+                                                    ...current,
+                                                    from: event.target.value,
+                                                }))
+                                            }
+                                        />
+                                    </label>
+
+                                    <label>
+                                        <span>To</span>
+                                        <input
+                                            type="date"
+                                            value={customPeriodDraft.to}
+                                            min={customPeriodDraft.from || undefined}
+                                            onChange={(event) =>
+                                                setCustomPeriodDraft((current) => ({
+                                                    ...current,
+                                                    to: event.target.value,
+                                                }))
+                                            }
+                                        />
+                                    </label>
+
+                                    <button
+                                        type="submit"
+                                        disabled={!canApplyCustomPeriod}
+                                    >
+                                        Apply range
+                                    </button>
+
+                                    {customPeriodIsReversed && (
+                                        <p role="alert">
+                                            The end date must be on or after the start date.
+                                        </p>
+                                    )}
+                                </form>
+                            )}
 
                             <label htmlFor="transaction-account-filter">
                                 Account
@@ -1576,6 +1748,11 @@ export function TransactionsPage() {
                                             setAccountFilter('')
                                             setCategoryFilter('')
                                             setPeriod('THIS_MONTH')
+                                            const defaultPeriod =
+                                                getDefaultCustomPeriod(anchorDate)
+
+                                            setCustomPeriod(defaultPeriod)
+                                            setCustomPeriodDraft(defaultPeriod)
                                         }}
                                     >
                                         Clear quick filters

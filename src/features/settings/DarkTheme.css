@@ -1,0 +1,771 @@
+html[data-theme='dark'] {
+    color-scheme: dark;
+    --cream: #07182b;
+    --navy: #edf4fb;
+    --muted: #9aacc0;
+    --control-surface: #122a45;
+    --control-border: #304a65;
+    --scrollbar-thumb: #50677f;
+    --scrollbar-thumb-hover: #71879d;
+    background: #07182b;
+}
+
+html[data-theme='dark'] body {
+    color: #dce7f2;
+    background: #07182b;
+}
+
+/* Authentication inherits the saved preference after sign-out. */
+html[data-theme='dark'] .auth-panel {
+    background:
+        radial-gradient(
+            circle at 100% 0,
+            rgb(45 93 137 / 18%),
+            transparent 34%
+        ),
+        #07182b;
+}
+
+html[data-theme='dark'] .auth-card {
+    border-color: #29435f;
+    color: #dce7f2;
+    background: rgb(13 35 59 / 97%);
+    box-shadow: 0 30px 70px rgb(0 5 15 / 34%);
+}
+
+html[data-theme='dark'] .auth-tabs {
+    background: #081c32;
+}
+
+html[data-theme='dark'] .auth-tabs::before {
+    border-color: #36516d;
+    background: #183651;
+    box-shadow: none;
+}
+
+html[data-theme='dark'] .auth-tabs button {
+    color: #93a6bb;
+}
+
+html[data-theme='dark'] .auth-tabs button.active {
+    color: #edf4fb;
+}
+
+html[data-theme='dark'] .field label {
+    color: #cbd8e4;
+}
+
+html[data-theme='dark'] .input-shell {
+    border-color: #304a65;
+    background: #102842;
+    box-shadow: none;
+}
+
+html[data-theme='dark'] .input-shell:focus-within {
+    border-color: #10b981;
+    background: #132e4b;
+}
+
+html[data-theme='dark'] .input-shell input {
+    color: #e5edf5;
+}
+
+html[data-theme='dark'] .security-note {
+    background: #0d302f;
+}
+
+html[data-theme='dark'] .security-icon {
+    background: #164039;
+}
+
+html[data-theme='dark'] .security-note strong {
+    color: #dce9e4;
+}
+
+html[data-theme='dark'] .security-note small,
+html[data-theme='dark'] .auth-switch {
+    color: #91a6b8;
+}
+
+html[data-theme='dark'] .form-notice-error {
+    color: #f1aaa6;
+    background: #41262e;
+}
+
+html[data-theme='dark'] .form-notice-success {
+    color: #86e0c3;
+    background: #103b38;
+}
+
+html[data-theme='dark'] :is(
+    .dashboard-shell,
+    .accounts-workspace,
+    .transactions-workspace,
+    .categories-workspace,
+    .budgets-workspace
+) {
+    color: #dce7f2;
+    background: #07182b;
+}
+
+html[data-theme='dark'] .dashboard-shell {
+    --dashboard-cream: #07182b;
+    --dashboard-border: #29425e;
+}
+
+/* Shared workspace surfaces */
+html[data-theme='dark'] :is(
+    .summary-card,
+    .dashboard-panel,
+    .accounts-summary-card,
+    .accounts-list-card,
+    .transaction-metrics article,
+    .transaction-activity-card,
+    .spending-category-card,
+    .transaction-quick-filters,
+    .recurring-transactions-card,
+    .recurring-list-card,
+    .upcoming-card,
+    .scheduled-flow-card,
+    .recurring-info-card,
+    .categories-card,
+    .category-analytics-card,
+    .budget-summary article,
+    .budget-allocation-card,
+    .budget-insights section
+) {
+    border-color: #29425e;
+    color: #dce7f2;
+    background: #0d233b;
+    box-shadow: 0 12px 32px rgb(0 5 15 / 20%);
+}
+
+html[data-theme='dark'] :is(
+    .dashboard-topbar h1,
+    .dashboard-panel-header h2,
+    .summary-card strong,
+    .budget-ring-value strong,
+    .budget-overview > div:last-child > strong,
+    .dashboard-account-row strong,
+    .recent-transaction-copy strong,
+    .accounts-page-header h1,
+    .total-balance-panel > strong,
+    .balance-type-row strong,
+    .accounts-list-heading h2,
+    .account-identity strong,
+    .account-balance strong,
+    .account-empty-state h3,
+    .transactions-page-header h1,
+    .transaction-metrics strong,
+    .transaction-activity-heading h2,
+    .spending-category-card h2,
+    .transaction-quick-filters h2,
+    .transaction-date-group > h3,
+    .transaction-identity strong,
+    .transaction-details > .transaction-amount,
+    .transaction-empty-state h3,
+    .spending-category-list p strong,
+    .recurring-transactions-card strong,
+    .recurring-list-card h2,
+    .recurring-side-column h2,
+    .recurring-row > div > strong,
+    .recurring-row > strong,
+    .upcoming-card article div > strong,
+    .upcoming-card article > strong,
+    .categories-page-header h1,
+    .categories-card-heading h2,
+    .category-item-heading h3,
+    .category-item-stats strong,
+    .category-create-card h2,
+    .category-analytics-card header h2,
+    .category-coverage-content > strong,
+    .top-category-list strong,
+    .budgets-header h1,
+    .budget-summary strong,
+    .budget-allocation-card h2,
+    .budget-insights h2,
+    .budget-allocation-row strong,
+    .savings-card strong,
+    .risk-card h3
+) {
+    color: #edf4fb;
+}
+
+html[data-theme='dark'] :is(
+    .dashboard-topbar > div:first-child > p,
+    .dashboard-topbar > div:first-child > span,
+    .dashboard-panel-header p,
+    .summary-card p,
+    .summary-card-hint,
+    .budget-ring-value small,
+    .budget-overview > div:last-child > small,
+    .dashboard-account-row small,
+    .recent-transaction-copy small,
+    .accounts-page-header p,
+    .accounts-page-header > div:first-child > span,
+    .total-balance-panel > p,
+    .total-balance-panel > small,
+    .balance-type-heading > p,
+    .balance-type-row small,
+    .accounts-list-heading p,
+    .account-table-head,
+    .account-identity small,
+    .account-balance small,
+    .transactions-page-header p,
+    .transaction-metrics p,
+    .transaction-metrics small,
+    .transaction-activity-heading p,
+    .spending-category-card header p,
+    .transaction-quick-filters header p,
+    .transaction-column-headings,
+    .transaction-identity small,
+    .transaction-identity em,
+    .transaction-details > span,
+    .transaction-details > time,
+    .transaction-empty-state p,
+    .spending-category-list p,
+    .spending-category-message p,
+    .transaction-quick-filters > label,
+    .recurring-transactions-card p,
+    .recurring-list-card header p,
+    .recurring-side-column header p,
+    .recurring-table-heading,
+    .recurring-row > div > small,
+    .recurring-list-card > footer,
+    .upcoming-card article div > small,
+    .recurring-side-empty,
+    .scheduled-flow-card > p,
+    .categories-page-header p,
+    .categories-card-heading p,
+    .category-item-heading p,
+    .category-item-stats > span,
+    .category-item-stats b,
+    .category-create-card p,
+    .category-analytics-card header p,
+    .category-coverage-content > p,
+    .top-categories-empty p,
+    .budgets-header p,
+    .budget-summary p,
+    .budget-summary small,
+    .budget-allocation-card header p,
+    .budget-table-head,
+    .budget-category-copy small,
+    .savings-card p,
+    .savings-card small,
+    .risk-card p
+) {
+    color: #94a7bc;
+}
+
+/* Shared controls and menus */
+html[data-theme='dark'] :is(
+    .dashboard-actions button,
+    .dashboard-currency-action,
+    .cash-flow-panel .certis-select,
+    .dashboard-secondary-action,
+    .accounts-icon-button,
+    .balance-type-heading .certis-select,
+    .account-search-field,
+    .account-sort-field,
+    .transaction-period-button,
+    .transaction-search-field,
+    .transaction-activity-tools > button,
+    .transaction-activity-tools > span,
+    .quick-filter-select,
+    .recurring-list-tools label,
+    .recurring-list-tools .certis-select,
+    .category-search-field,
+    .category-currency-field,
+    .category-sort-field,
+    .category-pagination button,
+    .budgets-header-actions button,
+    .budget-allocation-card header button
+) {
+    border-color: #304a65;
+    color: #c4d2df;
+    background: #122a45;
+    box-shadow: none;
+}
+
+html[data-theme='dark'] :is(
+    .dashboard-currency-action .certis-select,
+    .account-search-field input,
+    .transaction-search-field input,
+    .recurring-list-tools input,
+    .category-search-field input
+) {
+    color: #dce7f2;
+}
+
+html[data-theme='dark'] :is(
+    .dashboard-currency-action .certis-select,
+    .account-search-field input,
+    .transaction-search-field input,
+    .recurring-list-tools input,
+    .category-search-field input
+)::placeholder {
+    color: #71869c;
+}
+
+html[data-theme='dark'] :is(
+    .account-filter-tabs,
+    .transaction-type-tabs,
+    .transaction-view-tabs,
+    .category-status-tabs
+) {
+    border-color: #29435f;
+    background: #0a1e35;
+}
+
+html[data-theme='dark'] :is(
+    .account-filter-tabs button,
+    .transaction-type-tabs button,
+    .transaction-view-tabs button,
+    .category-status-tabs button,
+    .category-type-tabs button,
+    .budget-filters button
+) {
+    color: #94a7bb;
+}
+
+html[data-theme='dark'] :is(
+    .account-filter-tabs button.active,
+    .transaction-type-tabs button.active,
+    .transaction-view-tabs button.active,
+    .category-status-tabs button.active,
+    .category-type-tabs button.active,
+    .budget-filters button.active
+) {
+    color: #f2f7fb;
+    background: #193855;
+    box-shadow: none;
+}
+
+html[data-theme='dark'] .certis-select-content {
+    border-color: #36516d;
+    color: #dce7f2;
+    background: #102842;
+    box-shadow: 0 18px 46px rgb(0 5 15 / 42%);
+}
+
+html[data-theme='dark'] .certis-select-option[data-highlighted] {
+    color: #edf4fb;
+    background: #1b3855;
+    box-shadow: inset 0 0 0 1px #3b5874;
+}
+
+html[data-theme='dark'] .certis-select-option[data-state='checked'] {
+    color: #7fe0c1;
+    background: #103b38;
+}
+
+html[data-theme='dark'] .certis-select-option[data-state='checked'][data-highlighted] {
+    color: #9ae9d1;
+    background: #155047;
+    box-shadow: inset 0 0 0 1px #247d68;
+}
+
+/* Workspace rows and empty states */
+html[data-theme='dark'] :is(
+    .dashboard-account-row,
+    .recent-transaction-row,
+    .account-row,
+    .transaction-row,
+    .recurring-row,
+    .category-item,
+    .budget-allocation-row
+) {
+    border-color: #29425d;
+    background: #102842;
+}
+
+html[data-theme='dark'] :is(
+    .dashboard-account-row,
+    .recent-transaction-row,
+    .account-row,
+    .transaction-row,
+    .recurring-row,
+    .category-item,
+    .budget-allocation-row
+):hover {
+    border-color: #3a5874;
+    background: #142f4c;
+}
+
+html[data-theme='dark'] :is(
+    .account-row.closed,
+    .category-item.archived
+) {
+    background: #0b1e34;
+}
+
+html[data-theme='dark'] :is(
+    .balance-type-track,
+    .summary-progress,
+    .budget-category-copy > span,
+    .savings-card > div,
+    .spending-progress,
+    .category-item-progress,
+    .category-coverage-progress,
+    .top-category-progress
+) {
+    background: #223b55;
+}
+
+html[data-theme='dark'] :is(
+    .dashboard-empty-state,
+    .account-empty-state,
+    .transaction-empty-state,
+    .category-empty-state,
+    .top-categories-empty,
+    .budget-state
+) {
+    border-color: #29435f;
+    color: #c9d6e2;
+    background: #0b2037;
+}
+
+html[data-theme='dark'] :is(
+    .account-action-menu,
+    .transaction-action-popover
+) {
+    border-color: #36516d;
+    background: #102842;
+    box-shadow: 0 16px 38px rgb(0 5 15 / 38%);
+}
+
+html[data-theme='dark'] :is(
+    .account-action-menu button,
+    .transaction-action-popover button
+) {
+    color: #c6d3e0;
+}
+
+html[data-theme='dark'] :is(
+    .account-action-menu button,
+    .transaction-action-popover button,
+    .recurring-row-actions button
+):hover {
+    background: #1b3855;
+}
+
+html[data-theme='dark'] :is(
+    .goal-preview-placeholder,
+    .transaction-preview-list > span
+) {
+    background: #1a334d;
+}
+
+/* Accent cards remain semantic, with dark-compatible fills. */
+html[data-theme='dark'] :is(
+    .account-counts span:first-child,
+    .metric-icon.income,
+    .recent-transaction-icon-income,
+    .summary-card-icon-green,
+    .category-create-card > span,
+    .budget-summary .green,
+    .budget-type.variable
+) {
+    background: #103b38;
+}
+
+html[data-theme='dark'] :is(
+    .metric-icon.expense,
+    .recent-transaction-icon-expense,
+    .summary-card-icon-red,
+    .budget-summary .red
+) {
+    background: #412a31;
+}
+
+html[data-theme='dark'] :is(
+    .metric-icon.average,
+    .recent-transaction-icon-transfer,
+    .summary-card-icon-gold,
+    .budget-summary .gold,
+    .savings-card > span
+) {
+    background: #3a3228;
+}
+
+html[data-theme='dark'] :is(
+    .summary-card-icon-navy,
+    .budget-summary .navy,
+    .budget-type.fixed,
+    .transfer-state-pill,
+    .upcoming-card time
+) {
+    background: #213a55;
+}
+
+html[data-theme='dark'] :is(
+    .recurring-info-card,
+    .category-create-card,
+    .category-coverage-notice.complete
+) {
+    border-color: #246a5a;
+    background: #0d302f;
+}
+
+/* Forms and dialogs */
+html[data-theme='dark'] :is(
+    .account-modal,
+    .account-confirm-modal,
+    .transaction-modal,
+    .transaction-delete-dialog,
+    .recurring-modal,
+    .category-modal,
+    .category-archive-dialog,
+    .uncategorized-modal,
+    .budget-modal,
+    .profile-editor,
+    .profile-modal,
+    .settings-modal
+) {
+    border-color: #304a65;
+    color: #dce7f2;
+    background: #0d233b;
+}
+
+html[data-theme='dark'] :is(
+    .account-modal-heading,
+    .transaction-modal-heading,
+    .recurring-modal > header,
+    .category-modal-heading,
+    .uncategorized-modal-heading,
+    .budget-modal > header,
+    .profile-editor-header,
+    .profile-editor-footer,
+    .settings-modal-header
+) {
+    border-color: #29435f;
+    background: #0d233b;
+}
+
+html[data-theme='dark'] :is(
+    .account-confirm-modal h2,
+    .transaction-modal-heading h2,
+    .transaction-delete-dialog h2,
+    .recurring-modal h2,
+    .category-modal-heading h2,
+    .category-archive-dialog h2,
+    .uncategorized-modal-heading h2,
+    .uncategorized-transactions-heading h3,
+    .budget-modal h2,
+    .budget-modal-section-title h3,
+    .profile-editor-header h2,
+    .profile-editor-photo-content > strong,
+    .profile-editor-privacy strong,
+    .profile-modal-header h2,
+    .settings-modal-header h2,
+    .settings-section-heading h3
+) {
+    color: #edf4fb;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-modal-heading p,
+    .recurring-modal header p,
+    .category-modal-heading p,
+    .uncategorized-modal-heading p,
+    .profile-editor-header p,
+    .profile-editor-section-copy,
+    .profile-editor-photo-content > small,
+    .profile-modal-header p,
+    .settings-modal-header > div > span,
+    .settings-section-heading p
+) {
+    color: #94a7bb;
+}
+
+html[data-theme='dark'] :is(
+    .account-modal-close,
+    .transaction-modal-heading > button,
+    .recurring-modal header button,
+    .category-modal-heading > button,
+    .uncategorized-modal-heading > button,
+    .profile-editor-close,
+    .settings-modal-close,
+    .account-modal-actions button,
+    .transaction-modal-actions button,
+    .recurring-modal footer button,
+    .category-modal-actions button,
+    .category-archive-actions button,
+    .uncategorized-modal-footer > button,
+    .budget-modal footer button,
+    .profile-editor-photo-actions button,
+    .profile-editor-footer button.secondary
+) {
+    border-color: #36516d;
+    color: #c6d3e0;
+    background: #132b46;
+}
+
+html[data-theme='dark'] :is(
+    .account-form-field .certis-select,
+    .account-type-grid label,
+    .transaction-amount-input,
+    .transaction-date-shell,
+    .transaction-note-field textarea,
+    .recurring-field input,
+    .recurring-field .certis-select,
+    .recurring-frequency-row > input,
+    .recurring-frequency-row button,
+    .category-name-field input,
+    .category-icon-options label,
+    .category-preview,
+    .uncategorized-category-field,
+    .uncategorized-transaction,
+    .budget-modal-fields label > span,
+    .budget-limit-input,
+    .budget-modal .certis-select,
+    .profile-editor-grid input,
+    .profile-input-shell,
+    .settings-theme-option
+) {
+    border-color: #304a65;
+    color: #dce7f2;
+    background: #102842;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-type-options,
+    .recurring-type > div,
+    .category-type-options,
+    .category-icon-options,
+    .category-color-options
+) {
+    border-color: #29435f;
+    background: #0a1e35;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-amount-input input,
+    .transaction-date-shell input,
+    .transaction-note-field textarea,
+    .recurring-field input,
+    .recurring-frequency-row > input,
+    .category-name-field input,
+    .uncategorized-search-field input,
+    .budget-modal input,
+    .profile-editor-grid input,
+    .profile-input-shell input
+) {
+    color: #e4edf5;
+    background: transparent;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-amount-input strong,
+    .recurring-amount-input span
+) {
+    border-color: #36516d;
+    color: #afbdcb;
+    background: #193550;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-balance-note,
+    .recurring-preview,
+    .uncategorized-summary,
+    .profile-editor-privacy,
+    .settings-storage-note
+) {
+    border-color: #246a5a;
+    color: #7fe0c1;
+    background: #0d302f;
+}
+
+html[data-theme='dark'] :is(
+    .transfer-reversal-summary,
+    .transfer-reversal-note
+) {
+    border-color: #3c4f76;
+    background: #172842;
+}
+
+html[data-theme='dark'] :is(
+    .uncategorized-table-heading,
+    .uncategorized-modal-footer,
+    .profile-editor-section + .profile-editor-section,
+    .recurring-modal footer
+) {
+    border-color: #29435f;
+}
+
+html[data-theme='dark'] .settings-theme-copy strong {
+    color: #edf4fb;
+}
+
+html[data-theme='dark'] .settings-theme-copy small {
+    color: #91a4b8;
+}
+
+html[data-theme='dark'] .settings-section-heading > span {
+    background: #3a3228;
+}
+
+html[data-theme='dark'] .settings-storage-note small {
+    color: #79aa9b;
+}
+
+html[data-theme='dark'] .settings-theme-option:hover {
+    border-color: #4b6985;
+}
+
+html[data-theme='dark'] .settings-theme-option.selected {
+    border-color: #18c796;
+}
+
+html[data-theme='dark'] :is(
+    .custom-period-filter,
+    .custom-period-filter input
+) {
+    border-color: #304a65;
+    color: #dce7f2;
+    background: #102842;
+}
+
+html[data-theme='dark'] .custom-period-filter label > span {
+    color: #94a7bc;
+}
+
+html[data-theme='dark'] .custom-period-filter button:disabled {
+    border-color: #29435f;
+    color: #71869c;
+    background: #172d45;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-details > .transaction-amount.income,
+    .recent-transaction-amount-income
+) {
+    color: #35d2a3;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-details > .transaction-amount.expense,
+    .recent-transaction-amount-expense
+) {
+    color: #f07a73;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-details > .transaction-amount.transfer,
+    .recent-transaction-amount-transfer
+) {
+    color: #8c9df3;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    html,
+    body,
+    .dashboard-shell,
+    .accounts-workspace,
+    .transactions-workspace,
+    .categories-workspace,
+    .budgets-workspace {
+        transition: background-color 180ms ease,
+        color 180ms ease;
+    }
+}

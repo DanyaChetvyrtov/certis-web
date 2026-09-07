@@ -21,6 +21,9 @@ import {ProfileModal} from '../features/profile/ProfileModal'
 import {
     createProfilePhotoSrc,
 } from '../features/profile/profilePhoto'
+import {
+    SettingsModal,
+} from '../features/settings/SettingsModal'
 
 type WorkspaceSidebarProps = {
     activePage:
@@ -62,6 +65,11 @@ export function WorkspaceSidebar({
         setProfileModalOpen,
     ] = useState(false)
 
+    const [
+        isSettingsModalOpen,
+        setSettingsModalOpen,
+    ] = useState(false)
+
     const openProfileModal = (
         restoreFocusTarget:
             HTMLElement | null,
@@ -71,7 +79,21 @@ export function WorkspaceSidebar({
 
         setAccountMenuOpen(false)
         setSignOutError(null)
+        setSettingsModalOpen(false)
         setProfileModalOpen(true)
+    }
+
+    const openSettingsModal = (
+        restoreFocusTarget:
+            HTMLElement | null,
+    ) => {
+        settingsRestoreFocusRef.current =
+            restoreFocusTarget
+
+        setAccountMenuOpen(false)
+        setSignOutError(null)
+        setProfileModalOpen(false)
+        setSettingsModalOpen(true)
     }
 
     const [isAccountMenuOpen, setAccountMenuOpen] = useState(false)
@@ -79,10 +101,12 @@ export function WorkspaceSidebar({
     const [signOutError, setSignOutError] = useState<string | null>(null)
     const accountMenuRef = useRef<HTMLDivElement>(null)
     const accountButtonRef = useRef<HTMLButtonElement>(null)
+    const settingsButtonRef = useRef<HTMLButtonElement>(null)
 
     const mobileAccountMenuRef = useRef<HTMLDivElement>(null)
     const mobileAccountButtonRef = useRef<HTMLButtonElement>(null)
     const profileRestoreFocusRef = useRef<HTMLElement | null>(null)
+    const settingsRestoreFocusRef = useRef<HTMLElement | null>(null)
 
     const displayName = profile
         ? `${profile.name} ${profile.surname.charAt(0)}.`
@@ -324,13 +348,19 @@ export function WorkspaceSidebar({
                     </p>
                 </section>
 
-                <span
+                <button
+                    ref={settingsButtonRef}
                     className="workspace-settings-link"
-                    aria-disabled="true"
+                    type="button"
+                    onClick={() =>
+                        openSettingsModal(
+                            settingsButtonRef.current,
+                        )
+                    }
                 >
                 <Icon name="settings"/>
                 <span>Settings</span>
-            </span>
+            </button>
 
                 <div
                     className="workspace-person-menu"
@@ -469,6 +499,11 @@ export function WorkspaceSidebar({
                         mobileAccountButtonRef.current,
                     )
                 }
+                onOpenSettings={() =>
+                    openSettingsModal(
+                        mobileAccountButtonRef.current,
+                    )
+                }
                 onSignOut={handleSignOut}
             />
 
@@ -490,6 +525,18 @@ export function WorkspaceSidebar({
                             ?.focus()
                     }
                 />)}
+
+            {isSettingsModalOpen && (
+                <SettingsModal
+                    onClose={() =>
+                        setSettingsModalOpen(false)
+                    }
+                    restoreFocus={() =>
+                        settingsRestoreFocusRef.current
+                            ?.focus()
+                    }
+                />
+            )}
         </>
     )
 }

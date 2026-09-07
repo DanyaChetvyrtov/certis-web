@@ -226,7 +226,7 @@
     white-space: nowrap;
 }
 
-.summary-card div > span {
+.summary-card-hint {
     display: block;
     margin-top: 15px;
     overflow: hidden;
@@ -234,6 +234,11 @@
     font-size: 10px;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.summary-card-loading {
+    min-height: 31px;
+    margin-top: 12px;
 }
 
 .summary-card-icon {
@@ -326,6 +331,10 @@
 }
 
 .dashboard-panel-header button {
+    cursor: pointer;
+}
+
+.dashboard-panel-header button:disabled {
     cursor: not-allowed;
 }
 
@@ -545,15 +554,16 @@
     padding-top: 7px;
 }
 
-.account-row {
+.dashboard-account-row {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
+    min-width: 0;
     align-items: center;
     gap: 12px;
     padding: 11px 0;
 }
 
-.account-type-icon {
+.dashboard-account-type-icon {
     display: grid;
     width: 39px;
     height: 39px;
@@ -563,42 +573,42 @@
     background: #e3f7f1;
 }
 
-.account-type-icon svg {
+.dashboard-account-type-icon svg {
     width: 20px;
     height: 20px;
 }
 
-.account-type-bank,
-.account-type-investment {
+.dashboard-account-type-bank,
+.dashboard-account-type-investment {
     color: #a97f3f;
     background: #f5ede0;
 }
 
-.account-type-cash {
+.dashboard-account-type-cash {
     color: #425a78;
     background: #e9eff7;
 }
 
-.account-row strong,
-.account-row small {
+.dashboard-account-row strong,
+.dashboard-account-row small {
     display: block;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.account-row strong {
+.dashboard-account-row strong {
     color: #1d3047;
     font-size: 11px;
 }
 
-.account-row small {
+.dashboard-account-row small {
     margin-top: 4px;
     color: #93a0b2;
     font-size: 9px;
 }
 
-.account-row b {
+.dashboard-account-row b {
     color: #172a42;
     font-size: 11px;
     white-space: nowrap;
@@ -617,7 +627,7 @@
     color: #56667a;
     background: #fcfaf6;
     font-size: 10px;
-    cursor: not-allowed;
+    cursor: pointer;
 }
 
 .dashboard-secondary-action svg {
@@ -625,7 +635,7 @@
     height: 14px;
 }
 
-.dashboard-panel-create-action:not(:disabled) {
+.dashboard-panel-create-action {
     cursor: pointer;
     transition:
         border-color 160ms ease,
@@ -633,7 +643,7 @@
         background-color 160ms ease;
 }
 
-.dashboard-panel-create-action:not(:disabled):hover {
+.dashboard-panel-create-action:hover:not(:disabled) {
     border-color: #9ddbc8;
     color: #087a5b;
     background: #effaf6;
@@ -647,6 +657,15 @@
 .dashboard-panel-create-action:disabled {
     cursor: wait;
     opacity: .65;
+}
+
+.dashboard-action-loading {
+    --loading-indicator-size: 14px;
+    --loading-indicator-border: 2px;
+}
+
+.dashboard-secondary-action:disabled:not(.dashboard-panel-create-action) {
+    cursor: not-allowed;
 }
 
 .dashboard-empty-state {
@@ -876,6 +895,10 @@
 
 .recent-transaction-amount-income {
     color: #0baa7e;
+}
+
+.recent-transaction-amount-expense {
+    color: #d95f59;
 }
 
 .recent-transaction-amount-transfer {

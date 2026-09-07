@@ -300,7 +300,7 @@ export function TransactionFormModal({
         >
             <div
                 ref={dialogRef}
-                className="transaction-modal"
+                className="transaction-modal transaction-form-modal"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="transaction-modal-title"

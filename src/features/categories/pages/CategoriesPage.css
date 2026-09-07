@@ -101,7 +101,10 @@
 }
 
 .categories-card {
+    min-width: 0;
     min-height: 620px;
+    container-name: categories-card;
+    container-type: inline-size;
     margin-top: 38px;
     border: 1px solid #e2ddd4;
     border-radius: 24px;
@@ -305,6 +308,8 @@
 .category-item {
     min-width: 0;
     min-height: 224px;
+    container-name: category-item;
+    container-type: inline-size;
     overflow: hidden;
     border: 1px solid #e5dfd6;
     border-radius: 20px;
@@ -622,6 +627,65 @@
     from {
         opacity: 0;
         transform: translate(-50%, -8px);
+    }
+}
+
+@container categories-card (max-width: 900px) {
+    .categories-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .category-toolbar-actions {
+        display: grid;
+        grid-template-columns:
+            minmax(190px, 1fr)
+            minmax(180px, 1.2fr)
+            minmax(120px, .65fr);
+    }
+
+    .category-search-field {
+        width: 100%;
+    }
+}
+
+@container categories-card (max-width: 760px) {
+    .category-grid,
+    .category-loading-state {
+        grid-template-columns: 1fr;
+    }
+}
+
+@container categories-card (max-width: 560px) {
+    .category-toolbar-actions {
+        display: flex;
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .category-currency-field {
+        justify-content: space-between;
+    }
+
+    .category-sort-field,
+    .category-sort-field .certis-select {
+        width: 100%;
+    }
+}
+
+@container category-item (max-width: 400px) {
+    .category-item-heading {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .category-item-actions {
+        width: 100%;
+        margin-top: 3px;
+    }
+
+    .category-item-action {
+        flex: 1;
     }
 }
 

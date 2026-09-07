@@ -3,6 +3,7 @@ import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import type {ReactNode} from 'react'
 import {Link} from 'react-router-dom'
 import {Icon} from '../components/Icons'
+import {LoadingIndicator} from '../components/LoadingIndicator'
 import {WorkspaceSidebar} from '../layouts/WorkspaceSidebar'
 import type {IconName} from '../components/Icons'
 import {getAccounts} from '../features/accounts/api/accountsApi'
@@ -134,6 +135,7 @@ const formatTransactionAmount = (
 
 
 type SummaryCardProps = {
+    loading?: boolean
     label: string
     value: string
     hint: string
@@ -141,13 +143,25 @@ type SummaryCardProps = {
     tone: 'navy' | 'green' | 'red' | 'gold'
 }
 
-function SummaryCard({label, value, hint, icon, tone}: SummaryCardProps) {
+function SummaryCard({loading = false, label, value, hint, icon, tone}: SummaryCardProps) {
     return (
         <article className="summary-card">
-            <div>
+            <div className="summary-card-copy">
                 <p>{label}</p>
-                <strong>{value}</strong>
-                <span>{hint}</span>
+                {loading
+                    ? (
+                        <LoadingIndicator
+                            className="summary-card-loading"
+                            label={`Loading ${label.toLowerCase()}`}
+                            showLabel
+                        />
+                    )
+                    : <strong>{value}</strong>}
+                <span className="summary-card-hint">
+                    {loading
+                        ? 'Fetching the latest data'
+                        : hint}
+                </span>
             </div>
             <span className={`summary-card-icon summary-card-icon-${tone}`}>
         <Icon name={icon}/>
@@ -396,10 +410,6 @@ export function DashboardPage() {
     }
 
     const monthlySummaryValue = (amount: number | undefined): string => {
-        if (monthlyAnalyticsState === 'loading' || monthlyAnalyticsState === 'idle') {
-            return 'Loading…'
-        }
-
         if (monthlyAnalyticsState === 'error') {
             return '—'
         }
@@ -408,10 +418,6 @@ export function DashboardPage() {
     }
 
     const monthlySummaryHint = (transactionCount: number | undefined): string => {
-        if (monthlyAnalyticsState === 'loading' || monthlyAnalyticsState === 'idle') {
-            return 'Loading this month'
-        }
-
         if (monthlyAnalyticsState === 'error') {
             return 'Monthly summary unavailable'
         }
@@ -492,10 +498,9 @@ export function DashboardPage() {
                 <section className="dashboard-summary" aria-label="Financial summary">
                     <SummaryCard
                         label="Total balance"
+                        loading={accountsStatus === 'loading'}
                         value={
-                            accountsStatus === 'loading'
-                                ? 'Loading…'
-                                : accountsStatus === 'error'
+                            accountsStatus === 'error'
                                     ? '—'
                                     : formatMoney(totalBalance, selectedCurrency)
                         }
@@ -509,6 +514,10 @@ export function DashboardPage() {
                     />
                     <SummaryCard
                         label="Income"
+                        loading={
+                            monthlyAnalyticsState === 'loading'
+                            || monthlyAnalyticsState === 'idle'
+                        }
                         value={monthlySummaryValue(monthlyAnalytics?.income.amount)}
                         hint={monthlySummaryHint(monthlyAnalytics?.income.transactionCount)}
                         icon="trend-up"
@@ -516,6 +525,10 @@ export function DashboardPage() {
                     />
                     <SummaryCard
                         label="Expenses"
+                        loading={
+                            monthlyAnalyticsState === 'loading'
+                            || monthlyAnalyticsState === 'idle'
+                        }
                         value={monthlySummaryValue(monthlyAnalytics?.expenses.amount)}
                         hint={monthlySummaryHint(monthlyAnalytics?.expenses.transactionCount)}
                         icon="trend-down"
@@ -589,10 +602,12 @@ export function DashboardPage() {
 
                             {accountsStatus === 'ready' &&
                                 visibleAccounts.slice(0, 3).map((account) => (
-                                    <div className="account-row" key={account.id}>
-                    <span className={`account-type-icon account-type-${account.type.toLowerCase()}`}>
-                      <Icon name={accountTypeIcons[account.type]}/>
-                    </span>
+                                    <div className="dashboard-account-row" key={account.id}>
+                                        <span
+                                            className={`dashboard-account-type-icon dashboard-account-type-${account.type.toLowerCase()}`}
+                                        >
+                                            <Icon name={accountTypeIcons[account.type]}/>
+                                        </span>
                                         <div>
                                             <strong>{account.name}</strong>
                                             <small>{accountTypeLabels[account.type]}</small>
@@ -734,8 +749,22 @@ export function DashboardPage() {
                             aria-busy={isPreparingTransaction}
                             onClick={() => void openTransactionForm()}
                         >
-                            <Icon name="plus"/>
-                            {isPreparingTransaction ? 'Loading form…' : 'Add transaction'}
+                            {isPreparingTransaction
+                                ? (
+                                    <>
+                                        <LoadingIndicator
+                                            className="dashboard-action-loading"
+                                            label="Loading transaction form"
+                                        />
+                                        Loading form…
+                                    </>
+                                )
+                                : (
+                                    <>
+                                        <Icon name="plus"/>
+                                        Add transaction
+                                    </>
+                                )}
                         </button>
                     </article>
                 </section>
