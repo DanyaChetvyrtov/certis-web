@@ -7,6 +7,13 @@ html[data-theme='dark'] {
     --control-border: #304a65;
     --scrollbar-thumb: #50677f;
     --scrollbar-thumb-hover: #71879d;
+    --chart-grid: #29425e;
+    --chart-axis-text: #9fb0c1;
+    --chart-tooltip-background: #102842;
+    --chart-tooltip-border: #36516d;
+    --chart-tooltip-text: #edf4fb;
+    --chart-tooltip-cursor: #617992;
+    --chart-active-dot: #102842;
     background: #07182b;
 }
 
@@ -308,8 +315,6 @@ html[data-theme='dark'] :is(
 }
 
 html[data-theme='dark'] :is(
-    .account-filter-tabs,
-    .transaction-type-tabs,
     .transaction-view-tabs,
     .category-status-tabs
 ) {
@@ -367,8 +372,6 @@ html[data-theme='dark'] .certis-select-option[data-state='checked'][data-highlig
 
 /* Workspace rows and empty states */
 html[data-theme='dark'] :is(
-    .dashboard-account-row,
-    .recent-transaction-row,
     .account-row,
     .transaction-row,
     .recurring-row,
@@ -380,8 +383,6 @@ html[data-theme='dark'] :is(
 }
 
 html[data-theme='dark'] :is(
-    .dashboard-account-row,
-    .recent-transaction-row,
     .account-row,
     .transaction-row,
     .recurring-row,
@@ -390,6 +391,19 @@ html[data-theme='dark'] :is(
 ):hover {
     border-color: #3a5874;
     background: #142f4c;
+}
+
+html[data-theme='dark'] :is(
+    .account-filter-tabs,
+    .transaction-type-tabs,
+    .dashboard-account-row,
+    .recent-transaction-row
+) {
+    background: transparent;
+}
+
+html[data-theme='dark'] .recent-transaction-row {
+    border-color: #29425d;
 }
 
 html[data-theme='dark'] :is(
@@ -417,9 +431,13 @@ html[data-theme='dark'] :is(
     .account-empty-state,
     .transaction-empty-state,
     .category-empty-state,
-    .top-categories-empty,
-    .budget-state
+    .top-categories-empty
 ) {
+    color: #c9d6e2;
+    background: transparent;
+}
+
+html[data-theme='dark'] .budget-state {
     border-color: #29435f;
     color: #c9d6e2;
     background: #0b2037;
@@ -453,7 +471,30 @@ html[data-theme='dark'] :is(
     .goal-preview-placeholder,
     .transaction-preview-list > span
 ) {
-    background: #1a334d;
+    background: transparent;
+}
+
+html[data-theme='dark'] .transaction-preview-list > span {
+    border-color: #29425d;
+}
+
+html[data-theme='dark'] :is(
+    .goal-preview-placeholder span:first-child,
+    .transaction-preview-list i
+) {
+    background: #223b55;
+}
+
+html[data-theme='dark'] .goal-preview-placeholder span:last-child {
+    background: linear-gradient(90deg, #6d5b3f 32%, #223b55 32%);
+}
+
+html[data-theme='dark'] .transaction-preview-list i:first-child {
+    background: #193550;
+}
+
+html[data-theme='dark'] .transaction-preview-list i:last-child {
+    background: #29425d;
 }
 
 /* Accent cards remain semantic, with dark-compatible fills. */
@@ -602,6 +643,7 @@ html[data-theme='dark'] :is(
 }
 
 html[data-theme='dark'] :is(
+    .account-form-field input,
     .account-form-field .certis-select,
     .account-type-grid label,
     .transaction-amount-input,
@@ -640,6 +682,7 @@ html[data-theme='dark'] :is(
 }
 
 html[data-theme='dark'] :is(
+    .account-form-field input,
     .transaction-amount-input input,
     .transaction-date-shell input,
     .transaction-note-field textarea,
@@ -734,6 +777,616 @@ html[data-theme='dark'] .custom-period-filter button:disabled {
     border-color: #29435f;
     color: #71869c;
     background: #172d45;
+}
+
+/* Complete controls that use a light wrapper around a transparent input. */
+html[data-theme='dark'] :is(
+    .transaction-form-field > input,
+    .transaction-select-shell,
+    .uncategorized-search-field,
+    .uncategorized-account-field,
+    .uncategorized-category-field,
+    .account-row-actions > button,
+    .category-item-action,
+    .category-pagination button,
+    .category-analytics-error button,
+    .accounts-error button,
+    .recent-transactions-error button,
+    .uncategorized-inline-error button,
+    .uncategorized-empty button,
+    .uncategorized-pagination button,
+    .uncategorized-cancel-button,
+    .transaction-delete-actions button,
+    .budget-modal-section-title .budget-add-allocation,
+    .budget-month
+) {
+    border-color: #36516d;
+    color: #cbd8e4;
+    background: #102842;
+    box-shadow: none;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-form-field > input,
+    .transaction-select-shell .certis-select,
+    .quick-filter-select .certis-select,
+    .account-sort-field .certis-select,
+    .category-currency-field .certis-select,
+    .category-sort-field .certis-select,
+    .uncategorized-search-field input,
+    .uncategorized-account-field .certis-select,
+    .uncategorized-category-field .certis-select,
+    .profile-select-shell .certis-select
+) {
+    color: #e4edf5;
+}
+
+html[data-theme='dark'] :is(
+    .account-form-field input,
+    .transaction-form-field > input,
+    .uncategorized-search-field input,
+    .profile-input-shell input
+)::placeholder {
+    color: #8195a9;
+}
+
+/* Preserve focus and validation cues after applying dark control surfaces. */
+html[data-theme='dark'] :is(
+    .account-form-field input:focus,
+    .account-form-field .certis-select:focus,
+    .transaction-search-field:focus-within,
+    .quick-filter-select:focus-within,
+    .transaction-amount-input:focus-within,
+    .transaction-form-field > input:focus,
+    .transaction-select-shell:focus-within,
+    .transaction-date-shell:focus-within,
+    .transaction-note-field textarea:focus,
+    .recurring-field input:focus,
+    .recurring-field .certis-select:focus,
+    .category-name-field input:focus,
+    .custom-period-filter input:focus,
+    .profile-input-shell:focus-within,
+    .profile-editor-grid input:focus
+) {
+    border-color: #18c796;
+    box-shadow: 0 0 0 4px rgb(16 185 129 / 12%);
+}
+
+html[data-theme='dark'] :is(
+    .input-shell-error,
+    .account-form-field input[aria-invalid='true'],
+    .transaction-amount-input.error,
+    .transaction-form-field > input[aria-invalid='true'],
+    .transaction-select-shell:has(.certis-select[aria-invalid='true']),
+    .transaction-date-shell:has(input[aria-invalid='true']),
+    .recurring-field input[aria-invalid='true'],
+    .category-name-field input[aria-invalid='true'],
+    .profile-input-shell-error,
+    .profile-editor-grid input[aria-invalid='true']
+) {
+    border-color: #d66b6b;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-select-shell > svg,
+    .transaction-date-shell > svg,
+    .quick-filter-select > svg,
+    .uncategorized-search-field > svg,
+    .profile-input-shell > svg
+) {
+    color: #9bacc0;
+}
+
+/* Text that previously kept light-theme ink on dark surfaces. */
+html[data-theme='dark'] :is(
+    .accounts-panel-summary > strong,
+    .dashboard-account-row b,
+    .dashboard-empty-state strong,
+    .chart-legend strong,
+    .upcoming-card time strong,
+    .top-category-list b,
+    .top-categories-empty h3,
+    .category-preview strong,
+    .uncategorized-summary > div:first-child > strong,
+    .uncategorized-summary-remaining strong,
+    .uncategorized-transaction h4,
+    .uncategorized-transaction-account strong,
+    .uncategorized-transaction-amount strong,
+    .uncategorized-empty h3,
+    .transfer-reversal-summary strong,
+    .transaction-balance-note strong,
+    .recurring-preview strong
+) {
+    color: #edf4fb;
+}
+
+html[data-theme='dark'] :is(
+    .accounts-panel-summary > span,
+    .dashboard-empty-state p,
+    .chart-legend > span,
+    .chart-empty-copy,
+    .account-counts,
+    .balance-type-row,
+    .balance-type-empty,
+    .account-timeline,
+    .account-form-field .field-hint,
+    .category-item-archive-note,
+    .category-pagination p,
+    .category-pagination span,
+    .category-type-help,
+    .category-icon-help,
+    .category-analytics-error p,
+    .uncategorized-table-heading,
+    .uncategorized-summary > div:first-child > p,
+    .uncategorized-summary > div:first-child > strong span,
+    .uncategorized-summary-remaining p,
+    .uncategorized-transactions-heading > div > p,
+    .uncategorized-transaction p,
+    .uncategorized-pagination,
+    .transaction-delete-dialog > p:not(.transaction-form-error),
+    #archive-category-description,
+    .transfer-reversal-summary p,
+    .transaction-balance-note p,
+    .recurring-preview small,
+    .recurring-preview span,
+    .recurring-modal footer p,
+    .profile-modal-meta span:last-child,
+    .profile-field-hint,
+    .profile-modal-footer p,
+    .profile-editor-eyebrow,
+    .profile-editor-photo-actions > span,
+    .profile-editor-footer > span,
+    .account-confirm-modal > p:nth-of-type(2),
+    .budget-modal-section-title p,
+    .budget-modal-allocation small,
+    .budget-modal input + b
+) {
+    color: #9eafc0;
+}
+
+html[data-theme='dark'] :is(
+    .account-form-field,
+    .account-type-fieldset legend,
+    .transaction-type-fieldset legend,
+    .transaction-form-field > label,
+    .recurring-field label,
+    .recurring-frequency > label,
+    .category-name-field label,
+    .category-type-fieldset legend,
+    .category-option-fieldset legend,
+    .category-preview-section > p,
+    .budget-modal label,
+    .profile-field label,
+    .profile-editor-field > label
+) {
+    color: #bdcbd8;
+}
+
+html[data-theme='dark'] :is(
+    .account-modal-heading p,
+    .account-confirm-modal > p:first-of-type,
+    .category-archive-dialog > p:first-of-type,
+    .profile-modal-meta
+) {
+    color: #d5b47f;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-type-options label,
+    .category-type-options label,
+    .recurring-type button
+) {
+    color: #a7b7c7;
+}
+
+/* Selected states stay semantic without introducing bright light surfaces. */
+html[data-theme='dark'] :is(
+    .transaction-type-options label.selected.income,
+    .category-type-options label.selected.income,
+    .account-type-grid label.selected,
+    .recurring-frequency-row button.active
+) {
+    border-color: #247d68;
+    color: #8ce5c8;
+    background: #103b38;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-type-options label.selected.expense,
+    .category-type-options label.selected.expense,
+    .category-icon-options label.selected
+) {
+    border-color: #7e4a51;
+    color: #f0928b;
+    background: #412a31;
+}
+
+html[data-theme='dark'] .recurring-type button.active {
+    border-color: #46617c;
+    color: #edf4fb;
+    background: #193855;
+    box-shadow: none;
+}
+
+html[data-theme='dark'] :is(
+    .account-status,
+    .recurring-status.active
+) {
+    color: #86e0c3;
+    background: #103b38;
+}
+
+html[data-theme='dark'] .recurring-status.paused {
+    color: #d8bc91;
+    background: #3a3228;
+}
+
+html[data-theme='dark'] :is(
+    .account-status.closed,
+    .recurring-status.completed,
+    .recurring-status.cancelled
+) {
+    border-color: #36516d;
+    color: #aebdcb;
+    background: #193550;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-identity > span,
+    .recurring-rule > span,
+    .category-preview > span
+) {
+    background: color-mix(
+        in srgb,
+        var(--transaction-accent, var(--recurring-color, var(--category-accent))) 22%,
+        #102842
+    );
+}
+
+html[data-theme='dark'] .uncategorized-transaction-copy time {
+    color: #dce7f2;
+    background: #193550;
+}
+
+html[data-theme='dark'] .uncategorized-transaction-account > span {
+    color: #91b9e6;
+    background: #193550;
+}
+
+html[data-theme='dark'] .uncategorized-select-row span {
+    border-color: #506a83;
+    background: #132b46;
+}
+
+html[data-theme='dark'] .uncategorized-transaction.selected {
+    border-color: #247d68;
+    background: #103330;
+}
+
+html[data-theme='dark'] .uncategorized-category-field {
+    border-color: color-mix(
+        in srgb,
+        var(--assignment-accent) 55%,
+        #36516d
+    );
+}
+
+html[data-theme='dark'] :is(
+    .dashboard-account-type-icon,
+    .type-card
+) {
+    background: #103b38;
+}
+
+html[data-theme='dark'] :is(
+    .dashboard-account-type-bank,
+    .type-bank
+) {
+    background: #3a3228;
+}
+
+html[data-theme='dark'] :is(
+    .dashboard-account-type-cash,
+    .type-cash
+) {
+    background: #213a55;
+}
+
+html[data-theme='dark'] :is(
+    .dashboard-account-type-investment,
+    .type-investment
+) {
+    background: #252c52;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-delete-icon,
+    .category-archive-icon,
+    .uncategorized-summary-remaining > span
+) {
+    color: #f0928b;
+    background: #412a31;
+}
+
+html[data-theme='dark'] :is(
+    .transfer-direction,
+    .transfer-reversal-summary > span
+) {
+    color: #9dacfa;
+    background: #252c52;
+}
+
+html[data-theme='dark'] :is(
+    .budget-modal-mark,
+    .budget-modal-balance
+) {
+    color: #86e0c3;
+    background: #103b38;
+}
+
+html[data-theme='dark'] .budget-modal-balance.negative {
+    color: #f1aaa6;
+    background: #41262e;
+}
+
+html[data-theme='dark'] .category-coverage-notice.warning {
+    border-color: #7e4a51;
+    color: #f1aaa6;
+    background: #41262e;
+}
+
+html[data-theme='dark'] .category-coverage-notice.complete {
+    color: #86e0c3;
+}
+
+html[data-theme='dark'] .budget-type.fixed {
+    color: #bdcbd8;
+}
+
+html[data-theme='dark'] .budget-type.variable {
+    color: #86e0c3;
+}
+
+html[data-theme='dark'] :is(
+    .savings-card b,
+    .budget-modal-section-title > strong
+) {
+    color: #d5b47f;
+}
+
+html[data-theme='dark'] .budget-allocation-row > button {
+    color: #aebdcb;
+}
+
+html[data-theme='dark'] :is(
+    .budget-modal-allocation,
+    .risk-card > div
+) {
+    border-color: #29435f;
+}
+
+html[data-theme='dark'] :is(
+    .accounts-panel-summary,
+    .profile-modal-header,
+    .transaction-modal-actions,
+    .category-modal-actions,
+    .uncategorized-summary-progress
+) {
+    border-color: #29435f;
+}
+
+/* Preserve primary and destructive action emphasis after shared button rules. */
+html[data-theme='dark'] :is(
+    .account-modal-actions button.primary,
+    .transaction-modal-actions button.primary,
+    .category-modal-actions button.primary,
+    .budget-modal footer button[type='submit'],
+    .budgets-header-actions .edit-budget,
+    .profile-editor-footer button.primary,
+    .uncategorized-assign-button
+) {
+    border-color: #10b981;
+    color: #f7fffc;
+    background: #0aa97c;
+    box-shadow: 0 10px 24px rgb(10 169 124 / 18%);
+}
+
+html[data-theme='dark'] .transaction-modal-actions .transfer-reverse-button {
+    border-color: #7182d8;
+    background: #6174c9;
+}
+
+html[data-theme='dark'] :is(
+    .account-modal-actions button.danger,
+    .transaction-delete-actions button.danger,
+    .category-archive-actions button.danger
+) {
+    border-color: #d86661;
+    color: #fff;
+    background: #b84d4d;
+}
+
+html[data-theme='dark'] :is(
+    .account-modal-actions button.primary,
+    .transaction-modal-actions button.primary,
+    .category-modal-actions button.primary,
+    .budget-modal footer button[type='submit'],
+    .budgets-header-actions .edit-budget,
+    .profile-editor-footer button.primary,
+    .uncategorized-assign-button
+):hover:not(:disabled) {
+    border-color: #18c796;
+    background: #087f60;
+}
+
+html[data-theme='dark'] .transaction-modal-actions .transfer-reverse-button:hover:not(:disabled) {
+    border-color: #8795df;
+    background: #5265ba;
+}
+
+html[data-theme='dark'] :is(
+    .recurring-preview .income,
+    .uncategorized-transaction-amount.income strong
+) {
+    color: #35d2a3;
+}
+
+html[data-theme='dark'] :is(
+    .recurring-preview .expense,
+    .uncategorized-transaction-amount.expense strong
+) {
+    color: #f07a73;
+}
+
+html[data-theme='dark'] :is(
+    .account-modal-close,
+    .transaction-modal-heading > button,
+    .recurring-modal header button,
+    .category-modal-heading > button,
+    .uncategorized-modal-heading > button,
+    .profile-editor-close,
+    .settings-modal-close,
+    .budget-modal > header button,
+    .account-row-actions > button,
+    .transaction-action-trigger,
+    .profile-editor-photo-actions button,
+    .profile-editor-footer button.secondary
+):hover:not(:disabled) {
+    border-color: #4b6985;
+    color: #edf4fb;
+    background: #1b3855;
+}
+
+html[data-theme='dark'] .category-item-action.edit:hover:not(:disabled) {
+    border-color: #52708b;
+    color: #bcd7ef;
+    background: #1b3855;
+}
+
+html[data-theme='dark'] .category-item-action.archive:hover:not(:disabled) {
+    border-color: #7e4a51;
+    color: #f0928b;
+    background: #412a31;
+}
+
+html[data-theme='dark'] .category-item-action.restore:hover:not(:disabled) {
+    border-color: #247d68;
+    color: #8ce5c8;
+    background: #103b38;
+}
+
+html[data-theme='dark'] :is(
+    .profile-sign-out-button,
+    .profile-editor-photo-actions button.danger
+):hover:not(:disabled) {
+    border-color: #7e4a51;
+    color: #f0928b;
+    background: #412a31;
+}
+
+html[data-theme='dark'] .dashboard-panel-create-action {
+    cursor: pointer;
+}
+
+html[data-theme='dark'] .dashboard-panel-create-action:hover:not(:disabled) {
+    border-color: #268a70;
+    color: #8ce5c8;
+    background: #103b38;
+    box-shadow: 0 0 0 3px rgb(16 185 129 / 8%);
+}
+
+html[data-theme='dark'] .dashboard-panel-create-action:disabled {
+    cursor: wait;
+}
+
+/* Feedback and loading states should not flash light surfaces in dark mode. */
+html[data-theme='dark'] :is(
+    .profile-form-notice,
+    .profile-editor-notice,
+    .recurring-form-error,
+    .uncategorized-inline-error,
+    .budget-action-error
+) {
+    border-color: #7e4a51;
+    color: #f1aaa6;
+    background: #41262e;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-form-error,
+    .category-form-error,
+    .category-archive-error,
+    .account-form-error,
+    .account-form-field small:not(.field-hint),
+    .profile-editor-field-error,
+    .profile-field-error,
+    .budget-modal-error,
+    .custom-period-filter > p
+) {
+    color: #f1aaa6;
+}
+
+html[data-theme='dark'] :is(
+    .accounts-notice,
+    .categories-notice
+) {
+    border-color: #247d68;
+    color: #86e0c3;
+    background: #103b38;
+    box-shadow: 0 15px 36px rgb(0 5 15 / 28%);
+}
+
+html[data-theme='dark'] .categories-notice.error {
+    border-color: #7e4a51;
+    color: #f1aaa6;
+    background: #41262e;
+}
+
+html[data-theme='dark'] :is(
+    .dashboard-transaction-notice,
+    .transactions-notice
+) {
+    border-color: #247d68;
+    color: #86e0c3;
+    background: #103b38;
+    box-shadow: 0 14px 34px rgb(0 5 15 / 26%);
+}
+
+html[data-theme='dark'] :is(
+    .dashboard-transaction-notice.error,
+    .transactions-notice.error
+) {
+    border-color: #7e4a51;
+    color: #f1aaa6;
+    background: #41262e;
+}
+
+html[data-theme='dark'] .uncategorized-modal-footer {
+    background: #0d233b;
+}
+
+html[data-theme='dark'] .uncategorized-options-empty {
+    border-color: #6d5b3f;
+    color: #d5b47f;
+    background: #3a3228;
+}
+
+html[data-theme='dark'] :is(
+    .accounts-loading span,
+    .account-loading-state > span,
+    .transaction-loading-state > span,
+    .category-loading-state > span,
+    .category-analytics-loading span,
+    .uncategorized-loading span
+) {
+    border-color: #29425e;
+    background: linear-gradient(
+        90deg,
+        #102842 20%,
+        #193550 45%,
+        #102842 70%
+    );
+    background-size: 220% 100%;
 }
 
 html[data-theme='dark'] :is(

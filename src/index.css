@@ -8,6 +8,13 @@
   --scrollbar-thumb: #a3adba;
   --scrollbar-thumb-hover: #627087;
   --scrollbar-track: transparent;
+  --chart-grid: #e7e2d8;
+  --chart-axis-text: #8996aa;
+  --chart-tooltip-background: #fffefa;
+  --chart-tooltip-border: #dde3e9;
+  --chart-tooltip-text: #10243c;
+  --chart-tooltip-cursor: #cad3dd;
+  --chart-active-dot: #fff;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
@@ -70,6 +77,35 @@ select {
 
 button {
   -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :where(
+    .account-filter-tabs,
+    .transaction-type-tabs,
+    .transaction-view-tabs,
+    .category-status-tabs,
+    .category-type-tabs,
+    .budget-filters
+  ) button {
+    transition:
+      color 180ms ease,
+      background-color 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 180ms ease,
+      box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 120ms ease;
+  }
+
+  :where(
+    .account-filter-tabs,
+    .transaction-type-tabs,
+    .transaction-view-tabs,
+    .category-status-tabs,
+    .category-type-tabs,
+    .budget-filters
+  ) button:active:not(:disabled) {
+    transform: scale(0.97);
+  }
 }
 
 svg {

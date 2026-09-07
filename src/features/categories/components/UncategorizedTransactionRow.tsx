@@ -147,7 +147,11 @@ export function UncategorizedTransactionRow({
                 </div>
             </div>
 
-            <div className="uncategorized-transaction-amount">
+            <div
+                className={
+                    `uncategorized-transaction-amount ${type.toLowerCase()}`
+                }
+            >
                 <strong>
                     {formatMoney(transaction.amount, currency, type)}
                 </strong>
