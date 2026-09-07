@@ -1,3 +1,4 @@
+import {Select, SelectOption} from '../../components/Select'
 import {
     useEffect,
     useRef,
@@ -313,27 +314,27 @@ export function ProfileSetupModal({
 
                         <div className="profile-input-shell profile-select-shell">
                             <Icon name="wallet"/>
-                            <select
+                            <Select
                                 id="profile-preferred-currency"
                                 name="preferredCurrency"
                                 value={preferredCurrency}
                                 disabled={isBusy}
-                                onChange={(event) => {
+                                onValueChange={(value) => {
                                     setPreferredCurrency(
-                                        event.target.value as Currency | '',
+                                        value as Currency | '',
                                     )
                                     setNotice(null)
                                 }}
                             >
-                                <option value="">
+                                <SelectOption value="">
                                     Use server default (RUB)
-                                </option>
+                                </SelectOption>
                                 {currencies.map((currency) => (
-                                    <option value={currency} key={currency}>
+                                    <SelectOption value={currency} key={currency}>
                                         {currencyLabels[currency]} · {currency}
-                                    </option>
+                                    </SelectOption>
                                 ))}
-                            </select>
+                            </Select>
                         </div>
 
                         <small className="profile-field-hint">

@@ -1,3 +1,4 @@
+import {Select, SelectOption} from '../components/Select'
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import type {ReactNode} from 'react'
 import {Link} from 'react-router-dom'
@@ -10,6 +11,7 @@ import type {
     AccountCurrency,
     AccountType,
 } from '../features/accounts/api/accountsApi'
+import {AccountFormModal} from '../features/accounts/components/AccountFormModal'
 import {useSession} from '../features/auth/session/SessionContext'
 import {getCategoryOptions} from '../features/categories/api/categoriesApi'
 import type {Category} from '../features/categories/api/categoriesApi'
@@ -217,6 +219,7 @@ export function DashboardPage() {
         useState<AccountCurrency>(profile?.preferredCurrency ?? 'RUB')
     const [dashboardRevision, setDashboardRevision] = useState(0)
     const [transactionCategories, setTransactionCategories] = useState<Category[]>([])
+    const [isAccountFormOpen, setIsAccountFormOpen] = useState(false)
     const [isTransactionOpen, setIsTransactionOpen] = useState(false)
     const [isPreparingTransaction, setIsPreparingTransaction] = useState(false)
     const [transactionNotice, setTransactionNotice] = useState<{
@@ -224,6 +227,7 @@ export function DashboardPage() {
         message: string
     } | null>(null)
     const addTransactionButtonRef = useRef<HTMLButtonElement>(null)
+    const addAccountButtonRef = useRef<HTMLButtonElement>(null)
     const transactionRequestIdRef = useRef(0)
     const isProfileSetupOpen = profile === null
 
@@ -357,6 +361,21 @@ export function DashboardPage() {
         void retryAccounts()
     }
 
+    const handleAccountSaved = (savedAccount: Account) => {
+        setAccounts((current) => [
+            savedAccount,
+            ...current.filter((account) => account.id !== savedAccount.id),
+        ])
+        setAccountsStatus('ready')
+        setAccountsNotice(null)
+        setRequestedCurrency(savedAccount.currency)
+        setIsAccountFormOpen(false)
+    }
+
+    const restoreAccountFocus = useCallback(() => {
+        addAccountButtonRef.current?.focus()
+    }, [])
+
     const accountMap = useMemo(
         () => new Map(accounts.map((account) => [account.id, account])),
         [accounts],
@@ -435,17 +454,26 @@ export function DashboardPage() {
                         >
                             <Icon name="bell"/>
                         </button>
-                        <button
-                            type="button"
-                            className="dashboard-primary-action"
-                            ref={addTransactionButtonRef}
-                            disabled={isProfileSetupOpen || isPreparingTransaction}
-                            aria-busy={isPreparingTransaction}
-                            onClick={() => void openTransactionForm()}
-                        >
-                            <Icon name="plus"/>
-                            {isPreparingTransaction ? 'Loading form…' : 'Add transaction'}
-                        </button>
+                        <label className="dashboard-currency-action">
+                            <span>Currency</span>
+                            <Select
+                                value={selectedCurrency}
+                                onValueChange={(value) =>
+                                    setRequestedCurrency(value as AccountCurrency)
+                                }
+                                disabled={availableCurrencies.length < 2}
+                                aria-label="Dashboard currency"
+                            >
+                                {(availableCurrencies.length > 0
+                                        ? availableCurrencies
+                                        : currencyOrder
+                                ).map((currency) => (
+                                    <SelectOption key={currency} value={currency}>
+                                        {currency}
+                                    </SelectOption>
+                                ))}
+                            </Select>
+                        </label>
                     </div>
                 </header>
 
@@ -532,26 +560,6 @@ export function DashboardPage() {
                                     ? formatMoney(totalBalance, selectedCurrency)
                                     : '—'}
                             </strong>
-                            <label>
-                                <span className="sr-only">Balance currency</span>
-                                <select
-                                    value={selectedCurrency}
-                                    onChange={(event) =>
-                                        setRequestedCurrency(event.target.value as AccountCurrency)
-                                    }
-                                    disabled={availableCurrencies.length < 2}
-                                    aria-label="Balance currency"
-                                >
-                                    {(availableCurrencies.length > 0
-                                            ? availableCurrencies
-                                            : currencyOrder
-                                    ).map((currency) => (
-                                        <option key={currency} value={currency}>
-                                            {currency}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
                         </div>
 
                         <div className="accounts-list">
@@ -596,9 +604,10 @@ export function DashboardPage() {
 
                         <button
                             type="button"
-                            className="dashboard-secondary-action"
-                            disabled
-                            title="Add new account — coming next"
+                            className="dashboard-secondary-action dashboard-panel-create-action"
+                            ref={addAccountButtonRef}
+                            disabled={isProfileSetupOpen}
+                            onClick={() => setIsAccountFormOpen(true)}
                         >
                             <Icon name="plus"/>
                             Add new account
@@ -716,6 +725,18 @@ export function DashboardPage() {
                                 })}
                             </div>
                         )}
+
+                        <button
+                            type="button"
+                            className="dashboard-secondary-action dashboard-panel-create-action"
+                            ref={addTransactionButtonRef}
+                            disabled={isProfileSetupOpen || isPreparingTransaction}
+                            aria-busy={isPreparingTransaction}
+                            onClick={() => void openTransactionForm()}
+                        >
+                            <Icon name="plus"/>
+                            {isPreparingTransaction ? 'Loading form…' : 'Add transaction'}
+                        </button>
                     </article>
                 </section>
             </main>
@@ -724,6 +745,14 @@ export function DashboardPage() {
                 <ProfileSetupModal
                     onComplete={completeProfileSetup}
                     onSignOut={signOut}
+                />
+            )}
+
+            {isAccountFormOpen && (
+                <AccountFormModal
+                    onClose={() => setIsAccountFormOpen(false)}
+                    onSaved={handleAccountSaved}
+                    restoreFocus={restoreAccountFocus}
                 />
             )}
 

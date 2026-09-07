@@ -1,3 +1,4 @@
+import {Select, SelectOption} from '../../../components/Select'
 import {useEffect, useState} from 'react'
 import {getCashFlowAnalytics} from '../../transactions/api/transactionsApi'
 import type {CashFlowAnalytics, CashFlowRange} from '../../transactions/api/transactionsApi'
@@ -14,7 +15,7 @@ export function CashFlowPanel({currency, enabled, refreshRevision = 0}: {
     enabled: boolean
     refreshRevision?: number
 }) {
-    const [range, setRange] = useState<CashFlowRange>('SIX_MONTHS')
+    const [range, setRange] = useState<CashFlowRange>('MONTH')
     const [revision, setRevision] = useState(0)
     const [result, setResult] = useState<{key: string; data?: CashFlowAnalytics; error?: boolean} | null>(null)
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -47,10 +48,10 @@ export function CashFlowPanel({currency, enabled, refreshRevision = 0}: {
         <article className="dashboard-panel cash-flow-panel" aria-label="Cash flow">
             <header className="dashboard-panel-header">
                 <h2>Cash flow</h2>
-                <select aria-label="Cash flow range" value={range}
-                    onChange={event => setRange(event.target.value as CashFlowRange)}>
-                    {ranges.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                </select>
+                <Select aria-label="Cash flow range" value={range}
+                    onValueChange={value => setRange(value as CashFlowRange)}>
+                    {ranges.map(([value, label]) => <SelectOption key={value} value={value}>{label}</SelectOption>)}
+                </Select>
             </header>
             {!current && <p role="status">Loading cash flow…</p>}
             {current?.error && <div className="accounts-error" role="alert">

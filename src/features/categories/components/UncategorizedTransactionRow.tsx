@@ -1,3 +1,4 @@
+import {Select, SelectOption} from '../../../components/Select'
 import type {CSSProperties} from 'react'
 import {Icon} from '../../../components/Icons'
 import type {IconName} from '../../../components/Icons'
@@ -167,24 +168,24 @@ export function UncategorizedTransactionRow({
                         }
                     />
                 )}
-                <select
+                <Select
                     aria-label={`Category for ${name}`}
                     value={categoryId}
                     disabled={!isOptionReady || categories.length === 0}
-                    onChange={(event) =>
+                    onValueChange={(value) =>
                         onCategoryChange(
                             transaction.id,
-                            event.target.value,
+                            value,
                         )
                     }
                 >
-                    <option value="">Choose category</option>
+                    <SelectOption value="">Choose category</SelectOption>
                     {categories.map((category) => (
-                        <option value={category.id} key={category.id}>
+                        <SelectOption value={category.id} key={category.id}>
                             {category.name}
-                        </option>
+                        </SelectOption>
                     ))}
-                </select>
+                </Select>
             </label>
         </article>
     )

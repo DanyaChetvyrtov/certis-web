@@ -1,3 +1,4 @@
+import {selectOption} from '../../../test/selectOption'
 import {
     fireEvent,
     render,
@@ -387,16 +388,9 @@ describe('AccountFormModal', () => {
             },
         )
 
-        fireEvent.change(
-            screen.getByLabelText(
+        await selectOption(screen.getByLabelText(
                 'Currency',
-            ),
-            {
-                target: {
-                    value: 'EUR',
-                },
-            },
-        )
+            ), 'EUR')
 
         fireEvent.click(
             screen.getByRole(
@@ -492,7 +486,7 @@ describe('AccountFormModal', () => {
 
         expect(
             currencySelect,
-        ).toHaveValue('RUB')
+        ).toHaveTextContent('RUB')
 
         fireEvent.change(
             screen.getByLabelText(

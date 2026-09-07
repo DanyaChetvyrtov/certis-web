@@ -1,3 +1,4 @@
+import {Select, SelectOption} from '../../../components/Select'
 import {
     useEffect,
     useMemo,
@@ -1501,23 +1502,22 @@ export function TransactionsPage() {
                             </label>
                             <div className="quick-filter-select wide">
                                 <Icon name="calendar"/>
-                                <select
+                                <Select
                                     id="transaction-period-filter"
                                     value={period}
-                                    onChange={(event) =>
+                                    onValueChange={(value) =>
                                         setPeriod(
-                                            event.target.value as PeriodPreset,
+                                            value as PeriodPreset,
                                         )
                                     }
                                 >
                                     {Object.entries(periodLabels)
                                         .map(([value, label]) => (
-                                            <option value={value} key={value}>
+                                            <SelectOption value={value} key={value}>
                                                 {label}
-                                            </option>
+                                            </SelectOption>
                                         ))}
-                                </select>
-                                <Icon name="chevron-down"/>
+                                </Select>
                             </div>
 
                             <label htmlFor="transaction-account-filter">
@@ -1526,46 +1526,44 @@ export function TransactionsPage() {
                             <div className="quick-filter-grid">
                                 <div className="quick-filter-select">
                                     <Icon name="card"/>
-                                    <select
+                                    <Select
                                         id="transaction-account-filter"
                                         value={accountFilter}
-                                        onChange={(event) =>
-                                            setAccountFilter(event.target.value)
+                                        onValueChange={(value) =>
+                                            setAccountFilter(value)
                                         }
                                     >
-                                        <option value="">All accounts</option>
+                                        <SelectOption value="">All accounts</SelectOption>
                                         {accounts.map((account) => (
-                                            <option
+                                            <SelectOption
                                                 value={account.id}
                                                 key={account.id}
                                             >
                                                 {account.name} · {account.currency}
-                                            </option>
+                                            </SelectOption>
                                         ))}
-                                    </select>
-                                    <Icon name="chevron-down"/>
+                                    </Select>
                                 </div>
 
                                 <div className="quick-filter-select">
                                     <Icon name="tag"/>
-                                    <select
+                                    <Select
                                         aria-label="Category filter"
                                         value={categoryFilter}
-                                        onChange={(event) =>
-                                            setCategoryFilter(event.target.value)
+                                        onValueChange={(value) =>
+                                            setCategoryFilter(value)
                                         }
                                     >
-                                        <option value="">All categories</option>
+                                        <SelectOption value="">All categories</SelectOption>
                                         {categories.map((category) => (
-                                            <option
+                                            <SelectOption
                                                 value={category.id}
                                                 key={category.id}
                                             >
                                                 {category.name}
-                                            </option>
+                                            </SelectOption>
                                         ))}
-                                    </select>
-                                    <Icon name="chevron-down"/>
+                                    </Select>
                                 </div>
                             </div>
 

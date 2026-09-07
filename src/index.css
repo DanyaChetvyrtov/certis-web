@@ -2,6 +2,12 @@
   --cream: #f7f4ee;
   --navy: #081a31;
   --muted: #627087;
+  --control-surface: #fffefa;
+  --control-border: #ded7cc;
+  --control-accent: #10b981;
+  --scrollbar-thumb: #a3adba;
+  --scrollbar-thumb-hover: #627087;
+  --scrollbar-track: transparent;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
@@ -15,6 +21,32 @@
 
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* Chromium/WebKit can also inset and round the thumb. Firefox uses the
+   standard properties above. Keep scrolling native on every surface. */
+@supports selector(::-webkit-scrollbar) {
+  * { scrollbar-width: auto; scrollbar-color: auto; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+  ::-webkit-scrollbar-thumb {
+    min-height: 36px;
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: var(--scrollbar-thumb);
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover); }
+  ::-webkit-scrollbar-corner { background: transparent; }
+  ::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+}
+
+@media (forced-colors: active) {
+  * { scrollbar-color: auto; }
+  ::-webkit-scrollbar-thumb { background-color: ButtonText; }
+  ::-webkit-scrollbar-thumb:hover { background-color: Highlight; }
 }
 
 html {

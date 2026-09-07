@@ -1,3 +1,4 @@
+import {Select, SelectOption} from '../../../components/Select'
 import type {RefObject} from 'react'
 import {Icon} from '../../../components/Icons'
 import {
@@ -138,21 +139,21 @@ export function CategoryControls({
                 <div className="category-toolbar-actions">
                     <label className="category-currency-field">
                         <span>Currency</span>
-                        <select
+                        <Select
                             aria-label="Statistics currency"
                             value={currency}
-                            onChange={(event) =>
+                            onValueChange={(value) =>
                                 onCurrencyChange(
-                                    event.target.value as Currency,
+                                    value as Currency,
                                 )
                             }
                         >
                             {currencies.map((item) => (
-                                <option value={item} key={item}>
+                                <SelectOption value={item} key={item}>
                                     {item} · {currencyLabels[item]}
-                                </option>
+                                </SelectOption>
                             ))}
-                        </select>
+                        </Select>
                     </label>
 
                     <label className="category-search-field">
@@ -176,19 +177,19 @@ export function CategoryControls({
 
                     <label className="category-sort-field">
                         <span className="sr-only">Sort categories</span>
-                        <select
+                        <Select
                             aria-label="Sort categories"
                             value={selectedSort}
-                            onChange={(event) =>
+                            onValueChange={(value) =>
                                 onSortChange(
-                                    event.target.value as CategoryCardSort,
+                                    value as CategoryCardSort,
                                 )
                             }
                         >
-                            <option value="AMOUNT_DESC">Most spent</option>
-                            <option value="AMOUNT_ASC">Least spent</option>
-                            <option value="NAME">Name</option>
-                        </select>
+                            <SelectOption value="AMOUNT_DESC">Most spent</SelectOption>
+                            <SelectOption value="AMOUNT_ASC">Least spent</SelectOption>
+                            <SelectOption value="NAME">Name</SelectOption>
+                        </Select>
                     </label>
                 </div>
             </div>

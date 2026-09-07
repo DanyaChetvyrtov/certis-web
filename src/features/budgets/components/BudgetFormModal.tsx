@@ -1,3 +1,4 @@
+import {Select, SelectOption} from '../../../components/Select'
 import {useMemo, useRef, useState} from 'react'
 import type {FormEvent} from 'react'
 import {Icon} from '../../../components/Icons'
@@ -100,10 +101,10 @@ export function BudgetFormModal({month, budget, categories, onClose, onSaved, re
                         return <div className="budget-modal-allocation" key={item.key}>
                             <span className="budget-allocation-icon" style={{color: category?.color, background: `${category?.color ?? '#8892b0'}18`}}><Icon name={iconName(category?.icon ?? '')}/></span>
                             <span className="budget-allocation-details">
-                                <select aria-label="Expense category" value={item.categoryId} onChange={(event) => update(item.key, {categoryId: event.target.value})}>
-                                    {expenseCategories.map((option) => <option key={option.id} value={option.id} disabled={allocations.some((other) => other.key !== item.key && other.categoryId === option.id)}>{option.name}</option>)}
-                                </select>
-                                <select aria-label="Expense type" value={item.type} onChange={(event) => update(item.key, {type: event.target.value as BudgetCategoryType})}><option value="FIXED">Fixed</option><option value="VARIABLE">Variable</option></select>
+                                <Select aria-label="Expense category" value={item.categoryId} onValueChange={(value) => update(item.key, {categoryId: value})}>
+                                    {expenseCategories.map((option) => <SelectOption key={option.id} value={option.id} disabled={allocations.some((other) => other.key !== item.key && other.categoryId === option.id)}>{option.name}</SelectOption>)}
+                                </Select>
+                                <Select aria-label="Expense type" value={item.type} onValueChange={(value) => update(item.key, {type: value as BudgetCategoryType})}><SelectOption value="FIXED">Fixed</SelectOption><SelectOption value="VARIABLE">Variable</SelectOption></Select>
                             </span>
                             <span className="budget-limit-input"><input aria-label={`${category?.name ?? 'Category'} limit`} type="number" min="0" step="0.01" value={item.limit} onChange={(e) => update(item.key, {limit: Math.max(0, Number(e.target.value))})}/><b>{budget?.currency ?? ''}</b></span>
                             <button type="button" className="budget-remove-allocation" aria-label={`Remove ${category?.name ?? 'allocation'}`} onClick={() => setAllocations((current) => current.filter(({key}) => key !== item.key))}><Icon name="trash"/></button>

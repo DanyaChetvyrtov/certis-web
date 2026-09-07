@@ -1,3 +1,4 @@
+import {selectOption} from '../test/selectOption'
 import {
     fireEvent,
     render,
@@ -139,21 +140,24 @@ describe('DashboardPage', () => {
         const accountsPanel = within(screen.getByText('Accounts', {selector: 'h2'}).closest('article')!)
         expect(accountsPanel.getByRole('link', {name: /View all/})).toHaveAttribute('href', '/accounts')
         expect(categoryTypes).toEqual([])
-        fireEvent.change(screen.getByLabelText('Cash flow range'), {target: {value: 'YEAR'}})
+        await selectOption(screen.getByLabelText('Cash flow range'), 'Year')
         await screen.findByRole('img', {name: 'Income and expenses: Year'})
         const addButton = screen.getByRole('button', {name: 'Add transaction'})
         fireEvent.click(addButton)
         const form = within(await screen.findByRole('dialog', {name: 'New transaction'}))
         expect(form.getByLabelText('Amount')).toHaveFocus()
         expect(categoryTypes.sort()).toEqual(['EXPENSE', 'INCOME'])
-        const accountSelect = within(form.getByLabelText('Account'))
+        fireEvent.keyDown(form.getByLabelText('Account'), {key: 'ArrowDown'})
+        const accountSelect = within(await screen.findByRole('listbox'))
         expect(accountSelect.getByRole('option', {name: 'RUB card · RUB'})).toBeInTheDocument()
         expect(accountSelect.getByRole('option', {name: 'EUR card · EUR'})).toBeInTheDocument()
         expect(accountSelect.queryByRole('option', {name: /Closed account/})).not.toBeInTheDocument()
+        fireEvent.keyDown(screen.getByRole('listbox'), {key: 'Escape'})
+        await waitFor(() => expect(form.getByLabelText('Account')).toHaveFocus())
         if (type === 'INCOME') fireEvent.click(form.getByRole('radio', {name: 'Income'}))
         fireEvent.change(form.getByLabelText('Amount'), {target: {value: '12.5'}})
-        fireEvent.change(form.getByLabelText('Account'), {target: {value: 'eur-account'}})
-        fireEvent.change(form.getByLabelText(/Category/), {target: {value: type}})
+        await selectOption(form.getByLabelText('Account'), 'EUR card · EUR')
+        await selectOption(form.getByLabelText(/Category/), type === 'INCOME' ? 'Salary' : 'Groceries')
         fireEvent.change(form.getByLabelText(/Merchant/), {target: {value: 'Dashboard entry'}})
         fireEvent.click(form.getByRole('button', {name: 'Add transaction'}))
         await screen.findByText('Transaction added.')
@@ -164,8 +168,8 @@ describe('DashboardPage', () => {
         await screen.findByText('1 transaction this month')
         await waitFor(() => expect(accountsPanel.getByText(type === 'INCOME' ? '€712.50' : '€687.50', {selector: 'strong'})).toBeInTheDocument())
         await screen.findByText(type === 'INCOME' ? 'Net €12.5' : 'Net -€12.5')
-        expect(screen.getByLabelText('Cash flow range')).toHaveValue('YEAR')
-        expect(cashFlowRanges).toEqual(['SIX_MONTHS', 'YEAR', 'YEAR'])
+        expect(screen.getByLabelText('Cash flow range')).toHaveTextContent('Year')
+        expect(cashFlowRanges).toEqual(['MONTH', 'YEAR', 'YEAR'])
     })
 
     it('keeps the form and values on save failure and restores focus on cancel', async () => {
@@ -186,7 +190,7 @@ describe('DashboardPage', () => {
         expect(attempts).toBe(0)
         expect(form.getByText('Select an account.')).toBeInTheDocument()
         fireEvent.change(form.getByLabelText('Amount'), {target: {value: '12.5'}})
-        fireEvent.change(form.getByLabelText('Account'), {target: {value: 'rub-account'}})
+        await selectOption(form.getByLabelText('Account'), 'RUB card · RUB')
         fireEvent.click(form.getByRole('button', {name: 'Add transaction'}))
         await form.findByText('Could not save transaction')
         expect(form.getByLabelText('Amount')).toHaveValue(12.5)
@@ -194,6 +198,49 @@ describe('DashboardPage', () => {
         fireEvent.keyDown(dialog, {key: 'Escape'})
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
         expect(addButton).toHaveFocus()
+    })
+
+    it('creates an account from the dashboard and shows its balance immediately', async () => {
+        let requestBody: unknown
+        const createdAccount = {
+            id: 'usd-account',
+            name: 'USD savings',
+            type: 'CARD',
+            openingBalance: 2500,
+            balance: 2500,
+            currency: 'USD',
+            createdAt: '2026-09-07T08:00:00Z',
+            closedAt: null,
+        }
+        server.use(http.post('/api/v1/accounts', async ({request}) => {
+            requestBody = await request.json()
+            return HttpResponse.json(createdAccount, {status: 201})
+        }))
+
+        renderPage()
+        await screen.findByText('EUR card')
+        const accountsPanel = within(screen.getByText('Accounts', {selector: 'h2'}).closest('article')!)
+        const addButton = accountsPanel.getByRole('button', {name: 'Add new account'})
+        fireEvent.click(addButton)
+
+        const form = within(await screen.findByRole('dialog', {name: 'Create a new account'}))
+        expect(form.getByLabelText('Account name')).toHaveFocus()
+        fireEvent.change(form.getByLabelText('Account name'), {target: {value: 'USD savings'}})
+        fireEvent.change(form.getByLabelText('Opening balance'), {target: {value: '2500'}})
+        await selectOption(form.getByLabelText('Currency'), 'USD')
+        fireEvent.click(form.getByRole('button', {name: 'Create account'}))
+
+        await waitFor(() => expect(screen.queryByRole('dialog', {name: 'Create a new account'})).not.toBeInTheDocument())
+        expect(requestBody).toEqual({
+            name: 'USD savings',
+            type: 'CARD',
+            openingBalance: 2500,
+            currency: 'USD',
+        })
+        expect(addButton).toHaveFocus()
+        expect(accountsPanel.getByText('USD savings')).toBeInTheDocument()
+        expect(accountsPanel.getAllByText('$2,500').length).toBeGreaterThan(0)
+        expect(screen.getByLabelText('Dashboard currency')).toHaveTextContent('USD')
     })
 
     it('allows retry when transaction categories fail to load', async () => {
@@ -299,10 +346,12 @@ describe('DashboardPage', () => {
 
         expect(await screen.findByText('€2,500')).toBeInTheDocument()
 
-        fireEvent.change(
-            screen.getByLabelText('Balance currency'),
-            {target: {value: 'RUB'}},
-        )
+        const accountsPanel = screen.getByText('Accounts', {selector: 'h2'}).closest('article')
+        const currencySelect = screen.getByLabelText('Dashboard currency')
+        expect(within(accountsPanel as HTMLElement).queryByRole('combobox')).not.toBeInTheDocument()
+        expect(currencySelect.closest('.dashboard-actions')).not.toBeNull()
+
+        await selectOption(currencySelect, 'RUB')
 
         expect(await screen.findByText('₽100,000')).toBeInTheDocument()
         expect(await screen.findByText('₽40,000')).toBeInTheDocument()
@@ -398,6 +447,8 @@ describe('DashboardPage', () => {
         expect(recentPanel.getByText('+€200')).toBeInTheDocument()
         expect(recentPanel.getByRole('link', {name: /View all/}))
             .toHaveAttribute('href', '/transactions')
+        expect(recentPanel.getByRole('button', {name: 'Add transaction'}))
+            .toHaveClass('dashboard-secondary-action')
         expect(transactionQuery).toEqual({
             page: '0',
             size: '3',

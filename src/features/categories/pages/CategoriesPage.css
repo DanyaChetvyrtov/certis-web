@@ -254,7 +254,7 @@
     text-transform: uppercase;
 }
 
-.category-currency-field select {
+.category-currency-field .certis-select {
     border: 0;
     outline: 0;
     color: #21364f;
@@ -277,24 +277,12 @@
     background: #fbf9f5;
 }
 
-.category-sort-field::after {
-    position: absolute;
-    right: 13px;
-    width: 7px;
-    height: 7px;
-    border-right: 1.5px solid #8090a8;
-    border-bottom: 1.5px solid #8090a8;
-    content: '';
-    pointer-events: none;
-    transform: translateY(-2px) rotate(45deg);
-}
-
-.category-sort-field select {
+.category-sort-field .certis-select {
     height: 100%;
     appearance: none;
     border: 0;
     outline: 0;
-    padding: 0 36px 0 15px;
+    padding: 0 13px 0 15px;
     color: #5f6f86;
     background: transparent;
     cursor: pointer;
@@ -750,7 +738,7 @@
         justify-content: space-between;
     }
 
-    .category-sort-field select {
+    .category-sort-field .certis-select {
         width: 100%;
     }
 

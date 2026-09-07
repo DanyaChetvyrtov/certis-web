@@ -160,7 +160,7 @@
   font-size: 14px;
 }
 
-.profile-select-shell select {
+.profile-select-shell .certis-select {
   min-width: 0;
   width: 100%;
   border: 0;
@@ -172,7 +172,7 @@
   font-size: 14px;
 }
 
-.profile-select-shell select:disabled {
+.profile-select-shell .certis-select:disabled {
   cursor: wait;
 }
 

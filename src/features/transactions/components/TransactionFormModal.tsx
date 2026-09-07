@@ -1,3 +1,4 @@
+import {Select, SelectOption} from '../../../components/Select'
 import {
     useMemo,
     useRef,
@@ -429,7 +430,7 @@ export function TransactionFormModal({
                             </label>
                             <div className="transaction-select-shell">
                                 <Icon name="card"/>
-                                <select
+                                <Select
                                     id="transaction-account"
                                     name="accountId"
                                     value={accountId}
@@ -439,25 +440,24 @@ export function TransactionFormModal({
                                             ? 'transaction-account-error'
                                             : undefined
                                     }
-                                    onChange={(event) => {
-                                        setAccountId(event.target.value)
+                                    onValueChange={(value) => {
+                                        setAccountId(value)
                                         clearFieldError('accountId')
                                     }}
                                 >
-                                    <option value="">
+                                    <SelectOption value="">
                                         Select account
-                                    </option>
+                                    </SelectOption>
                                     {availableAccounts.map((account) => (
-                                        <option
+                                        <SelectOption
                                             value={account.id}
                                             key={account.id}
                                         >
                                             {account.name} · {account.currency}
                                             {account.closedAt ? ' · Closed' : ''}
-                                        </option>
+                                        </SelectOption>
                                     ))}
-                                </select>
-                                <Icon name="chevron-down"/>
+                                </Select>
                             </div>
                             {fieldErrors.accountId && (
                                 <small
@@ -475,7 +475,7 @@ export function TransactionFormModal({
                             </label>
                             <div className="transaction-select-shell">
                                 <Icon name="tag"/>
-                                <select
+                                <Select
                                     id="transaction-category"
                                     name="categoryId"
                                     value={categoryId}
@@ -485,25 +485,24 @@ export function TransactionFormModal({
                                             ? 'transaction-category-error'
                                             : undefined
                                     }
-                                    onChange={(event) => {
-                                        setCategoryId(event.target.value)
+                                    onValueChange={(value) => {
+                                        setCategoryId(value)
                                         clearFieldError('categoryId')
                                     }}
                                 >
-                                    <option value="">
+                                    <SelectOption value="">
                                         No category
-                                    </option>
+                                    </SelectOption>
                                     {availableCategories.map((category) => (
-                                        <option
+                                        <SelectOption
                                             value={category.id}
                                             key={category.id}
                                         >
                                             {category.name}
                                             {category.archivedAt ? ' · Archived' : ''}
-                                        </option>
+                                        </SelectOption>
                                     ))}
-                                </select>
-                                <Icon name="chevron-down"/>
+                                </Select>
                             </div>
                             {fieldErrors.categoryId && (
                                 <small

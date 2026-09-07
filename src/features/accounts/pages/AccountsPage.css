@@ -214,13 +214,13 @@
     position: relative;
 }
 
-.balance-type-heading select {
+.balance-type-heading .certis-select {
     height: 34px;
     appearance: none;
     border: 1px solid #dfd9cf;
     border-radius: 999px;
     outline: none;
-    padding: 0 31px 0 15px;
+    padding: 0 12px 0 15px;
     color: #536178;
     background: #faf8f4;
     font-size: 11px;
@@ -397,25 +397,17 @@
     min-width: 102px;
 }
 
-.account-sort-field select {
+.account-sort-field .certis-select {
     width: 100%;
     height: 100%;
     appearance: none;
     border: 0;
     outline: 0;
-    padding: 0 34px 0 13px;
+    padding: 0 13px;
     color: #58667c;
     background: transparent;
     cursor: pointer;
     font-size: 11px;
-}
-
-.account-sort-field svg {
-    position: absolute;
-    right: 10px;
-    width: 15px;
-    height: 15px;
-    pointer-events: none;
 }
 
 .account-table-head,
