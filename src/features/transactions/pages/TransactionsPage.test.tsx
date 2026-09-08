@@ -314,7 +314,13 @@ describe('TransactionsPage', () => {
         ).toBeInTheDocument()
     })
 
-    it('does not compare category spending across currencies', async () => {
+    it('switches category spending between currencies without mixing amounts', async () => {
+        const usdAccount = {
+            ...accounts[0],
+            id: 'usd-account',
+            name: 'Dollar card',
+            currency: 'USD',
+        }
         useWorkspaceHandlers([
             expenseTransaction,
             {
@@ -324,19 +330,35 @@ describe('TransactionsPage', () => {
                 amount: 25,
                 merchant: 'Airport cafe',
             },
+            {
+                ...expenseTransaction,
+                id: 'usd-expense',
+                accountId: 'usd-account',
+                amount: 40,
+                merchant: 'Online store',
+            },
         ])
+        server.use(http.get('/api/v1/accounts', () => HttpResponse.json([
+            ...accounts,
+            usdAccount,
+        ])))
 
         renderPage()
 
-        expect(
-            await screen.findByText('Airport cafe'),
-        ).toBeInTheDocument()
-        expect(
-            screen.getByText(
-                'Select one account to compare categories without mixing currencies.',
-            ),
-        ).toBeInTheDocument()
-        expect(screen.queryByText('₽4,885')).not.toBeInTheDocument()
+        await screen.findByText('Airport cafe')
+        const panel = within(screen.getByText('Spending by category').closest('section')!)
+        const currencySelect = panel.getByLabelText('Spending currency')
+
+        expect(currencySelect).toHaveTextContent('RUB')
+        expect(panel.getByText('₽4,860 · 100%')).toBeInTheDocument()
+        expect(panel.queryByText(/mixing currencies/)).not.toBeInTheDocument()
+
+        await selectOption(currencySelect, 'EUR')
+        expect(panel.getByText('€25 · 100%')).toBeInTheDocument()
+        expect(panel.queryByText('₽4,860 · 100%')).not.toBeInTheDocument()
+
+        await selectOption(currencySelect, 'USD')
+        expect(panel.getByText('$40 · 100%')).toBeInTheDocument()
     })
 
     it('creates a transaction with account and category data', async () => {

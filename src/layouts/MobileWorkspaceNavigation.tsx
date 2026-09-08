@@ -14,6 +14,7 @@ type ActivePage =
     | 'accounts'
     | 'transactions'
     | 'budgets'
+    | 'goals'
     | 'categories'
 
 type MobileWorkspaceNavigationProps = {
@@ -136,6 +137,7 @@ export function MobileWorkspaceNavigation({
                     ref={accountButtonRef}
                     className={
                         activePage === 'categories'
+                        || activePage === 'goals'
                         || isAccountMenuOpen
                             ? 'workspace-mobile-more-trigger active'
                             : 'workspace-mobile-more-trigger'
@@ -163,6 +165,27 @@ export function MobileWorkspaceNavigation({
                         "
                         role="menu"
                     >
+                        <Link
+                            className={
+                                activePage === 'goals'
+                                    ? 'workspace-mobile-overflow-link active'
+                                    : 'workspace-mobile-overflow-link'
+                            }
+                            to="/goals"
+                            role="menuitem"
+                            aria-current={
+                                activePage === 'goals'
+                                    ? 'page'
+                                    : undefined
+                            }
+                        >
+                            <span className="workspace-account-menu-label">
+                                <Icon name="target"/>
+                                <span>Goals</span>
+                            </span>
+                            <Icon name="chevron-right"/>
+                        </Link>
+
                         <Link
                             className={
                                 activePage === 'categories'

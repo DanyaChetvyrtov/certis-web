@@ -1,6 +1,6 @@
 import {Select, SelectOption} from '../components/Select'
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
-import type {ReactNode} from 'react'
+import type {CSSProperties, ReactNode} from 'react'
 import {Link} from 'react-router-dom'
 import {Icon} from '../components/Icons'
 import {LoadingIndicator} from '../components/LoadingIndicator'
@@ -21,9 +21,16 @@ import {CashFlowPanel} from '../features/dashboard/components/CashFlowPanel'
 import {
     useMonthlyTransactionAnalytics,
 } from '../features/dashboard/hooks/useMonthlyTransactionAnalytics'
+import {useDashboardGoals} from '../features/dashboard/hooks/useDashboardGoals'
 import {
     useRecentTransactions,
 } from '../features/dashboard/hooks/useRecentTransactions'
+import {
+    formatGoalMoney,
+    formatGoalMonth,
+    goalIconName,
+} from '../features/goals/goalPresentation'
+import {GoalFormModal} from '../features/goals/components/GoalFormModal'
 import {ProfileSetupModal} from '../features/profile/ProfileSetupModal'
 import type {Profile} from '../features/profile/api/profileApi'
 import type {
@@ -34,6 +41,14 @@ import {ApiError} from '../shared/api/ApiError'
 import './DashboardPage.css'
 
 type AccountsStatus = 'loading' | 'ready' | 'error'
+
+type DashboardGoalStyle = CSSProperties & {
+    '--dashboard-goal-accent': string
+}
+
+const dashboardGoalStyle = (color: string): DashboardGoalStyle => ({
+    '--dashboard-goal-accent': color,
+})
 
 const accountTypeLabels: Record<AccountType, string> = {
     CASH: 'Cash',
@@ -235,6 +250,7 @@ export function DashboardPage() {
     const [transactionCategories, setTransactionCategories] = useState<Category[]>([])
     const [isAccountFormOpen, setIsAccountFormOpen] = useState(false)
     const [isTransactionOpen, setIsTransactionOpen] = useState(false)
+    const [isGoalFormOpen, setIsGoalFormOpen] = useState(false)
     const [isPreparingTransaction, setIsPreparingTransaction] = useState(false)
     const [transactionNotice, setTransactionNotice] = useState<{
         kind: 'success' | 'error' | 'no-accounts'
@@ -242,6 +258,7 @@ export function DashboardPage() {
     } | null>(null)
     const addTransactionButtonRef = useRef<HTMLButtonElement>(null)
     const addAccountButtonRef = useRef<HTMLButtonElement>(null)
+    const addGoalButtonRef = useRef<HTMLButtonElement>(null)
     const transactionRequestIdRef = useRef(0)
     const isProfileSetupOpen = profile === null
 
@@ -366,6 +383,12 @@ export function DashboardPage() {
         loadState: recentTransactionsState,
         reload: reloadRecentTransactions,
     } = useRecentTransactions(!isProfileSetupOpen)
+    const {
+        goals: dashboardGoals,
+        totalGoals: totalDashboardGoals,
+        loadState: dashboardGoalsState,
+        reload: reloadDashboardGoals,
+    } = useDashboardGoals(selectedCurrency, !isProfileSetupOpen)
 
     const handleTransactionSaved = () => {
         setIsTransactionOpen(false)
@@ -386,8 +409,20 @@ export function DashboardPage() {
         setIsAccountFormOpen(false)
     }
 
+    const handleGoalSaved = () => {
+        setIsGoalFormOpen(false)
+        reloadDashboardGoals()
+        reloadRecentTransactions()
+        setDashboardRevision(revision => revision + 1)
+        void retryAccounts()
+    }
+
     const restoreAccountFocus = useCallback(() => {
         addAccountButtonRef.current?.focus()
+    }, [])
+
+    const restoreGoalFocus = useCallback(() => {
+        addGoalButtonRef.current?.focus()
     }, [])
 
     const accountMap = useMemo(
@@ -630,19 +665,79 @@ export function DashboardPage() {
                     </article>
 
                     <article className="dashboard-panel goals-panel">
-                        <PanelHeader title="Goals" action="View all"/>
-                        <EmptyState icon="target" title="No savings goals yet">
-                            Create a goal to turn a future purchase into a clear plan.
-                        </EmptyState>
-                        <div className="goal-preview-placeholder" aria-hidden="true">
-                            <span/>
-                            <span/>
-                        </div>
+                        <PanelHeader title="Goals" action="View all" actionHref="/goals"/>
+
+                        {(dashboardGoalsState === 'loading'
+                            || dashboardGoalsState === 'idle') && (
+                            <div className="dashboard-goals-loading" aria-label="Loading goals">
+                                <span/><span/>
+                            </div>
+                        )}
+
+                        {dashboardGoalsState === 'error' && (
+                            <div className="dashboard-goals-error" role="alert">
+                                <Icon name="alert"/>
+                                <p>We could not load your goals.</p>
+                                <button type="button" onClick={reloadDashboardGoals}>
+                                    Try again
+                                </button>
+                            </div>
+                        )}
+
+                        {dashboardGoalsState === 'ready'
+                            && dashboardGoals.length === 0 && (
+                            <EmptyState icon="target" title="No savings goals yet">
+                                Create a goal to turn a future purchase into a clear plan.
+                            </EmptyState>
+                        )}
+
+                        {dashboardGoalsState === 'ready'
+                            && dashboardGoals.length > 0 && (
+                            <div className="dashboard-goals-list">
+                                {dashboardGoals.map((goal) => {
+                                    const progress = Math.min(
+                                        Math.max(goal.progressPercentage, 0),
+                                        100,
+                                    )
+
+                                    return (
+                                        <div
+                                            className="dashboard-goal-row"
+                                            key={goal.id}
+                                            style={dashboardGoalStyle(goal.color)}
+                                        >
+                                            <header>
+                                                <span><Icon name={goalIconName(goal.icon)}/></span>
+                                                <div>
+                                                    <strong>{goal.name}</strong>
+                                                    <small>Target · {formatGoalMonth(goal.targetMonth)}</small>
+                                                </div>
+                                                <b>{Math.round(goal.progressPercentage)}%</b>
+                                            </header>
+                                            <span className="dashboard-goal-progress">
+                                                <i style={{width: `${progress}%`}}/>
+                                            </span>
+                                            <footer>
+                                                <span>{formatGoalMoney(goal.savedAmount, goal.currency)} saved</span>
+                                                <span>{formatGoalMoney(goal.remainingAmount, goal.currency)} left</span>
+                                            </footer>
+                                        </div>
+                                    )
+                                })}
+                                {totalDashboardGoals > dashboardGoals.length && (
+                                    <span className="dashboard-goals-more">
+                                        +{totalDashboardGoals - dashboardGoals.length} more active
+                                    </span>
+                                )}
+                            </div>
+                        )}
+
                         <button
                             type="button"
-                            className="dashboard-secondary-action"
-                            disabled
-                            title="Create goal — coming soon"
+                            className="dashboard-secondary-action dashboard-panel-create-action"
+                            ref={addGoalButtonRef}
+                            disabled={isProfileSetupOpen}
+                            onClick={() => setIsGoalFormOpen(true)}
                         >
                             <Icon name="plus"/>
                             Create a goal
@@ -792,6 +887,16 @@ export function DashboardPage() {
                     onClose={() => setIsTransactionOpen(false)}
                     onSaved={handleTransactionSaved}
                     restoreFocus={restoreTransactionFocus}
+                />
+            )}
+
+            {isGoalFormOpen && (
+                <GoalFormModal
+                    accounts={accounts}
+                    defaultCurrency={selectedCurrency}
+                    onClose={() => setIsGoalFormOpen(false)}
+                    onSaved={handleGoalSaved}
+                    restoreFocus={restoreGoalFocus}
                 />
             )}
         </div>

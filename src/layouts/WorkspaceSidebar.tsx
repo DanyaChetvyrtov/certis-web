@@ -31,16 +31,10 @@ type WorkspaceSidebarProps = {
         | 'accounts'
         | 'transactions'
         | 'budgets'
+        | 'goals'
         | 'categories'
     activeAccounts?: number
 }
-
-const futureNavigation = [
-    {
-        label: 'Goals',
-        icon: 'target' as const,
-    },
-]
 
 const signOutErrorMessage = (error: unknown): string =>
     error instanceof ApiError
@@ -296,16 +290,22 @@ export function WorkspaceSidebar({
                         <span>Budgets</span>
                     </Link>
 
-                    {futureNavigation.map((item) => (
-                        <span
-                            className="workspace-nav-disabled"
-                            aria-disabled="true"
-                            key={item.label}
-                        >
-                        <Icon name={item.icon}/>
-                        <span>{item.label}</span>
-                    </span>
-                    ))}
+                    <Link
+                        className={
+                            activePage === 'goals'
+                                ? 'active'
+                                : undefined
+                        }
+                        to="/goals"
+                        aria-current={
+                            activePage === 'goals'
+                                ? 'page'
+                                : undefined
+                        }
+                    >
+                        <Icon name="target"/>
+                        <span>Goals</span>
+                    </Link>
 
                     <Link
                         className={
