@@ -60,7 +60,7 @@ export function CashFlowChart({ currency, data, description = 'Income and expens
             </linearGradient>
           </defs>
           <CartesianGrid
-            stroke="#e7e2d8"
+            stroke="var(--chart-grid)"
             strokeDasharray="4 7"
             vertical={false}
           />
@@ -69,24 +69,28 @@ export function CashFlowChart({ currency, data, description = 'Income and expens
             tickFormatter={(value: string) => data.find(point => point.bucketStart === value)?.label ?? value}
             axisLine={false}
             tickLine={false}
-            tick={{ fill: '#8996aa', fontSize: 11 }}
+            tick={{ fill: 'var(--chart-axis-text)', fontSize: 11 }}
             dy={10}
           />
           <YAxis
             axisLine={false}
             tickLine={false}
-            tick={{ fill: '#8996aa', fontSize: 11 }}
+            tick={{ fill: 'var(--chart-axis-text)', fontSize: 11 }}
             tickFormatter={(value: number) => compactFormatter.format(value)}
             width={52}
           />
           <Tooltip
             labelFormatter={(value) => data.find(point => point.bucketStart === value)?.label ?? value}
-            cursor={{ stroke: '#cad3dd', strokeDasharray: '4 4' }}
+            cursor={{
+              stroke: 'var(--chart-tooltip-cursor)',
+              strokeDasharray: '4 4',
+            }}
             contentStyle={{
-              border: '1px solid #dde3e9',
+              border: '1px solid var(--chart-tooltip-border)',
               borderRadius: 12,
+              background: 'var(--chart-tooltip-background)',
               boxShadow: '0 12px 30px rgb(14 31 53 / 12%)',
-              color: '#10243c',
+              color: 'var(--chart-tooltip-text)',
               fontSize: 12,
             }}
             formatter={(value, name) => [
@@ -100,7 +104,11 @@ export function CashFlowChart({ currency, data, description = 'Income and expens
             stroke="#10b981"
             strokeWidth={3}
             fill="url(#income-gradient)"
-            activeDot={{ r: 5, fill: '#fff', strokeWidth: 3 }}
+            activeDot={{
+              r: 5,
+              fill: 'var(--chart-active-dot)',
+              strokeWidth: 3,
+            }}
           />
           <Area
             type="monotone"
@@ -108,7 +116,11 @@ export function CashFlowChart({ currency, data, description = 'Income and expens
             stroke="#ef6a62"
             strokeWidth={2.4}
             fill="url(#expenses-gradient)"
-            activeDot={{ r: 4, fill: '#fff', strokeWidth: 2 }}
+            activeDot={{
+              r: 4,
+              fill: 'var(--chart-active-dot)',
+              strokeWidth: 2,
+            }}
           />
         </AreaChart>
       </ResponsiveContainer>

@@ -463,6 +463,14 @@
     font-size: 14px;
 }
 
+.uncategorized-transaction-amount.income strong {
+    color: #08aa79;
+}
+
+.uncategorized-transaction-amount.expense strong {
+    color: #df655e;
+}
+
 .uncategorized-category-field {
     min-width: 0;
     border-color: color-mix(
