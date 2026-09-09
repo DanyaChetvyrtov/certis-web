@@ -59,6 +59,30 @@ const accounts = [
     },
 ]
 
+const dashboardGoal = {
+    id: 'goal-id',
+    name: 'Emergency fund',
+    currency: 'EUR',
+    targetAmount: 2000,
+    savedAmount: 700,
+    remainingAmount: 1300,
+    progressPercentage: 35,
+    targetMonth: '2027-01',
+    monthsRemaining: 4,
+    contributionPlan: {
+        type: 'CUSTOM',
+        monthlyAmount: 325,
+        recommendedMonthlyAmount: 325,
+    },
+    status: 'ACTIVE',
+    paceStatus: 'ON_TRACK',
+    projectedCompletionMonth: '2027-01',
+    icon: 'target',
+    color: '#10B981',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-01T10:00:00Z',
+}
+
 const currentMonth = (): string => {
     const now = new Date()
 
@@ -90,7 +114,115 @@ describe('DashboardPage', () => {
                 totalElements: 0,
                 totalPages: 0,
             })),
+            http.get('/api/v1/goals', () => HttpResponse.json({
+                currency: 'EUR',
+                items: [],
+                statusCounts: {active: 0, completed: 0},
+                page: 0,
+                size: 2,
+                totalElements: 0,
+                totalPages: 0,
+            })),
         )
+    })
+
+    it('shows active goal progress and reloads it for the dashboard currency', async () => {
+        const goalQueries: Record<string, string>[] = []
+        server.use(http.get('/api/v1/goals', ({request}) => {
+            const query = Object.fromEntries(new URL(request.url).searchParams)
+            const currency = query.currency
+            goalQueries.push(query)
+
+            const items = currency === 'EUR'
+                ? [
+                    dashboardGoal,
+                    {
+                        ...dashboardGoal,
+                        id: 'trip-goal',
+                        name: 'Japan trip',
+                        savedAmount: 500,
+                        remainingAmount: 1500,
+                        progressPercentage: 25,
+                        targetMonth: '2027-04',
+                        icon: 'briefcase',
+                        color: '#B78B4B',
+                    },
+                ]
+                : [{
+                    ...dashboardGoal,
+                    id: 'home-goal',
+                    name: 'Home deposit',
+                    currency: 'RUB',
+                    targetAmount: 100000,
+                    savedAmount: 40000,
+                    remainingAmount: 60000,
+                    progressPercentage: 40,
+                }]
+
+            return HttpResponse.json({
+                currency,
+                items,
+                statusCounts: {active: currency === 'EUR' ? 4 : 1, completed: 0},
+                page: 0,
+                size: 2,
+                totalElements: currency === 'EUR' ? 4 : 1,
+                totalPages: currency === 'EUR' ? 2 : 1,
+            })
+        }))
+
+        renderPage()
+        const panel = within(screen.getByText('Goals', {selector: 'h2'}).closest('article')!)
+
+        expect(await panel.findByText('Emergency fund')).toBeInTheDocument()
+        expect(panel.getByText('€700 saved')).toBeInTheDocument()
+        expect(panel.getByText('€1,300 left')).toBeInTheDocument()
+        expect(panel.getByText('+2 more active')).not.toHaveAttribute('href')
+        expect(panel.getByRole('link', {name: /View all/})).toHaveAttribute('href', '/goals')
+        expect(panel.queryByRole('link', {name: /View Emergency fund/})).not.toBeInTheDocument()
+        const createGoalButton = panel.getByRole('button', {name: 'Create a goal'})
+        fireEvent.click(createGoalButton)
+
+        const goalDialog = within(screen.getByRole('dialog', {name: 'Create a goal'}))
+        expect(goalDialog.getByLabelText('Currency')).toHaveTextContent('EUR')
+        fireEvent.click(goalDialog.getByRole('button', {name: 'Close goal form'}))
+        expect(createGoalButton).toHaveFocus()
+        expect(goalQueries[0]).toEqual({
+            currency: 'EUR',
+            status: 'ACTIVE',
+            sort: 'TARGET_MONTH_ASC',
+            page: '0',
+            size: '2',
+        })
+
+        await selectOption(screen.getByLabelText('Dashboard currency'), 'RUB')
+
+        expect(await panel.findByText('Home deposit')).toBeInTheDocument()
+        expect(panel.getByText('₽40,000 saved')).toBeInTheDocument()
+        expect(goalQueries[1]).toMatchObject({currency: 'RUB'})
+    })
+
+    it('allows retry when dashboard goals cannot be loaded', async () => {
+        let shouldFail = true
+        server.use(http.get('/api/v1/goals', () => shouldFail
+            ? HttpResponse.json({message: 'Goals unavailable'}, {status: 500})
+            : HttpResponse.json({
+                currency: 'EUR',
+                items: [],
+                statusCounts: {active: 0, completed: 0},
+                page: 0,
+                size: 2,
+                totalElements: 0,
+                totalPages: 0,
+            })))
+
+        renderPage()
+        const panel = within(screen.getByText('Goals', {selector: 'h2'}).closest('article')!)
+
+        expect(await panel.findByText('We could not load your goals.')).toBeInTheDocument()
+        shouldFail = false
+        fireEvent.click(panel.getByRole('button', {name: 'Try again'}))
+
+        expect(await panel.findByText('No savings goals yet')).toBeInTheDocument()
     })
 
     it.each(['EXPENSE', 'INCOME'] as const)('creates %s on dashboard and refreshes its panels', async type => {

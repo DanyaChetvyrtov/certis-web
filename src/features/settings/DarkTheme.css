@@ -278,6 +278,7 @@ html[data-theme='dark'] :is(
     .transaction-search-field,
     .transaction-activity-tools > button,
     .transaction-activity-tools > span,
+    .spending-category-currency.certis-select,
     .quick-filter-select,
     .recurring-list-tools label,
     .recurring-list-tools .certis-select,
@@ -467,10 +468,7 @@ html[data-theme='dark'] :is(
     background: #1b3855;
 }
 
-html[data-theme='dark'] :is(
-    .goal-preview-placeholder,
-    .transaction-preview-list > span
-) {
+html[data-theme='dark'] .transaction-preview-list > span {
     background: transparent;
 }
 
@@ -478,15 +476,51 @@ html[data-theme='dark'] .transaction-preview-list > span {
     border-color: #29425d;
 }
 
-html[data-theme='dark'] :is(
-    .goal-preview-placeholder span:first-child,
-    .transaction-preview-list i
-) {
+html[data-theme='dark'] .transaction-preview-list i {
     background: #223b55;
 }
 
-html[data-theme='dark'] .goal-preview-placeholder span:last-child {
-    background: linear-gradient(90deg, #6d5b3f 32%, #223b55 32%);
+html[data-theme='dark'] .dashboard-goal-row {
+    border-color: #29425d;
+    background: #0b2037;
+}
+
+html[data-theme='dark'] .dashboard-goal-row header > span {
+    background: color-mix(
+        in srgb,
+        var(--dashboard-goal-accent) 22%,
+        #102842
+    );
+}
+
+html[data-theme='dark'] :is(
+    .dashboard-goal-row strong,
+    .dashboard-goal-row header b
+) {
+    color: #e4edf5;
+}
+
+html[data-theme='dark'] :is(
+    .dashboard-goal-row small,
+    .dashboard-goal-row footer,
+    .dashboard-goals-more
+) {
+    color: #94a7bc;
+}
+
+html[data-theme='dark'] .dashboard-goal-progress {
+    background: #223b55;
+}
+
+html[data-theme='dark'] .dashboard-goals-loading span {
+    background: linear-gradient(90deg, #132b45, #1a3550, #132b45);
+    background-size: 200% 100%;
+}
+
+html[data-theme='dark'] .dashboard-goals-error button {
+    border-color: #71454b;
+    color: #f1aaa6;
+    background: #41262e;
 }
 
 html[data-theme='dark'] .transaction-preview-list i:first-child {

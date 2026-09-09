@@ -130,6 +130,8 @@ const currencySymbols: Record<Currency, string> = {
     USD: '$',
 }
 
+const currencyOrder: Currency[] = ['RUB', 'EUR', 'USD']
+
 const periodLabels: Record<PeriodPreset, string> = {
     THIS_MONTH: 'This month',
     LAST_30_DAYS: 'Last 30 days',
@@ -420,6 +422,8 @@ export function TransactionsPage() {
         useState<PeriodPreset>('THIS_MONTH')
     const [accountFilter, setAccountFilter] = useState('')
     const [categoryFilter, setCategoryFilter] = useState('')
+    const [requestedSpendingCurrency, setRequestedSpendingCurrency] =
+        useState<Currency>(preferredCurrency)
     const [activityType, setActivityType] =
         useState<ActivityType>('ALL')
     const [searchQuery, setSearchQuery] = useState('')
@@ -603,6 +607,36 @@ export function TransactionsPage() {
         ? accountMap.get(accountFilter)
         : undefined
 
+    const spendingCurrencyOptions = useMemo(() => {
+        if (selectedAccount) {
+            return [selectedAccount.currency]
+        }
+
+        const currencies = new Set<Currency>()
+
+        transactions.forEach((transaction) => {
+            if (transaction.transferId || transaction.type !== 'EXPENSE') {
+                return
+            }
+
+            const account = accountMap.get(transaction.accountId)
+
+            if (account) {
+                currencies.add(account.currency)
+            }
+        })
+
+        const available = currencyOrder.filter((currency) => currencies.has(currency))
+
+        return available.length > 0 ? available : [preferredCurrency]
+    }, [accountMap, preferredCurrency, selectedAccount, transactions])
+
+    const spendingCurrency = spendingCurrencyOptions.includes(requestedSpendingCurrency)
+        ? requestedSpendingCurrency
+        : spendingCurrencyOptions.includes(preferredCurrency)
+            ? preferredCurrency
+            : spendingCurrencyOptions[0]
+
     const metrics = useMemo(() => {
         const income = new Map<Currency, number>()
         const expenses = new Map<Currency, number>()
@@ -680,7 +714,6 @@ export function TransactionsPage() {
     }, [accountMap, transactions])
 
     const spendingByCategory = useMemo(() => {
-        const expenseCurrencies = new Set<Currency>()
         const grouped = new Map<string, CategorySpending>()
 
         transactions.forEach((transaction) => {
@@ -697,7 +730,9 @@ export function TransactionsPage() {
                 return
             }
 
-            expenseCurrencies.add(account.currency)
+            if (account.currency !== spendingCurrency) {
+                return
+            }
 
             const category = transaction.categoryId
                 ? categoryMap.get(transaction.categoryId)
@@ -713,16 +748,6 @@ export function TransactionsPage() {
             })
         })
 
-        if (expenseCurrencies.size !== 1) {
-            return {
-                currency: undefined,
-                items: [],
-                total: 0,
-                mixedCurrencies: expenseCurrencies.size > 1,
-            }
-        }
-
-        const currency = Array.from(expenseCurrencies)[0]
         const sorted = Array.from(grouped.values())
             .sort((first, second) => second.amount - first.amount)
         const items = sorted.length > 5
@@ -741,15 +766,14 @@ export function TransactionsPage() {
             : sorted
 
         return {
-            currency,
+            currency: spendingCurrency,
             items,
             total: sorted.reduce(
                 (total, item) => total + item.amount,
                 0,
             ),
-            mixedCurrencies: false,
         }
-    }, [accountMap, categoryMap, transactions])
+    }, [accountMap, categoryMap, spendingCurrency, transactions])
 
     const recurringCount = transactions.filter(
         (transaction) => Boolean(transaction.recurringTransactionTemplateId),
@@ -1528,35 +1552,39 @@ export function TransactionsPage() {
                                     <h2>Spending by category</h2>
                                     <p>{dateLabel}</p>
                                 </div>
-                                {spendingByCategory.currency && (
-                                    <strong>
+                                <div className="spending-category-summary">
+                                    <Select
+                                        className="spending-category-currency"
+                                        aria-label="Spending currency"
+                                        value={spendingCurrency}
+                                        disabled={spendingCurrencyOptions.length < 2}
+                                        onValueChange={(value) =>
+                                            setRequestedSpendingCurrency(value as Currency)
+                                        }
+                                    >
+                                        {spendingCurrencyOptions.map((currency) => (
+                                            <SelectOption key={currency} value={currency}>
+                                                {currency}
+                                            </SelectOption>
+                                        ))}
+                                    </Select>
+                                    {spendingByCategory.items.length > 0 && <strong>
                                         {formatMoney(
                                             spendingByCategory.total,
                                             spendingByCategory.currency,
                                         )}
-                                    </strong>
-                                )}
+                                    </strong>}
+                                </div>
                             </header>
 
-                            {spendingByCategory.mixedCurrencies && (
+                            {spendingByCategory.items.length === 0 && (
                                 <div className="spending-category-message">
-                                    <Icon name="alert"/>
+                                    <Icon name="categories"/>
                                     <p>
-                                        Select one account to compare categories without mixing currencies.
+                                        No expenses in {spendingCurrency} for this period.
                                     </p>
                                 </div>
                             )}
-
-                            {!spendingByCategory.mixedCurrencies
-                                && spendingByCategory.items.length === 0
-                                && (
-                                    <div className="spending-category-message">
-                                        <Icon name="categories"/>
-                                        <p>
-                                            Expense categories will appear here.
-                                        </p>
-                                    </div>
-                                )}
 
                             {spendingByCategory.items.length > 0 && (
                                 <div className="spending-category-list">
@@ -1576,7 +1604,7 @@ export function TransactionsPage() {
                                                     <strong>
                                                         {formatMoney(
                                                             item.amount,
-                                                            spendingByCategory.currency!,
+                                                            spendingByCategory.currency,
                                                         )} · {percentage}%
                                                     </strong>
                                                 </p>

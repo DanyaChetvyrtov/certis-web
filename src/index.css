@@ -86,7 +86,8 @@ button {
     .transaction-view-tabs,
     .category-status-tabs,
     .category-type-tabs,
-    .budget-filters
+    .budget-filters,
+    .goal-status-tabs
   ) button {
     transition:
       color 180ms ease,
@@ -102,7 +103,8 @@ button {
     .transaction-view-tabs,
     .category-status-tabs,
     .category-type-tabs,
-    .budget-filters
+    .budget-filters,
+    .goal-status-tabs
   ) button:active:not(:disabled) {
     transform: scale(0.97);
   }

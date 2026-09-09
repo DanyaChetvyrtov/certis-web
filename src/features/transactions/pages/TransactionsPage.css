@@ -667,7 +667,7 @@
 
 .spending-category-card > header {
     display: flex;
-    align-items: flex-end;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 14px;
 }
@@ -675,6 +675,25 @@
 .spending-category-card > header strong {
     color: #dd625b;
     font-size: 12px;
+}
+
+.spending-category-summary {
+    display: flex;
+    align-items: flex-end;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.spending-category-currency.certis-select {
+    min-width: 76px;
+    min-height: 34px;
+    border-color: #ded7cd;
+    border-radius: 10px;
+    padding: 7px 9px;
+    color: #536278;
+    background: #fbf8f3;
+    font-size: 10px;
+    font-weight: 750;
 }
 
 .spending-category-list {
