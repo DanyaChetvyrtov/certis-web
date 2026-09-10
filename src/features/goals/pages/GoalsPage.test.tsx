@@ -120,7 +120,9 @@ const renderPage = (initialEntry = '/goals') => render(
 describe('GoalsPage', () => {
     beforeEach(() => {
         server.use(
-            http.get('/api/v1/accounts', () => HttpResponse.json([account])),
+            http.get('/api/v1/accounts', () => HttpResponse.json({
+                accounts: [account],
+            })),
             http.get('/api/v1/goals', () => HttpResponse.json(goalPage())),
             http.get('/api/v1/goals/overview', () => HttpResponse.json(overview)),
         )

@@ -196,7 +196,7 @@ const useWorkspaceHandlers = (
     server.use(
         http.get(
             '/api/v1/accounts',
-            () => HttpResponse.json(accounts),
+            () => HttpResponse.json({accounts}),
         ),
         http.get(
             '/api/v1/categories',
@@ -210,7 +210,7 @@ const useWorkspaceHandlers = (
         ),
         http.get(
             '/api/v1/transfers',
-            () => HttpResponse.json(transferItems),
+            () => HttpResponse.json({transfers: transferItems}),
         ),
     )
 }
@@ -338,10 +338,12 @@ describe('TransactionsPage', () => {
                 merchant: 'Online store',
             },
         ])
-        server.use(http.get('/api/v1/accounts', () => HttpResponse.json([
-            ...accounts,
-            usdAccount,
-        ])))
+        server.use(http.get('/api/v1/accounts', () => HttpResponse.json({
+            accounts: [
+                ...accounts,
+                usdAccount,
+            ],
+        })))
 
         renderPage()
 

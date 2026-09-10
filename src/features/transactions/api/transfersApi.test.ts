@@ -42,7 +42,7 @@ afterEach(() => {
 describe('transfersApi', () => {
     it('loads the transfer collection and one transfer', async () => {
         const fetchMock = vi.spyOn(globalThis, 'fetch')
-            .mockResolvedValueOnce(response([transfer]))
+            .mockResolvedValueOnce(response({transfers: [transfer]}))
             .mockResolvedValueOnce(response(transfer))
 
         await expect(getTransfers()).resolves.toEqual([transfer])

@@ -88,11 +88,44 @@ export type CategoryAnalytics = {
     topExpenseCategories: TopCategoryAnalytics[]
 }
 
+export type CategorySpendingOverTimeRequest = {
+    month: string
+    currency: Currency
+    type: CategoryType
+    bucketCount?: number
+    topLimit?: number
+}
+
+export type CategorySpendingPoint = {
+    bucketMonth: string
+    amount: number
+}
+
+export type CategorySpendingSeries = {
+    categoryId: string | null
+    categoryName: string
+    categoryColor: string | null
+    total: number
+    points: CategorySpendingPoint[]
+}
+
+export type CategorySpendingOverTime = {
+    month: string
+    currency: Currency
+    type: CategoryType
+    totalSum: number
+    series: CategorySpendingSeries[]
+}
+
 export type CategoryOption = {
     id: string
     name: string
     icon: string
     color: string
+}
+
+type CategoryOptionsResponse = {
+    categoryOptions: CategoryOption[]
 }
 
 export type CreateCategoryRequest = {
@@ -190,19 +223,40 @@ export const getCategoryAnalytics = (
     )
 }
 
+export const getCategorySpendingOverTime = (
+    request: CategorySpendingOverTimeRequest,
+    signal?: AbortSignal,
+) => {
+    const searchParams = new URLSearchParams({
+        month: request.month,
+        currency: request.currency,
+        type: request.type,
+        bucketCount: String(request.bucketCount ?? 6),
+        topLimit: String(request.topLimit ?? 4),
+    })
+
+    return apiRequest<CategorySpendingOverTime>(
+        `/api/v1/categories/analytics/spending-over-time?${searchParams}`,
+        {
+            signal,
+            fallbackMessage: i18n.t('categories.analytics.loadError'),
+        },
+    )
+}
+
 export const getCategoryOptions = (
     type: CategoryType,
     signal?: AbortSignal,
-) => {
+): Promise<CategoryOption[]> => {
     const searchParams = new URLSearchParams({type})
 
-    return apiRequest<CategoryOption[]>(
+    return apiRequest<CategoryOptionsResponse>(
         `/api/v1/categories/options?${searchParams}`,
         {
             signal,
             fallbackMessage: i18n.t('categories.uncategorized.optionsError'),
         },
-    )
+    ).then((response) => response.categoryOptions)
 }
 
 export const getCategory = (categoryId: string) =>

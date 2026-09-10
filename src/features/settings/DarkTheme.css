@@ -120,6 +120,56 @@ html[data-theme='dark'] .dashboard-shell {
     --dashboard-border: #29425e;
 }
 
+html[data-theme='dark'] :is(
+    .dashboard-category-header h2,
+    .category-over-time-placeholder strong,
+    .spending-category-donut-value strong,
+    .dashboard-category-breakdown strong,
+    .dashboard-category-breakdown b,
+    .category-spending-state strong
+) {
+    color: #edf4fb;
+}
+
+html[data-theme='dark'] :is(
+    .dashboard-category-header p,
+    .category-over-time-placeholder p,
+    .spending-category-donut-value small,
+    .dashboard-category-breakdown span,
+    .category-spending-state p
+) {
+    color: #94a7bc;
+}
+
+html[data-theme='dark'] .dashboard-category-header > span {
+    border-color: #304a65;
+    color: #a8b8c8;
+    background: #122a45;
+}
+
+html[data-theme='dark'] .dashboard-category-header a {
+    color: #a8b8c8;
+}
+
+html[data-theme='dark'] .dashboard-category-header a:hover {
+    color: #35d2a3;
+}
+
+html[data-theme='dark'] .category-over-time-placeholder > span {
+    color: #b69ae4;
+    background: #292747;
+}
+
+html[data-theme='dark'] .dashboard-category-breakdown li {
+    border-color: #29425e;
+}
+
+html[data-theme='dark'] .category-spending-state.error button {
+    border-color: #7e4a51;
+    color: #f1aaa6;
+    background: #41262e;
+}
+
 /* Shared workspace surfaces */
 html[data-theme='dark'] :is(
     .summary-card,
@@ -145,6 +195,16 @@ html[data-theme='dark'] :is(
     color: #dce7f2;
     background: #0d233b;
     box-shadow: 0 12px 32px rgb(0 5 15 / 20%);
+}
+
+html[data-theme='dark'] :is(
+    .total-balance-panel,
+    .transaction-activity-heading,
+    .categories-toolbar,
+    .category-item-stats,
+    .category-pagination
+) {
+    border-color: #29425e;
 }
 
 html[data-theme='dark'] :is(
@@ -697,7 +757,8 @@ html[data-theme='dark'] :is(
     .budget-modal .certis-select,
     .profile-editor-grid input,
     .profile-input-shell,
-    .settings-theme-option
+    .settings-theme-option,
+    .settings-language-option
 ) {
     border-color: #304a65;
     color: #dce7f2;
@@ -765,16 +826,23 @@ html[data-theme='dark'] :is(
     .uncategorized-table-heading,
     .uncategorized-modal-footer,
     .profile-editor-section + .profile-editor-section,
-    .recurring-modal footer
+    .recurring-modal footer,
+    .settings-language-heading
 ) {
     border-color: #29435f;
 }
 
-html[data-theme='dark'] .settings-theme-copy strong {
+html[data-theme='dark'] :is(
+    .settings-theme-copy strong,
+    .settings-language-option strong
+) {
     color: #edf4fb;
 }
 
-html[data-theme='dark'] .settings-theme-copy small {
+html[data-theme='dark'] :is(
+    .settings-theme-copy small,
+    .settings-language-option small
+) {
     color: #91a4b8;
 }
 
@@ -782,15 +850,26 @@ html[data-theme='dark'] .settings-section-heading > span {
     background: #3a3228;
 }
 
+html[data-theme='dark'] .settings-section-heading > .settings-language-icon {
+    color: #7fe0c1;
+    background: #103b38;
+}
+
 html[data-theme='dark'] .settings-storage-note small {
     color: #79aa9b;
 }
 
-html[data-theme='dark'] .settings-theme-option:hover {
+html[data-theme='dark'] :is(
+    .settings-theme-option,
+    .settings-language-option
+):hover {
     border-color: #4b6985;
 }
 
-html[data-theme='dark'] .settings-theme-option.selected {
+html[data-theme='dark'] :is(
+    .settings-theme-option,
+    .settings-language-option
+).selected {
     border-color: #18c796;
 }
 

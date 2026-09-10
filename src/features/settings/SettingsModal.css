@@ -307,7 +307,7 @@
 .settings-language-heading {
     margin-top: 27px;
     padding-top: 26px;
-    border-top: 1px solid #29425e;
+    border-top: 1px solid #e8e2d9;
 }
 
 .settings-section-heading > .settings-language-icon {
@@ -332,10 +332,10 @@
     gap: 11px;
     min-width: 0;
     padding: 14px 15px;
-    border: 1px solid #304a65;
+    border: 1px solid #ded8cf;
     border-radius: 15px;
-    color: #dce7f2;
-    background: #102842;
+    color: #526279;
+    background: #fff;
     font: inherit;
     text-align: left;
     cursor: pointer;
@@ -365,7 +365,7 @@
 }
 
 .settings-language-option strong {
-    color: #dce7f2;
+    color: #193049;
     font-size: 12px;
 }
 

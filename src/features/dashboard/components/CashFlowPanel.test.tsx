@@ -6,7 +6,20 @@ import {server} from '../../../test/server'
 import {CashFlowPanel} from './CashFlowPanel'
 
 vi.mock('./CashFlowChart', () => ({
-    CashFlowChart: ({data}: {data: unknown}) => <div data-testid="chart">{JSON.stringify(data)}</div>,
+    CashFlowChart: ({
+        data,
+        comparisonData,
+    }: {
+        data: unknown
+        comparisonData?: unknown
+    }) => (
+        <div
+            data-testid="chart"
+            data-comparison={JSON.stringify(comparisonData ?? [])}
+        >
+            {JSON.stringify(data)}
+        </div>
+    ),
 }))
 
 const response = {
@@ -28,14 +41,67 @@ describe('CashFlowPanel', () => {
         expect(queries[0]).toEqual({range: 'MONTH', currency: 'RUB',
             anchorDate: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
             timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone})
-        for (const range of ['DAY', 'WEEK', 'MONTH', 'YEAR']) {
-            await selectOption(screen.getByLabelText('Cash flow range'), ({DAY: 'Day', WEEK: 'Week', MONTH: 'Month', YEAR: 'Year'}[range]!))
+        for (const range of ['DAY', 'WEEK', 'MONTH', 'SIX_MONTHS', 'YEAR']) {
+            await selectOption(
+                screen.getByLabelText('Cash flow range'),
+                ({DAY: 'Day', WEEK: 'Week', MONTH: 'Month', SIX_MONTHS: '6 months', YEAR: 'Year'}[range]!),
+            )
             await waitFor(() => expect(queries.at(-1)?.range).toBe(range))
             await screen.findByTestId('chart')
         }
         rerender(<CashFlowPanel currency="EUR" enabled/>)
         await screen.findByText('Net -€50')
         expect(queries.at(-1)?.currency).toBe('EUR')
+    })
+
+    it('loads the previous period lazily and aligns it with the current range', async () => {
+        const queries: Record<string, string>[] = []
+        server.use(http.get('/api/v1/transactions/analytics/cash-flow', ({request}) => {
+            queries.push(Object.fromEntries(new URL(request.url).searchParams))
+            return HttpResponse.json(response)
+        }))
+
+        render(<CashFlowPanel currency="RUB" enabled/>)
+        await screen.findByText('Net -₽50')
+        expect(queries).toHaveLength(1)
+
+        fireEvent.click(screen.getByRole('switch', {name: 'Compare previous period'}))
+
+        await waitFor(() => expect(queries).toHaveLength(2))
+        expect(queries[1]).toMatchObject({
+            range: 'MONTH',
+            currency: 'RUB',
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        })
+
+        const [year, month] = queries[0].anchorDate.split('-').map(Number)
+        const expectedPreviousAnchor = new Date(Date.UTC(year, month - 2, 1))
+            .toISOString()
+            .slice(0, 10)
+        expect(queries[1].anchorDate).toBe(expectedPreviousAnchor)
+
+        expect(screen.getByRole('switch', {name: 'Compare previous period'}))
+            .toHaveAttribute('aria-checked', 'true')
+        await waitFor(() => expect(screen.getByTestId('chart'))
+            .toHaveAttribute('data-comparison', JSON.stringify(response.points)))
+    })
+
+    it('keeps current cash flow visible when the previous period request fails', async () => {
+        let attempts = 0
+        server.use(http.get('/api/v1/transactions/analytics/cash-flow', () => {
+            attempts++
+            return attempts === 1
+                ? HttpResponse.json(response)
+                : HttpResponse.json({}, {status: 500})
+        }))
+
+        render(<CashFlowPanel currency="RUB" enabled/>)
+        await screen.findByText('Net -₽50')
+        fireEvent.click(screen.getByRole('switch', {name: 'Compare previous period'}))
+
+        expect(await screen.findByText('Previous period could not be loaded.')).toBeInTheDocument()
+        expect(screen.getByText('Net -₽50')).toBeInTheDocument()
+        expect(screen.getByTestId('chart')).toBeInTheDocument()
     })
 
     it('retries errors and shows an empty period', async () => {

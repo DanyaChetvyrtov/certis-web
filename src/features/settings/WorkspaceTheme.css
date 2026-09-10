@@ -1,0 +1,20 @@
+:root {
+    --workspace-divider: #e4dfd6;
+}
+
+html[data-theme='dark'] {
+    --workspace-divider: #29425e;
+}
+
+/* Cross-feature separators use one theme-aware token instead of inheriting
+   page-local colors that only look correct in one appearance. */
+html :is(
+    .categories-toolbar,
+    .category-item-stats,
+    .category-pagination,
+    .total-balance-panel,
+    .transaction-activity-heading,
+    .budget-panel > .dashboard-empty-state
+) {
+    border-color: var(--workspace-divider);
+}
