@@ -6,6 +6,7 @@ import type {
     CSSProperties,
     FormEvent,
 } from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import {ApiError} from '../../../shared/api/ApiError'
 import {
@@ -50,15 +51,15 @@ const categoryColors = [
     {name: 'Slate', value: '#8C9AB8'},
 ] as const
 
-const iconLabels: Record<CategoryIcon, string> = {
-    gift: 'Gift',
-    utensils: 'Dining',
-    transport: 'Transport',
-    heart: 'Health',
-    home: 'Housing',
-    'shopping-cart': 'Shopping',
-    repeat: 'Subscriptions',
-    briefcase: 'Work',
+const iconKeys: Record<CategoryIcon, string> = {
+    gift: 'gift',
+    utensils: 'utensils',
+    transport: 'transport',
+    heart: 'heart',
+    home: 'home',
+    'shopping-cart': 'shoppingCart',
+    repeat: 'repeat',
+    briefcase: 'briefcase',
 }
 
 const accentStyle = (
@@ -73,6 +74,7 @@ export function CategoryFormModal({
     onSaved,
     restoreFocus,
 }: CategoryFormModalProps) {
+    const {t} = useTranslation()
     const isEditing = Boolean(category)
     const [name, setName] = useState(
         category?.name ?? '',
@@ -106,13 +108,13 @@ export function CategoryFormModal({
         const normalizedName = name.trim()
 
         if (!normalizedName) {
-            setNameError('Enter a category name.')
+            setNameError(t('categories.form.nameRequired'))
             nameInputRef.current?.focus()
             return
         }
 
         if (normalizedName.length > 150) {
-            setNameError('Use no more than 150 characters.')
+            setNameError(t('categories.form.nameTooLong'))
             nameInputRef.current?.focus()
             return
         }
@@ -152,8 +154,8 @@ export function CategoryFormModal({
             } else {
                 setFormError(
                     isEditing
-                        ? 'We could not update this category. Please try again.'
-                        : 'We could not create this category. Please try again.',
+                        ? t('categories.form.updateError')
+                        : t('categories.form.createError'),
                 )
             }
         } finally {
@@ -162,7 +164,7 @@ export function CategoryFormModal({
     }
 
     const previewName =
-        name.trim() || 'Entertainment'
+        name.trim() || t('categories.form.previewFallback')
 
     return (
         <div
@@ -181,19 +183,19 @@ export function CategoryFormModal({
                     <div>
                         <h2 id="category-modal-title">
                             {isEditing
-                                ? 'Edit category'
-                                : 'New category'}
+                                ? t('categories.form.editTitle')
+                                : t('categories.form.newTitle')}
                         </h2>
                         <p>
                             {isEditing
-                                ? 'Update how this category appears across Certis.'
-                                : 'Create a reusable label for transactions and budgets.'}
+                                ? t('categories.form.editDescription')
+                                : t('categories.form.newDescription')}
                         </p>
                     </div>
 
                     <button
                         type="button"
-                        aria-label="Close category form"
+                        aria-label={t('categories.form.close')}
                         disabled={isSaving}
                         onClick={onClose}
                     >
@@ -204,7 +206,7 @@ export function CategoryFormModal({
                 <form onSubmit={submit} noValidate>
                     <div className="category-name-field">
                         <label htmlFor={CATEGORY_NAME_ID}>
-                            Name
+                            {t('categories.form.name')}
                         </label>
                         <input
                             ref={nameInputRef}
@@ -212,7 +214,7 @@ export function CategoryFormModal({
                             name="name"
                             value={name}
                             maxLength={150}
-                            placeholder="e.g. Entertainment"
+                            placeholder={t('categories.form.namePlaceholder')}
                             aria-invalid={Boolean(nameError)}
                             aria-describedby={
                                 nameError
@@ -239,7 +241,7 @@ export function CategoryFormModal({
                         className="category-type-fieldset"
                         disabled={isEditing}
                     >
-                        <legend>Type</legend>
+                        <legend>{t('categories.form.type')}</legend>
                         <div className="category-type-options">
                             <label
                                 className={
@@ -255,7 +257,7 @@ export function CategoryFormModal({
                                     checked={type === 'EXPENSE'}
                                     onChange={() => setType('EXPENSE')}
                                 />
-                                Expense
+                                {t('categories.form.expense')}
                             </label>
 
                             <label
@@ -272,19 +274,19 @@ export function CategoryFormModal({
                                     checked={type === 'INCOME'}
                                     onChange={() => setType('INCOME')}
                                 />
-                                Income
+                                {t('categories.form.income')}
                             </label>
                         </div>
                         {isEditing && (
                             <p className="category-type-help">
-                                Category type cannot be changed after creation.
+                                {t('categories.form.typeLocked')}
                             </p>
                         )}
                     </fieldset>
 
                     <fieldset className="category-option-fieldset">
                         <legend>
-                            Icon <span>Choose one</span>
+                            {t('categories.form.icon')} <span>{t('categories.form.chooseOne')}</span>
                         </legend>
                         <div className="category-icon-options">
                             {categoryIcons.map((categoryIcon) => (
@@ -295,14 +297,14 @@ export function CategoryFormModal({
                                             : undefined
                                     }
                                     key={categoryIcon}
-                                    title={iconLabels[categoryIcon]}
+                                    title={t(`categories.form.icons.${iconKeys[categoryIcon]}`)}
                                 >
                                     <input
                                         type="radio"
                                         name="icon"
                                         value={categoryIcon}
                                         checked={icon === categoryIcon}
-                                        aria-label={iconLabels[categoryIcon]}
+                                        aria-label={t(`categories.form.icons.${iconKeys[categoryIcon]}`)}
                                         onChange={() => setIcon(categoryIcon)}
                                     />
                                     <Icon name={categoryIcon}/>
@@ -311,15 +313,14 @@ export function CategoryFormModal({
                         </div>
                         {isEditing && !isCategoryIcon(icon) && (
                             <p className="category-icon-help">
-                                This icon is not available in the current set.
-                                It will stay unchanged unless you select a new one.
+                                {t('categories.form.unavailableIcon')}
                             </p>
                         )}
                     </fieldset>
 
                     <fieldset className="category-option-fieldset">
                         <legend>
-                            Color <span>Choose one</span>
+                            {t('categories.form.color')} <span>{t('categories.form.chooseOne')}</span>
                         </legend>
                         <div className="category-color-options">
                             {categoryColors.map((categoryColor) => (
@@ -330,7 +331,7 @@ export function CategoryFormModal({
                                             : undefined
                                     }
                                     key={categoryColor.value}
-                                    title={categoryColor.name}
+                                    title={t(`categories.form.colors.${categoryColor.name}`)}
                                     style={accentStyle(categoryColor.value)}
                                 >
                                     <input
@@ -338,7 +339,7 @@ export function CategoryFormModal({
                                         name="color"
                                         value={categoryColor.value}
                                         checked={color === categoryColor.value}
-                                        aria-label={categoryColor.name}
+                                        aria-label={t(`categories.form.colors.${categoryColor.name}`)}
                                         onChange={() => setColor(categoryColor.value)}
                                     />
                                     <span/>
@@ -349,9 +350,9 @@ export function CategoryFormModal({
 
                     <section
                         className="category-preview-section"
-                        aria-label="Category preview"
+                        aria-label={t('categories.form.previewLabel')}
                     >
-                        <p>Preview</p>
+                        <p>{t('categories.form.preview')}</p>
                         <div
                             className="category-preview"
                             style={accentStyle(color)}
@@ -367,7 +368,7 @@ export function CategoryFormModal({
                             </span>
                             <div>
                                 <strong>{previewName}</strong>
-                                <small>{type}</small>
+                                <small>{t(`categories.type.${type}`)}</small>
                             </div>
                             <Icon name="tag"/>
                         </div>
@@ -389,7 +390,7 @@ export function CategoryFormModal({
                             disabled={isSaving}
                             onClick={onClose}
                         >
-                            Cancel
+                            {t('categories.form.cancel')}
                         </button>
                         <button
                             className="primary"
@@ -398,11 +399,11 @@ export function CategoryFormModal({
                         >
                             {isSaving
                                 ? isEditing
-                                    ? 'Saving…'
-                                    : 'Creating…'
+                                    ? t('categories.form.saving')
+                                    : t('categories.form.creating')
                                 : isEditing
-                                    ? 'Save changes'
-                                    : 'Create category'}
+                                    ? t('categories.form.save')
+                                    : t('categories.form.create')}
                         </button>
                     </footer>
                 </form>

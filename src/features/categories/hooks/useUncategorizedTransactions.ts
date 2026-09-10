@@ -5,6 +5,7 @@ import {
     useRef,
     useState,
 } from 'react'
+import {useTranslation} from 'react-i18next'
 import {ApiError} from '../../../shared/api/ApiError'
 import type {Currency} from '../../../shared/currency'
 import {
@@ -49,6 +50,7 @@ export function useUncategorizedTransactions({
     type,
     onAssigned,
 }: UseUncategorizedTransactionsOptions) {
+    const {t} = useTranslation()
     const [categoryOptions, setCategoryOptions] =
         useState<CategoryOption[]>([])
     const [accounts, setAccounts] = useState<Account[]>([])
@@ -91,11 +93,11 @@ export function useUncategorizedTransactions({
         } catch (error) {
             setOptionError(errorMessage(
                 error,
-                'We could not load assignment options. Please try again.',
+                t('categories.uncategorized.optionsError'),
             ))
             setOptionState('error')
         }
-    }, [currency, type])
+    }, [currency, type, t])
 
     const loadTransactions = useCallback(async () => {
         const requestId = ++transactionRequestIdRef.current
@@ -127,11 +129,11 @@ export function useUncategorizedTransactions({
 
             setTransactionError(errorMessage(
                 error,
-                'We could not load uncategorized transactions. Please try again.',
+                t('categories.uncategorized.transactionsError'),
             ))
             setTransactionState('error')
         }
-    }, [accountId, appliedSearch, currency, month, page, type])
+    }, [accountId, appliedSearch, currency, month, page, type, t])
 
     useEffect(() => {
         let isActive = true
@@ -264,8 +266,8 @@ export function useUncategorizedTransactions({
         if (selectedIds.size === 0 || hasIncompleteSelection) {
             setAssignmentError(
                 selectedIds.size === 0
-                    ? 'Select at least one transaction.'
-                    : 'Choose a category for every selected transaction.',
+                    ? t('categories.uncategorized.selectOne')
+                    : t('categories.uncategorized.chooseEvery'),
             )
             return
         }
@@ -281,7 +283,7 @@ export function useUncategorizedTransactions({
             setSelectedIds(new Set())
             setCategoryByTransaction({})
             setAssignmentNotice(
-                `${assignedCount} ${assignedCount === 1 ? 'transaction' : 'transactions'} categorized.`,
+                t('categories.uncategorized.assigned', {count: assignedCount}),
             )
             await onAssigned()
 
@@ -297,7 +299,7 @@ export function useUncategorizedTransactions({
         } catch (error) {
             setAssignmentError(errorMessage(
                 error,
-                'We could not assign the selected categories. Please try again.',
+                t('categories.uncategorized.assignError'),
             ))
         } finally {
             setIsAssigning(false)
@@ -310,6 +312,7 @@ export function useUncategorizedTransactions({
         selectedAssignments,
         selectedIds.size,
         transactions,
+        t,
     ])
 
     const visibleAccounts = accounts.filter(

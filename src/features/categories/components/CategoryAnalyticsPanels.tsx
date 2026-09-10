@@ -1,4 +1,5 @@
 import type {CSSProperties} from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import type {Currency} from '../../../shared/currency'
 import type {
@@ -9,6 +10,7 @@ import type {
     CategoryAnalyticsLoadState,
 } from '../hooks/useCategoryAnalytics'
 import './CategoryAnalyticsPanels.css'
+import {useLanguage} from '../../../i18n/useLanguage'
 
 type CategoryAnalyticsPanelsProps = {
     analytics: CategoryAnalytics | null
@@ -29,30 +31,10 @@ type CategoryBarStyle = CSSProperties & {
     '--analytics-progress': string
 }
 
-const typeCopy: Record<CategoryType, {
-    label: string
-    noun: string
-    total: string
-}> = {
-    EXPENSE: {
-        label: 'Expense',
-        noun: 'expense',
-        total: 'spending',
-    },
-    INCOME: {
-        label: 'Income',
-        noun: 'income',
-        total: 'income',
-    },
-}
-
-const formatPercentage = (value: number): string =>
-    new Intl.NumberFormat('en-US', {
+const formatPercentage = (value: number, locale: string): string =>
+    new Intl.NumberFormat(locale, {
         maximumFractionDigits: 1,
     }).format(value)
-
-const transactionLabel = (count: number): string =>
-    `${count} ${count === 1 ? 'transaction' : 'transactions'}`
 
 const progressStyle = (
     color: string,
@@ -63,10 +45,12 @@ const progressStyle = (
 })
 
 function AnalyticsLoadingState() {
+    const {t} = useTranslation()
+
     return (
         <div
             className="category-analytics-loading"
-            aria-label="Loading category statistics"
+            aria-label={t('categories.analytics.loading')}
         >
             <span/>
             <span/>
@@ -82,12 +66,14 @@ function AnalyticsErrorState({
     message: string
     onRetry: () => void
 }) {
+    const {t} = useTranslation()
+
     return (
         <div className="category-analytics-error" role="alert">
             <Icon name="alert"/>
             <p>{message}</p>
             <button type="button" onClick={onRetry}>
-                Try again
+                {t('categories.tryAgain')}
             </button>
         </div>
     )
@@ -104,7 +90,14 @@ export function CategoryAnalyticsPanels({
     onReviewUncategorized,
     onRetry,
 }: CategoryAnalyticsPanelsProps) {
-    const copy = typeCopy[selectedType]
+    const {t} = useTranslation()
+    const {locale} = useLanguage()
+    const type = selectedType === 'EXPENSE'
+        ? t('categories.type.expenseLower')
+        : t('categories.type.incomeLower')
+    const total = selectedType === 'EXPENSE'
+        ? t('categories.analytics.spending')
+        : t('categories.analytics.income')
     const percentage = analytics?.coveragePercentage ?? null
     const uncategorizedCount =
         analytics?.uncategorizedTransactionCount ?? 0
@@ -113,13 +106,16 @@ export function CategoryAnalyticsPanels({
     return (
         <aside
             className="category-insights"
-            aria-label="Category statistics"
+            aria-label={t('categories.analytics.label')}
         >
             <section className="category-analytics-card coverage">
                 <header>
-                    <h2>This month</h2>
+                    <h2>{t('categories.analytics.thisMonth')}</h2>
                     <p>
-                        {copy.label} category coverage · {currency}
+                        {t('categories.analytics.coverage', {
+                            type: t(`categories.type.${selectedType}`),
+                            currency,
+                        })}
                     </p>
                 </header>
 
@@ -136,22 +132,22 @@ export function CategoryAnalyticsPanels({
                             <>
                                 <strong>—</strong>
                                 <p>
-                                    No {copy.noun} transactions this month
+                                    {t('categories.analytics.noTransactions', {type})}
                                 </p>
                             </>
                         ) : (
                             <>
                                 <strong>
-                                    {formatPercentage(percentage)}%
+                                    {formatPercentage(percentage, locale)}%
                                 </strong>
-                                <p>of transaction value categorized</p>
+                                <p>{t('categories.analytics.categorizedValue')}</p>
                             </>
                         )}
 
                         <div
                             className="category-coverage-progress"
                             role="progressbar"
-                            aria-label={`${copy.noun} category coverage`}
+                            aria-label={t('categories.analytics.coverageLabel', {type})}
                             aria-valuemin={0}
                             aria-valuemax={100}
                             aria-valuenow={percentage ?? 0}
@@ -168,7 +164,7 @@ export function CategoryAnalyticsPanels({
                                 <button
                                     type="button"
                                     className="category-coverage-notice warning"
-                                    aria-label={`Categorize ${transactionLabel(uncategorizedCount)}`}
+                                    aria-label={t('categories.analytics.categorize', {count: uncategorizedCount})}
                                     onClick={(event) =>
                                         onReviewUncategorized(
                                             event.currentTarget,
@@ -177,14 +173,14 @@ export function CategoryAnalyticsPanels({
                                 >
                                     <Icon name="alert"/>
                                     <span>
-                                        {transactionLabel(uncategorizedCount)} {uncategorizedCount === 1 ? 'needs' : 'need'} a category
+                                        {t('categories.analytics.needsCategory', {count: uncategorizedCount})}
                                     </span>
                                     <Icon name="chevron-right"/>
                                 </button>
                             ) : (
                                 <div className="category-coverage-notice complete">
                                     <Icon name="check-circle"/>
-                                    <span>All transactions are categorized</span>
+                                    <span>{t('categories.analytics.allCategorized')}</span>
                                 </div>
                             )
                         )}
@@ -194,8 +190,8 @@ export function CategoryAnalyticsPanels({
 
             <section className="category-analytics-card top-categories">
                 <header>
-                    <h2>Top {copy.noun} categories</h2>
-                    <p>Share of total {copy.total}</p>
+                    <h2>{t('categories.analytics.top', {type})}</h2>
+                    <p>{t('categories.analytics.shareTotal', {total})}</p>
                 </header>
 
                 {loadState === 'loading' && <AnalyticsLoadingState/>}
@@ -222,13 +218,17 @@ export function CategoryAnalyticsPanels({
                                         <b>
                                             {formatPercentage(
                                                 category.sharePercentage,
+                                                locale,
                                             )}%
                                         </b>
                                     </div>
                                     <div
                                         className="top-category-progress"
                                         role="progressbar"
-                                        aria-label={`${category.name} share of total ${copy.total}`}
+                                        aria-label={t('categories.analytics.shareLabel', {
+                                            name: category.name,
+                                            total,
+                                        })}
                                         aria-valuemin={0}
                                         aria-valuemax={100}
                                         aria-valuenow={category.sharePercentage}
@@ -242,7 +242,7 @@ export function CategoryAnalyticsPanels({
                         <div className="top-categories-empty">
                             <Icon name="categories"/>
                             <p>
-                                No categorized {copy.noun} transactions this month.
+                                {t('categories.analytics.noCategorized', {type})}
                             </p>
                         </div>
                     )
@@ -253,10 +253,8 @@ export function CategoryAnalyticsPanels({
                 <section className="category-create-card">
                     <span><Icon name="tag"/></span>
                     <div>
-                        <h2>Need another category?</h2>
-                        <p>
-                            Create only what you actually use — the list stays easy to scan.
-                        </p>
+                        <h2>{t('categories.analytics.needAnother')}</h2>
+                        <p>{t('categories.analytics.createDescription')}</p>
                     </div>
                     <button
                         type="button"
@@ -265,7 +263,7 @@ export function CategoryAnalyticsPanels({
                         }
                     >
                         <Icon name="plus"/>
-                        Add category
+                        {t('categories.addCategory')}
                     </button>
                 </section>
             )}

@@ -1,4 +1,5 @@
 import {Icon} from '../../../components/Icons'
+import {useTranslation} from 'react-i18next'
 import {
     getLatestBirthDate,
 } from '../profileForm'
@@ -44,21 +45,22 @@ export function ProfilePersonalSection({
                                            disabled,
                                            onChange,
                                        }: ProfilePersonalSectionProps) {
+    const {t} = useTranslation()
+
     return (
         <section className="profile-editor-section profile-editor-personal">
             <p className="profile-editor-eyebrow">
-                Personal information
+                {t('profile.personalInfo')}
             </p>
 
             <p className="profile-editor-section-copy">
-                These details help personalize
-                your Certis experience.
+                {t('profile.personalInfoDescription')}
             </p>
 
             <div className="profile-editor-grid">
                 <div className="profile-editor-field">
                     <label htmlFor={NAME_ID}>
-                        First name
+                        {t('profile.firstName')}
                     </label>
 
                     <input
@@ -97,7 +99,7 @@ export function ProfilePersonalSection({
 
                 <div className="profile-editor-field">
                     <label htmlFor={SURNAME_ID}>
-                        Last name
+                        {t('profile.lastName')}
                     </label>
 
                     <input
@@ -138,7 +140,7 @@ export function ProfilePersonalSection({
 
                 <div className="profile-editor-field profile-editor-birth-date">
                     <label htmlFor={BIRTH_DATE_ID}>
-                        Date of birth
+                        {t('profile.dateOfBirth')}
                     </label>
 
                     <input
@@ -189,15 +191,11 @@ export function ProfilePersonalSection({
 
                 <div>
                     <strong>
-                        Your profile is
-                        visible only to you.
+                        {t('profile.privacyTitle')}
                     </strong>
 
                     <small>
-                        Financial data and
-                        account settings remain
-                        separate from personal
-                        information.
+                        {t('profile.privacyDescription')}
                     </small>
                 </div>
             </div>

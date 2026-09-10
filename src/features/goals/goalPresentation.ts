@@ -1,6 +1,5 @@
 import type {IconName} from '../../components/Icons'
 import type {Currency} from '../../shared/currency'
-import type {GoalPaceStatus} from './api/goalsApi'
 
 export const goalIcons = [
     'target',
@@ -27,27 +26,26 @@ export const goalIconName = (icon: string): IconName => {
 export const formatGoalMoney = (
     value: number,
     currency: Currency | string,
-): string => new Intl.NumberFormat('en-US', {
+    locale = 'en-US',
+): string => new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
     currencyDisplay: 'narrowSymbol',
     maximumFractionDigits: 0,
 }).format(value)
 
-export const formatGoalMonth = (month: string | null): string => {
-    if (!month) return 'No target date'
+export const formatGoalMonth = (
+    month: string | null,
+    locale = 'en-US',
+    emptyLabel = 'No target date',
+): string => {
+    if (!month) return emptyLabel
 
-    return new Intl.DateTimeFormat('en-US', {
+    return new Intl.DateTimeFormat(locale, {
         month: 'long',
         year: 'numeric',
         timeZone: 'UTC',
     }).format(new Date(`${month}-01T00:00:00Z`))
-}
-
-export const paceLabels: Record<GoalPaceStatus, string> = {
-    ON_TRACK: 'On track',
-    AHEAD: 'Ahead',
-    ADJUST_PLAN: 'Adjust plan',
 }
 
 export const currentMonth = (): string => new Date().toISOString().slice(0, 7)

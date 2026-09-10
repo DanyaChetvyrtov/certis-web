@@ -5,11 +5,11 @@ import {
     useState,
 } from 'react'
 import type {FormEvent} from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../components/Icons'
 import {ApiError} from '../../shared/api/ApiError'
 import {
     currencies,
-    currencyLabels,
 } from '../../shared/currency'
 import type {Currency} from '../../shared/currency'
 import {createProfile} from './api/profileApi'
@@ -127,6 +127,7 @@ export function ProfileSetupModal({
                                       onComplete,
                                       onSignOut,
                                   }: ProfileSetupModalProps) {
+    const {t} = useTranslation()
     const firstInputRef = useRef<HTMLInputElement>(null)
     const [values, setValues] =
         useState<ProfileForm>({
@@ -155,7 +156,7 @@ export function ProfileSetupModal({
             setNotice(
                 error instanceof ApiError
                     ? error.message
-                    : 'We could not sign you out. Please try again.',
+                    : t('profile.setup.signOutError'),
             )
         } finally {
             setSigningOut(false)
@@ -211,7 +212,7 @@ export function ProfileSetupModal({
                 )
                 setNotice(error.message)
             } else {
-                setNotice('Something went wrong. Please try again.')
+                setNotice(t('profile.unexpectedError'))
             }
         } finally {
             setSubmitting(false)
@@ -236,13 +237,12 @@ export function ProfileSetupModal({
           </span>
                     <div>
                         <div className="profile-modal-meta">
-                            <span>Welcome to Certis</span>
-                            <span>Final step</span>
+                            <span>{t('profile.setup.welcome')}</span>
+                            <span>{t('profile.setup.finalStep')}</span>
                         </div>
-                        <h2 id="profile-setup-title">Let&apos;s make Certis yours</h2>
+                        <h2 id="profile-setup-title">{t('profile.setup.title')}</h2>
                         <p id="profile-setup-description">
-                            Tell us a little about yourself. We&apos;ll use this to personalize
-                            your workspace.
+                            {t('profile.setup.description')}
                         </p>
                     </div>
                 </header>
@@ -250,7 +250,7 @@ export function ProfileSetupModal({
                 <form className="profile-form" onSubmit={handleSubmit} noValidate>
                     <div className="profile-name-fields">
                         <div className="profile-field">
-                            <label htmlFor="profile-name">First name</label>
+                            <label htmlFor="profile-name">{t('profile.firstName')}</label>
                             <div
                                 className={`profile-input-shell${errors.name ? ' profile-input-shell-error' : ''}`}
                             >
@@ -262,7 +262,7 @@ export function ProfileSetupModal({
                                     type="text"
                                     value={values.name}
                                     maxLength={100}
-                                    placeholder="Daniel"
+                                    placeholder={t('profile.setup.namePlaceholder')}
                                     autoComplete="given-name"
                                     disabled={isBusy}
                                     aria-invalid={Boolean(errors.name)}
@@ -280,7 +280,7 @@ export function ProfileSetupModal({
                         </div>
 
                         <ProfileFieldInput
-                            label="Last name"
+                            label={t('profile.lastName')}
                             name="surname"
                             type="text"
                             icon="user"
@@ -288,14 +288,14 @@ export function ProfileSetupModal({
                             error={errors.surname}
                             onChange={updateField}
                             autoComplete="family-name"
-                            placeholder="Carter"
+                            placeholder={t('profile.setup.surnamePlaceholder')}
                             maxLength={100}
                             disabled={isBusy}
                         />
                     </div>
 
                     <ProfileFieldInput
-                        label="Date of birth"
+                        label={t('profile.dateOfBirth')}
                         name="dateOfBirth"
                         type="date"
                         icon="calendar"
@@ -309,7 +309,7 @@ export function ProfileSetupModal({
 
                     <div className="profile-field">
                         <label htmlFor="profile-preferred-currency">
-                            Preferred currency
+                            {t('profile.setup.preferredCurrency')}
                         </label>
 
                         <div className="profile-input-shell profile-select-shell">
@@ -327,18 +327,18 @@ export function ProfileSetupModal({
                                 }}
                             >
                                 <SelectOption value="">
-                                    Use server default (RUB)
+                                    {t('profile.setup.serverDefault')}
                                 </SelectOption>
                                 {currencies.map((currency) => (
                                     <SelectOption value={currency} key={currency}>
-                                        {currencyLabels[currency]} · {currency}
+                                        {t(`profile.currencies.${currency}`)} · {currency}
                                     </SelectOption>
                                 ))}
                             </Select>
                         </div>
 
                         <small className="profile-field-hint">
-                            Used as the initial currency for financial summaries.
+                            {t('profile.setup.currencyHint')}
                         </small>
                     </div>
 
@@ -352,7 +352,7 @@ export function ProfileSetupModal({
                     <footer className="profile-modal-footer">
                         <p>
                             <Icon name="shield"/>
-                            Your personal details stay private.
+                            {t('profile.setup.privacy')}
                         </p>
 
                         <div className="profile-modal-actions">
@@ -363,8 +363,8 @@ export function ProfileSetupModal({
                                 onClick={() => void handleSignOut()}
                             >
                                 {isSigningOut
-                                    ? 'Signing out…'
-                                    : 'Sign out'}
+                                    ? t('profile.setup.signingOut')
+                                    : t('profile.setup.signOut')}
 
                                 {isSigningOut && (
                                     <span
@@ -380,8 +380,8 @@ export function ProfileSetupModal({
                                 disabled={isBusy}
                             >
                                 {isSubmitting
-                                    ? 'Creating profile…'
-                                    : 'Open my dashboard'}
+                                    ? t('profile.setup.creating')
+                                    : t('profile.setup.openDashboard')}
 
                                 {isSubmitting
                                     ? (

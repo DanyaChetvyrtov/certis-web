@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import type {TFunction} from 'i18next'
+import {useTranslation} from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ApiError } from '../../../shared/api/ApiError'
 import { CertisLogo, Icon } from '../../../components/Icons'
+import {LanguageSwitcher} from '../../../components/LanguageSwitcher'
 import { useSession } from '../session/SessionContext'
 import '../../../App.css'
 
@@ -31,53 +34,54 @@ const getInitialMode = (): AuthMode =>
   window.location.hash === '#create-account' ? 'register' : 'login'
 
 function BrandPanel() {
+  const {t} = useTranslation()
+
   return (
-    <aside className="brand-panel" aria-label="About Certis">
+    <aside className="brand-panel" aria-label={t('auth.about')}>
       <div className="brand-orbit brand-orbit-primary" aria-hidden="true" />
       <div className="brand-orbit brand-orbit-secondary" aria-hidden="true" />
 
       <CertisLogo className="brand-logo" />
 
       <div className="brand-copy">
-        <p className="eyebrow eyebrow-muted">Personal finance, made clear</p>
+        <p className="eyebrow eyebrow-muted">{t('auth.tagline')}</p>
         <h1>
-          Your money.
+          {t('auth.headlineLine1')}
           <br />
-          Your plan.
+          {t('auth.headlineLine2')}
           <br />
-          One clear view.
+          {t('auth.headlineLine3')}
         </h1>
         <p className="brand-description">
-          Every account, budget, goal and transaction — finally working
-          together.
+          {t('auth.description')}
         </p>
 
-        <div className="feature-pills" aria-label="Certis features">
+        <div className="feature-pills" aria-label={t('auth.featuresLabel')}>
           <div className="feature-pill">
             <span className="feature-icon">
               <Icon name="wallet" />
             </span>
-            Accounts
+            {t('auth.accounts')}
           </div>
           <div className="feature-pill">
             <span className="feature-icon">
               <Icon name="bank" />
             </span>
-            Budgets
+            {t('auth.budgets')}
           </div>
           <div className="feature-pill">
             <span className="feature-icon">
               <Icon name="target" />
             </span>
-            Goals
+            {t('auth.goals')}
           </div>
         </div>
       </div>
 
-      <section className="product-preview" aria-label="Product preview">
-        <p className="eyebrow eyebrow-gold">Product preview</p>
-        <h2>See how your money connects</h2>
-        <p>One calm workspace for tracking, planning and saving.</p>
+      <section className="product-preview" aria-label={t('auth.productPreview')}>
+        <p className="eyebrow eyebrow-gold">{t('auth.productPreview')}</p>
+        <h2>{t('auth.productPreviewTitle')}</h2>
+        <p>{t('auth.productPreviewDescription')}</p>
 
         <div className="preview-flow" aria-hidden="true">
           <div className="preview-step">
@@ -85,8 +89,8 @@ function BrandPanel() {
               <Icon name="wallet" />
             </span>
             <span>
-              <strong>Accounts</strong>
-              <small>Track</small>
+              <strong>{t('auth.accounts')}</strong>
+              <small>{t('auth.track')}</small>
             </span>
           </div>
           <Icon name="arrow-right" className="flow-arrow" />
@@ -95,8 +99,8 @@ function BrandPanel() {
               <Icon name="bank" />
             </span>
             <span>
-              <strong>Budgets</strong>
-              <small>Plan</small>
+              <strong>{t('auth.budgets')}</strong>
+              <small>{t('auth.plan')}</small>
             </span>
           </div>
           <Icon name="arrow-right" className="flow-arrow" />
@@ -105,8 +109,8 @@ function BrandPanel() {
               <Icon name="target" />
             </span>
             <span>
-              <strong>Goals</strong>
-              <small>Save</small>
+              <strong>{t('auth.goals')}</strong>
+              <small>{t('auth.save')}</small>
             </span>
           </div>
         </div>
@@ -115,9 +119,9 @@ function BrandPanel() {
       <div className="brand-footer">
         <p>
           <Icon name="piggy-bank" />
-          Build stability. Fund what&apos;s next.
+          {t('auth.stability')}
         </p>
-        <small>Certis by Digital Hustle • Private by design</small>
+        <small>{t('auth.privateByDesign')}</small>
       </div>
     </aside>
   )
@@ -146,6 +150,7 @@ function AuthField({
   type,
   value,
 }: AuthFieldProps) {
+  const {t} = useTranslation()
   const [isPasswordVisible, setPasswordVisible] = useState(false)
   const inputId = `auth-${name}`
   const isPassword = type === 'password'
@@ -173,7 +178,7 @@ function AuthField({
             type="button"
             disabled={disabled}
             onClick={() => setPasswordVisible((current) => !current)}
-            aria-label={isPasswordVisible ? 'Hide password' : 'Show password'}
+            aria-label={isPasswordVisible ? t('auth.hidePassword') : t('auth.showPassword')}
           >
             <Icon name={isPasswordVisible ? 'eye-off' : 'eye'} />
           </button>
@@ -188,24 +193,28 @@ function AuthField({
   )
 }
 
-function validateForm(mode: AuthMode, values: FormValues): FieldErrors {
+function validateForm(
+  mode: AuthMode,
+  values: FormValues,
+  t: TFunction,
+): FieldErrors {
   const errors: FieldErrors = {}
 
   if (!values.email.trim()) {
-    errors.email = 'Enter your email address.'
+    errors.email = t('auth.validation.emailRequired')
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
-    errors.email = 'Enter a valid email address.'
+    errors.email = t('auth.validation.emailInvalid')
   }
 
   if (!values.password.trim()) {
-    errors.password = 'Enter your password.'
+    errors.password = t('auth.validation.passwordRequired')
   }
 
   if (mode === 'register') {
     if (!values.passwordConfirmation.trim()) {
-      errors.passwordConfirmation = 'Confirm your password.'
+      errors.passwordConfirmation = t('auth.validation.confirmationRequired')
     } else if (values.password !== values.passwordConfirmation) {
-      errors.passwordConfirmation = 'Passwords do not match.'
+      errors.passwordConfirmation = t('auth.validation.confirmationMismatch')
     }
   }
 
@@ -238,6 +247,7 @@ type AuthLocationState = {
 }
 
 export function AuthCard() {
+  const {t} = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
   const { signIn, signUp } = useSession()
@@ -279,7 +289,7 @@ export function AuthCard() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    const validationErrors = validateForm(mode, values)
+    const validationErrors = validateForm(mode, values, t)
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
       return
@@ -321,7 +331,7 @@ export function AuthCard() {
         setNotice({
           kind: 'error',
           message:
-            'Your account was created, but we could not sign you in automatically. Sign in to continue.',
+            t('auth.accountCreatedSignInFailed'),
         })
       } else if (error instanceof ApiError) {
         setErrors(toFieldErrors(error.fieldErrors))
@@ -329,7 +339,7 @@ export function AuthCard() {
       } else {
         setNotice({
           kind: 'error',
-          message: 'Something went wrong. Please try again.',
+          message: t('auth.unexpectedError'),
         })
       }
     } finally {
@@ -346,24 +356,24 @@ export function AuthCard() {
       />
 
       <div className={`auth-card auth-card-${mode}`}>
-        <p className="eyebrow eyebrow-gold">Certis account</p>
+        <p className="eyebrow eyebrow-gold">{t('auth.eyebrow')}</p>
         <div className="auth-copy">
           <div
             className={`auth-copy-content${isLogin ? ' active' : ''}`}
             aria-hidden={!isLogin}
           >
-            <h2>Welcome back</h2>
+            <h2>{t('auth.welcomeBack')}</h2>
             <p className="auth-subtitle">
-              Sign in to continue planning, tracking and saving.
+              {t('auth.loginSubtitle')}
             </p>
           </div>
           <div
             className={`auth-copy-content${!isLogin ? ' active' : ''}`}
             aria-hidden={isLogin}
           >
-            <h2>Create your account</h2>
+            <h2>{t('auth.createTitle')}</h2>
             <p className="auth-subtitle">
-              A clearer view of your finances starts here.
+              {t('auth.createSubtitle')}
             </p>
           </div>
         </div>
@@ -372,7 +382,7 @@ export function AuthCard() {
           className="auth-tabs"
           data-mode={mode}
           role="tablist"
-          aria-label="Authentication"
+          aria-label={t('auth.authentication')}
         >
           <button
             id="sign-in-tab"
@@ -383,7 +393,7 @@ export function AuthCard() {
             className={isLogin ? 'active' : ''}
             onClick={() => selectMode('login')}
           >
-            Sign in
+            {t('auth.signIn')}
           </button>
           <button
             id="create-account-tab"
@@ -394,7 +404,7 @@ export function AuthCard() {
             className={!isLogin ? 'active' : ''}
             onClick={() => selectMode('register')}
           >
-            Create account
+            {t('auth.createAccount')}
           </button>
         </div>
 
@@ -407,7 +417,7 @@ export function AuthCard() {
           noValidate
         >
           <AuthField
-            label="Email address"
+            label={t('auth.email')}
             name="email"
             type="email"
             icon="mail"
@@ -418,7 +428,7 @@ export function AuthCard() {
           />
 
           <AuthField
-            label="Password"
+            label={t('auth.password')}
             name="password"
             type="password"
             icon="lock"
@@ -434,7 +444,7 @@ export function AuthCard() {
           >
             <div className="confirmation-field-content">
               <AuthField
-                label="Confirm password"
+                label={t('auth.confirmPassword')}
                 name="passwordConfirmation"
                 type="password"
                 icon="lock"
@@ -467,11 +477,11 @@ export function AuthCard() {
             <span key={mode} className="mode-text">
               {isSubmitting
                 ? isLogin
-                  ? 'Signing in…'
-                  : 'Creating account…'
+                  ? t('auth.signingIn')
+                  : t('auth.creatingAccount')
                 : isLogin
-                  ? 'Sign in'
-                  : 'Create account'}
+                  ? t('auth.signIn')
+                  : t('auth.createAccount')}
             </span>
             {isSubmitting ? (
               <span className="spinner" aria-hidden="true" />
@@ -490,34 +500,34 @@ export function AuthCard() {
               className={`security-note-content${isLogin ? ' active' : ''}`}
               aria-hidden={!isLogin}
             >
-              <strong>Secure, cookie-based session</strong>
-              <small>Your session is handled without exposing tokens.</small>
+              <strong>{t('auth.loginSecurityTitle')}</strong>
+              <small>{t('auth.loginSecurityDescription')}</small>
             </span>
             <span
               className={`security-note-content${!isLogin ? ' active' : ''}`}
               aria-hidden={isLogin}
             >
-              <strong>One smooth, secure start</strong>
-              <small>We&apos;ll sign you in and set up your profile next.</small>
+              <strong>{t('auth.registerSecurityTitle')}</strong>
+              <small>{t('auth.registerSecurityDescription')}</small>
             </span>
           </span>
         </div>
 
         <p className="auth-switch">
           <span key={mode} className="mode-text">
-            {isLogin ? 'New to Certis?' : 'Already have an account?'}{' '}
+            {isLogin ? t('auth.newToCertis') : t('auth.alreadyRegistered')}{' '}
             <button
               type="button"
               onClick={() => selectMode(isLogin ? 'register' : 'login')}
             >
-              {isLogin ? 'Create account' : 'Sign in'}
+              {isLogin ? t('auth.createAccount') : t('auth.signIn')}
             </button>
           </span>
         </p>
       </div>
 
       <span key={mode} className="view-label mode-text" aria-hidden="true">
-        {isLogin ? 'Sign in' : 'Create account'}
+        {isLogin ? t('auth.signIn') : t('auth.createAccount')}
       </span>
     </main>
   )
@@ -527,6 +537,9 @@ export function AuthPage() {
   return (
     <div className="app-shell">
       <BrandPanel />
+      <div className="auth-language-layer">
+        <LanguageSwitcher className="auth-language-switcher"/>
+      </div>
       <AuthCard />
     </div>
   )

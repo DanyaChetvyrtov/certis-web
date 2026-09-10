@@ -2,6 +2,7 @@ import {
     useRef,
     useState,
 } from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import {ApiError} from '../../../shared/api/ApiError'
 import {
@@ -28,6 +29,7 @@ export function CategoryArchiveDialog({
     onArchived,
     restoreFocus,
 }: CategoryArchiveDialogProps) {
+    const {t} = useTranslation()
     const [isArchiving, setIsArchiving] =
         useState(false)
     const [errorMessage, setErrorMessage] =
@@ -54,7 +56,7 @@ export function CategoryArchiveDialog({
             setErrorMessage(
                 error instanceof ApiError
                     ? error.message
-                    : 'We could not archive this category. Please try again.',
+                    : t('categories.archive.error'),
             )
         } finally {
             setIsArchiving(false)
@@ -78,14 +80,12 @@ export function CategoryArchiveDialog({
                 <span className="category-archive-icon">
                     <Icon name="trash"/>
                 </span>
-                <p>Archive category</p>
+                <p>{t('categories.archive.eyebrow')}</p>
                 <h2 id="archive-category-title">
-                    Archive “{category.name}”?
+                    {t('categories.archive.title', {name: category.name})}
                 </h2>
                 <p id="archive-category-description">
-                    It will no longer be available for new transactions.
-                    Existing history stays unchanged, and you can restore the
-                    category later.
+                    {t('categories.archive.description')}
                 </p>
 
                 {errorMessage && (
@@ -105,7 +105,7 @@ export function CategoryArchiveDialog({
                         disabled={isArchiving}
                         onClick={onCancel}
                     >
-                        Keep category
+                        {t('categories.archive.keep')}
                     </button>
                     <button
                         className="danger"
@@ -114,8 +114,8 @@ export function CategoryArchiveDialog({
                         onClick={() => void archive()}
                     >
                         {isArchiving
-                            ? 'Archiving…'
-                            : 'Archive category'}
+                            ? t('categories.archive.archiving')
+                            : t('categories.archive.action')}
                     </button>
                 </div>
             </div>

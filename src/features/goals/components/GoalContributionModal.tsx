@@ -4,7 +4,9 @@ import {
     useState,
 } from 'react'
 import type {FormEvent} from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
+import {useLanguage} from '../../../i18n/useLanguage'
 import {Select, SelectOption} from '../../../components/Select'
 import {ApiError} from '../../../shared/api/ApiError'
 import {useModalAccessibility} from '../../../shared/hooks/useModalAccessibility'
@@ -37,6 +39,8 @@ export function GoalContributionModal({
     onSaved,
     restoreFocus,
 }: GoalContributionModalProps) {
+    const {t} = useTranslation()
+    const {locale} = useLanguage()
     const eligibleAccounts = useMemo(
         () => accounts.filter((account) => (
             account.currency === goal.currency && !account.closedAt
@@ -68,12 +72,18 @@ export function GoalContributionModal({
         const errors: Record<string, string> = {}
 
         if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
-            errors.amount = 'Enter an amount greater than zero.'
+            errors.amount = t('goals.contribution.validation.amount')
         } else if (numericAmount > goal.remainingAmount) {
-            errors.amount = `The maximum needed is ${formatGoalMoney(goal.remainingAmount, goal.currency)}.`
+            errors.amount = t('goals.contribution.validation.maximum', {
+                amount: formatGoalMoney(goal.remainingAmount, goal.currency, locale),
+            })
         }
-        if (!accountId) errors.accountId = 'Choose a source account.'
-        if (note.length > 500) errors.note = 'Use no more than 500 characters.'
+        if (!accountId) {
+            errors.accountId = t('goals.contribution.validation.account')
+        }
+        if (note.length > 500) {
+            errors.note = t('goals.contribution.validation.note')
+        }
 
         setFieldErrors(errors)
         setFormError('')
@@ -96,7 +106,7 @@ export function GoalContributionModal({
                 setFieldErrors(error.fieldErrors ?? {})
                 setFormError(error.message)
             } else {
-                setFormError('We could not add this contribution. Please try again.')
+                setFormError(t('goals.contribution.error'))
             }
         } finally {
             setIsSaving(false)
@@ -118,10 +128,17 @@ export function GoalContributionModal({
                         <Icon name={goalIconName(goal.icon)}/>
                     </span>
                     <div>
-                        <h2 id="goal-contribution-title">Add progress</h2>
-                        <p>Move money from an account into {goal.name}.</p>
+                        <h2 id="goal-contribution-title">
+                            {t('goals.contribution.title')}
+                        </h2>
+                        <p>{t('goals.contribution.subtitle', {name: goal.name})}</p>
                     </div>
-                    <button type="button" aria-label="Close contribution form" disabled={isSaving} onClick={onClose}>
+                    <button
+                        type="button"
+                        aria-label={t('goals.contribution.close')}
+                        disabled={isSaving}
+                        onClick={onClose}
+                    >
                         <Icon name="close"/>
                     </button>
                 </header>
@@ -129,12 +146,33 @@ export function GoalContributionModal({
                 <form onSubmit={(event) => void submit(event)} noValidate>
                     <section className="goal-contribution-summary">
                         <span><Icon name={goalIconName(goal.icon)}/></span>
-                        <div><strong>{goal.name}</strong><small>{formatGoalMoney(goal.savedAmount, goal.currency)} saved</small></div>
-                        <b>{formatGoalMoney(goal.remainingAmount, goal.currency)} left</b>
+                        <div>
+                            <strong>{goal.name}</strong>
+                            <small>
+                                {t('goals.contribution.saved', {
+                                    amount: formatGoalMoney(
+                                        goal.savedAmount,
+                                        goal.currency,
+                                        locale,
+                                    ),
+                                })}
+                            </small>
+                        </div>
+                        <b>
+                            {t('goals.contribution.left', {
+                                amount: formatGoalMoney(
+                                    goal.remainingAmount,
+                                    goal.currency,
+                                    locale,
+                                ),
+                            })}
+                        </b>
                     </section>
 
                     <div className="goal-field">
-                        <label htmlFor="goal-contribution-amount">Contribution amount</label>
+                        <label htmlFor="goal-contribution-amount">
+                            {t('goals.contribution.amount')}
+                        </label>
                         <input
                             ref={amountRef}
                             id="goal-contribution-amount"
@@ -154,36 +192,51 @@ export function GoalContributionModal({
                     </div>
 
                     <div className="goal-field">
-                        <label htmlFor="goal-contribution-account">Source account</label>
+                        <label htmlFor="goal-contribution-account">
+                            {t('goals.contribution.sourceAccount')}
+                        </label>
                         <Select
                             id="goal-contribution-account"
-                            aria-label="Contribution account"
+                            aria-label={t('goals.contribution.accountLabel')}
                             value={accountId}
                             onValueChange={(value) => {
                                 setAccountId(value)
                                 setFieldErrors((current) => ({...current, accountId: ''}))
                             }}
                         >
-                            <SelectOption value="">Choose account</SelectOption>
+                            <SelectOption value="">
+                                {t('goals.contribution.chooseAccount')}
+                            </SelectOption>
                             {eligibleAccounts.map((account) => (
                                 <SelectOption value={account.id} key={account.id}>
-                                    {account.name} · {formatGoalMoney(account.balance, account.currency)}
+                                    {account.name} · {formatGoalMoney(
+                                        account.balance,
+                                        account.currency,
+                                        locale,
+                                    )}
                                 </SelectOption>
                             ))}
                         </Select>
                         {fieldErrors.accountId && <small>{fieldErrors.accountId}</small>}
                         {eligibleAccounts.length === 0 && (
-                            <p className="goal-field-hint">Create an active {goal.currency} account before adding progress.</p>
+                            <p className="goal-field-hint">
+                                {t('goals.contribution.noAccount', {
+                                    currency: goal.currency,
+                                })}
+                            </p>
                         )}
                     </div>
 
                     <div className="goal-field">
-                        <label htmlFor="goal-contribution-note">Note <span>Optional</span></label>
+                        <label htmlFor="goal-contribution-note">
+                            {t('goals.contribution.note')}{' '}
+                            <span>{t('goals.contribution.optional')}</span>
+                        </label>
                         <textarea
                             id="goal-contribution-note"
                             value={note}
                             maxLength={500}
-                            placeholder="What is this contribution for?"
+                            placeholder={t('goals.contribution.notePlaceholder')}
                             aria-invalid={Boolean(fieldErrors.note)}
                             onChange={(event) => setNote(event.target.value)}
                         />
@@ -192,15 +245,22 @@ export function GoalContributionModal({
 
                     <div className="goal-money-notice">
                         <Icon name="transfer"/>
-                        <p><strong>This moves real money in Certis.</strong><span>The selected account balance will decrease by the contribution amount.</span></p>
+                        <p>
+                            <strong>{t('goals.contribution.moneyTitle')}</strong>
+                            <span>{t('goals.contribution.moneyDescription')}</span>
+                        </p>
                     </div>
 
                     {formError && <p className="goal-form-error" role="alert"><Icon name="alert"/>{formError}</p>}
 
                     <footer className="goal-modal-actions compact">
-                        <button type="button" disabled={isSaving} onClick={onClose}>Cancel</button>
+                        <button type="button" disabled={isSaving} onClick={onClose}>
+                            {t('goals.contribution.cancel')}
+                        </button>
                         <button className="primary" type="submit" disabled={isSaving || eligibleAccounts.length === 0}>
-                            {isSaving ? 'Adding…' : 'Add contribution'}
+                            {isSaving
+                                ? t('goals.contribution.adding')
+                                : t('goals.contribution.add')}
                         </button>
                     </footer>
                 </form>

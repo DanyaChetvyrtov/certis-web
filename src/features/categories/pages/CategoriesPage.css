@@ -173,7 +173,7 @@
     gap: 22px;
     margin-top: 24px;
     padding-bottom: 22px;
-    border-bottom: 1px solid #eee9e1;
+    border-bottom: 1px solid #29425e;
 }
 
 .category-type-tabs {
@@ -453,7 +453,7 @@
 .category-item-stats {
     margin-top: 28px;
     padding-top: 18px;
-    border-top: 1px solid #efeae3;
+    border-top: 1px solid #29425e;
 }
 
 .category-item-stats > span {
@@ -512,7 +512,7 @@
     justify-content: space-between;
     gap: 18px;
     margin-top: 22px;
-    border-top: 1px solid #eee9e1;
+    border-top: 1px solid #29425e;
     padding-top: 18px;
 }
 

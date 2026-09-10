@@ -8,6 +8,8 @@ import {
 import type {
     CSSProperties,
 } from 'react'
+import {useTranslation} from 'react-i18next'
+import type {TFunction} from 'i18next'
 import {
     Icon,
 } from '../../../components/Icons'
@@ -67,6 +69,7 @@ import {
 import {
     TransferFormModal,
 } from '../components/TransferFormModal'
+import {useLanguage} from '../../../i18n/useLanguage'
 import './TransactionsPage.css'
 
 type LoadState = 'loading' | 'ready' | 'error'
@@ -132,12 +135,12 @@ const currencySymbols: Record<Currency, string> = {
 
 const currencyOrder: Currency[] = ['RUB', 'EUR', 'USD']
 
-const periodLabels: Record<PeriodPreset, string> = {
-    THIS_MONTH: 'This month',
-    LAST_30_DAYS: 'Last 30 days',
-    CUSTOM: 'Custom range',
-    ALL_TIME: 'All time',
-}
+const periodPresets: PeriodPreset[] = [
+    'THIS_MONTH',
+    'LAST_30_DAYS',
+    'CUSTOM',
+    'ALL_TIME',
+]
 
 const toYearMonth = (date: Date): string => {
     const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -260,9 +263,11 @@ const getPeriodRange = (
 
 const formatPeriodLabel = (
     range: PeriodRange,
+    locale: string,
+    t: TFunction,
 ): string => {
     if (!range.start || !range.end) {
-        return 'All time'
+        return t('transactions.periods.ALL_TIME')
     }
 
     const sameMonth =
@@ -270,15 +275,15 @@ const formatPeriodLabel = (
         && range.start.getMonth() === range.end.getMonth()
 
     if (sameMonth) {
-        return `${range.start.toLocaleDateString('en-US', {
+        return `${range.start.toLocaleDateString(locale, {
             month: 'short',
         })} ${range.start.getDate()}–${range.end.getDate()}, ${range.end.getFullYear()}`
     }
 
-    return `${range.start.toLocaleDateString('en-US', {
+    return `${range.start.toLocaleDateString(locale, {
         month: 'short',
         day: 'numeric',
-    })} – ${range.end.toLocaleDateString('en-US', {
+    })} – ${range.end.toLocaleDateString(locale, {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
@@ -288,10 +293,11 @@ const formatPeriodLabel = (
 const formatMoney = (
     amount: number,
     currency: Currency,
+    locale: string,
     showPositiveSign = false,
 ): string => {
     const absoluteAmount = Math.abs(amount)
-    const formatted = new Intl.NumberFormat('en-US', {
+    const formatted = new Intl.NumberFormat(locale, {
         minimumFractionDigits: 0,
         maximumFractionDigits: 2,
     }).format(absoluteAmount)
@@ -306,12 +312,13 @@ const formatMoney = (
 
 const formatMoneyMap = (
     amounts: Map<Currency, number>,
+    locale: string,
     fallbackCurrency?: Currency,
     showPositiveSign = false,
 ): string => {
     if (amounts.size === 0) {
         return fallbackCurrency
-            ? formatMoney(0, fallbackCurrency)
+            ? formatMoney(0, fallbackCurrency, locale)
             : '—'
     }
 
@@ -323,6 +330,7 @@ const formatMoneyMap = (
             formatMoney(
                 amount,
                 currency,
+                locale,
                 showPositiveSign,
             ),
         )
@@ -352,6 +360,8 @@ const isSameDay = (
 const formatGroupHeading = (
     dateValue: string,
     today: Date,
+    locale: string,
+    t: TFunction,
 ): string => {
     const date = new Date(dateValue)
     const yesterday = new Date(
@@ -359,17 +369,17 @@ const formatGroupHeading = (
         today.getMonth(),
         today.getDate() - 1,
     )
-    const formattedDate = date.toLocaleDateString('en-US', {
+    const formattedDate = date.toLocaleDateString(locale, {
         month: 'short',
         day: 'numeric',
     })
 
     if (isSameDay(date, today)) {
-        return `Today · ${formattedDate}`
+        return t('transactions.today', {date: formattedDate})
     }
 
     if (isSameDay(date, yesterday)) {
-        return `Yesterday · ${formattedDate}`
+        return t('transactions.yesterday', {date: formattedDate})
     }
 
     return formattedDate
@@ -377,18 +387,20 @@ const formatGroupHeading = (
 
 const loadErrorMessage = (
     error: unknown,
+    fallback: string,
 ): string =>
     error instanceof ApiError
         ? error.message
-        : 'We could not load your transaction workspace. Please try again.'
+        : fallback
 
 const transactionTitle = (
     transaction: Transaction,
+    t: TFunction,
 ): string =>
     transaction.merchant?.trim()
     || (transaction.type === 'INCOME'
-        ? 'Income transaction'
-        : 'Expense transaction')
+        ? t('transactions.incomeTransaction')
+        : t('transactions.expenseTransaction'))
 
 const accentStyle = (
     color: string,
@@ -405,6 +417,8 @@ const addAmount = (
 }
 
 export function TransactionsPage() {
+    const {t} = useTranslation()
+    const {locale} = useLanguage()
     const {profile} = useSession()
     const preferredCurrency = profile?.preferredCurrency ?? 'RUB'
     const [transactions, setTransactions] =
@@ -510,7 +524,7 @@ export function TransactionsPage() {
                     return
                 }
 
-                setLoadError(loadErrorMessage(error))
+                setLoadError(loadErrorMessage(error, t('transactions.loadError')))
                 setResourceState('error')
             },
         )
@@ -518,7 +532,7 @@ export function TransactionsPage() {
         return () => {
             isActive = false
         }
-    }, [anchorDate, preferredCurrency, reloadRevision])
+    }, [anchorDate, preferredCurrency, reloadRevision, t])
 
     useEffect(() => {
         let isActive = true
@@ -542,7 +556,7 @@ export function TransactionsPage() {
                     return
                 }
 
-                setLoadError(loadErrorMessage(error))
+                setLoadError(loadErrorMessage(error, t('transactions.loadError')))
                 setTransactionState('error')
             },
         )
@@ -556,6 +570,7 @@ export function TransactionsPage() {
         periodRange.from,
         periodRange.to,
         reloadRevision,
+        t,
     ])
 
     useEffect(() => {
@@ -742,7 +757,7 @@ export function TransactionsPage() {
 
             grouped.set(id, {
                 id,
-                name: category?.name ?? 'Uncategorized',
+                name: category?.name ?? t('transactions.uncategorized'),
                 color: category?.color ?? '#8c9ab8',
                 amount: (current?.amount ?? 0) + transaction.amount,
             })
@@ -755,7 +770,7 @@ export function TransactionsPage() {
                 ...sorted.slice(0, 4),
                 {
                     id: 'other',
-                    name: 'Other',
+                    name: t('transactions.other'),
                     color: '#7584a5',
                     amount: sorted.slice(4).reduce(
                         (total, item) => total + item.amount,
@@ -773,7 +788,7 @@ export function TransactionsPage() {
                 0,
             ),
         }
-    }, [accountMap, categoryMap, spendingCurrency, transactions])
+    }, [accountMap, categoryMap, spendingCurrency, transactions, t])
 
     const recurringCount = transactions.filter(
         (transaction) => Boolean(transaction.recurringTransactionTemplateId),
@@ -928,10 +943,10 @@ export function TransactionsPage() {
         setNotice({
             kind: 'success',
             message: isEditing
-                ? 'Transaction updated.'
+                ? t('transactions.notice.updated')
                 : matchesCurrentFilters(savedTransaction)
-                    ? 'Transaction added.'
-                    : 'Transaction added outside the current filters.',
+                    ? t('transactions.notice.added')
+                    : t('transactions.notice.outside'),
         })
     }
 
@@ -944,7 +959,7 @@ export function TransactionsPage() {
         setDeleteState(null)
         setNotice({
             kind: 'success',
-            message: 'Transaction deleted.',
+            message: t('transactions.notice.deleted'),
         })
     }
 
@@ -963,7 +978,7 @@ export function TransactionsPage() {
         setTransferFormState(null)
         setNotice({
             kind: 'success',
-            message: 'Transfer completed.',
+            message: t('transactions.notice.transfer'),
         })
         reloadWorkspace()
     }
@@ -989,7 +1004,7 @@ export function TransactionsPage() {
         setReverseTransferState(null)
         setNotice({
             kind: 'success',
-            message: 'Transfer reversed. Both account balances were restored.',
+            message: t('transactions.notice.reversed'),
         })
         reloadWorkspace()
     }
@@ -1004,7 +1019,7 @@ export function TransactionsPage() {
                 : 'ready'
 
     const fallbackCurrency = selectedAccount?.currency
-    const dateLabel = formatPeriodLabel(periodRange)
+    const dateLabel = formatPeriodLabel(periodRange, locale, t)
 
     if (activeView === 'RECURRING') {
         return (
@@ -1034,10 +1049,8 @@ export function TransactionsPage() {
             <main className="transactions-main">
                 <header className="transactions-page-header">
                     <div>
-                        <h1>Transactions</h1>
-                        <p>
-                            Track every movement of money across your accounts.
-                        </p>
+                        <h1>{t('transactions.title')}</h1>
+                        <p>{t('transactions.subtitle')}</p>
                     </div>
 
                     <div className="transactions-header-actions">
@@ -1059,7 +1072,7 @@ export function TransactionsPage() {
                             onClick={(event) => openTransferForm(event.currentTarget)}
                         >
                             <Icon name="transfer"/>
-                            Transfer
+                            {t('transactions.transfer')}
                         </button>
                         <button
                             ref={newTransactionButtonRef}
@@ -1073,7 +1086,7 @@ export function TransactionsPage() {
                             }
                         >
                             <Icon name="plus"/>
-                            New transaction
+                            {t('transactions.newTransaction')}
                         </button>
                     </div>
                 </header>
@@ -1081,7 +1094,7 @@ export function TransactionsPage() {
                 <div
                     className="transaction-view-tabs"
                     role="tablist"
-                    aria-label="Transaction view"
+                    aria-label={t('transactions.view')}
                 >
                     <button
                         className="active"
@@ -1089,7 +1102,7 @@ export function TransactionsPage() {
                         role="tab"
                         aria-selected="true"
                     >
-                        History
+                        {t('transactions.history')}
                     </button>
                     <button
                         type="button"
@@ -1098,7 +1111,7 @@ export function TransactionsPage() {
                         onClick={() => setActiveView('RECURRING')}
                     >
                         <Icon name="repeat"/>
-                        Recurring
+                        {t('transactions.recurring')}
                     </button>
                 </div>
 
@@ -1121,24 +1134,23 @@ export function TransactionsPage() {
 
                 <section
                     className="transaction-metrics"
-                    aria-label="Transaction summary"
+                    aria-label={t('transactions.summary')}
                 >
                     <article>
                         <span className="metric-icon income">
                             <Icon name="cash"/>
                         </span>
                         <div>
-                            <p>Income</p>
+                            <p>{t('transactions.income')}</p>
                             <strong>
                                 {formatMoneyMap(
                                     metrics.income,
+                                    locale,
                                     fallbackCurrency,
                                 )}
                             </strong>
                             <small className="income">
-                                {metrics.incomeCount} {metrics.incomeCount === 1
-                                    ? 'transaction'
-                                    : 'transactions'}
+                                {t('transactions.count', {count: metrics.incomeCount})}
                             </small>
                         </div>
                     </article>
@@ -1148,17 +1160,16 @@ export function TransactionsPage() {
                             <Icon name="wallet"/>
                         </span>
                         <div>
-                            <p>Expenses</p>
+                            <p>{t('transactions.expenses')}</p>
                             <strong>
                                 {formatMoneyMap(
                                     metrics.expenses,
+                                    locale,
                                     fallbackCurrency,
                                 )}
                             </strong>
                             <small className="expense">
-                                {metrics.expenseCount} {metrics.expenseCount === 1
-                                    ? 'transaction'
-                                    : 'transactions'}
+                                {t('transactions.count', {count: metrics.expenseCount})}
                             </small>
                         </div>
                     </article>
@@ -1168,16 +1179,17 @@ export function TransactionsPage() {
                             <Icon name="repeat"/>
                         </span>
                         <div>
-                            <p>Net cash flow</p>
+                            <p>{t('transactions.netCashFlow')}</p>
                             <strong>
                                 {formatMoneyMap(
                                     metrics.cashFlow,
+                                    locale,
                                     fallbackCurrency,
                                     true,
                                 )}
                             </strong>
                             <small>
-                                Across the selected period
+                                {t('transactions.selectedPeriod')}
                             </small>
                         </div>
                     </article>
@@ -1187,15 +1199,16 @@ export function TransactionsPage() {
                             <Icon name="gauge"/>
                         </span>
                         <div>
-                            <p>Average spend</p>
+                            <p>{t('transactions.averageSpend')}</p>
                             <strong>
                                 {formatMoneyMap(
                                     metrics.averageSpend,
+                                    locale,
                                     fallbackCurrency,
                                 )}
                             </strong>
                             <small className="average">
-                                Per expense
+                                {t('transactions.perExpense')}
                             </small>
                         </div>
                     </article>
@@ -1205,20 +1218,20 @@ export function TransactionsPage() {
                     <section className="transaction-activity-card">
                         <header className="transaction-activity-heading">
                             <div>
-                                <h2>Activity</h2>
-                                <p>Your latest income and expenses</p>
+                                <h2>{t('transactions.activity')}</h2>
+                                <p>{t('transactions.activitySubtitle')}</p>
                             </div>
 
                             <div className="transaction-activity-tools">
                                 <label className="transaction-search-field">
                                     <Icon name="search"/>
                                     <span className="sr-only">
-                                        Search transactions
+                                        {t('transactions.search')}
                                     </span>
                                     <input
                                         type="search"
                                         value={searchQuery}
-                                        placeholder="Search transactions"
+                                        placeholder={t('transactions.search')}
                                         onChange={(event) =>
                                             setSearchQuery(event.target.value)
                                         }
@@ -1233,7 +1246,7 @@ export function TransactionsPage() {
                                     })}
                                 >
                                     <Icon name="list"/>
-                                    Filters
+                                    {t('transactions.filters')}
                                 </button>
 
                                 <span>
@@ -1247,7 +1260,7 @@ export function TransactionsPage() {
                             <div
                                 className="transaction-type-tabs"
                                 role="tablist"
-                                aria-label="Transaction type"
+                                aria-label={t('transactions.transactionType')}
                             >
                                 {(['ALL', 'INCOME', 'EXPENSE', 'TRANSFER'] as const)
                                     .map((type) => (
@@ -1263,22 +1276,16 @@ export function TransactionsPage() {
                                             key={type}
                                             onClick={() => setActivityType(type)}
                                         >
-                                            {type === 'ALL'
-                                                ? 'All'
-                                                : type === 'INCOME'
-                                                    ? 'Income'
-                                                    : type === 'EXPENSE'
-                                                        ? 'Expense'
-                                                        : 'Transfers'}
+                                            {t(`transactions.activityTypes.${type}`)}
                                         </button>
                                     ))}
                             </div>
 
                             <div className="transaction-column-headings">
-                                <span>Category</span>
-                                <span>Account</span>
-                                <span>Time</span>
-                                <span>Amount</span>
+                                <span>{t('transactions.columns.category')}</span>
+                                <span>{t('transactions.columns.account')}</span>
+                                <span>{t('transactions.columns.time')}</span>
+                                <span>{t('transactions.columns.amount')}</span>
                                 <span aria-hidden="true"/>
                             </div>
                         </div>
@@ -1290,7 +1297,7 @@ export function TransactionsPage() {
                             {loadState === 'loading' && (
                                 <div
                                     className="transaction-loading-state"
-                                    aria-label="Loading transactions"
+                                    aria-label={t('transactions.loading')}
                                 >
                                     {[0, 1, 2, 3, 4].map((item) => (
                                         <span key={item}/>
@@ -1304,7 +1311,7 @@ export function TransactionsPage() {
                                     role="alert"
                                 >
                                     <span><Icon name="alert"/></span>
-                                    <h3>Transactions could not be loaded</h3>
+                                    <h3>{t('transactions.loadTitle')}</h3>
                                     <p>{loadError}</p>
                                     <button
                                         type="button"
@@ -1317,7 +1324,7 @@ export function TransactionsPage() {
                                             )
                                         }}
                                     >
-                                        Try again
+                                        {t('transactions.tryAgain')}
                                     </button>
                                 </div>
                             )}
@@ -1337,13 +1344,13 @@ export function TransactionsPage() {
                                         </span>
                                         <h3>
                                             {transactions.length === 0
-                                                ? 'No transactions yet'
-                                                : 'No transactions found'}
+                                                ? t('transactions.noTransactions')
+                                                : t('transactions.notFound')}
                                         </h3>
                                         <p>
                                             {transactions.length === 0
-                                                ? 'Record your first income or expense to start building your activity.'
-                                                : 'Try changing the activity type, search, or quick filters.'}
+                                                ? t('transactions.firstDescription')
+                                                : t('transactions.filterDescription')}
                                         </p>
                                         {transactions.length === 0 && (
                                             <button
@@ -1355,7 +1362,7 @@ export function TransactionsPage() {
                                                     )
                                                 }
                                             >
-                                                Add transaction
+                                                {t('transactions.addTransaction')}
                                             </button>
                                         )}
                                     </div>
@@ -1371,6 +1378,8 @@ export function TransactionsPage() {
                                             {formatGroupHeading(
                                                 group[0].occurredAt,
                                                 anchorDate,
+                                                locale,
+                                                t,
                                             )}
                                         </h3>
 
@@ -1399,7 +1408,7 @@ export function TransactionsPage() {
                                                 ? reversedTransferIds.has(transfer.id)
                                                 : false
                                             const transferLabel = transfer
-                                                ? `${sourceAccount?.name ?? 'Unknown account'} → ${destinationAccount?.name ?? 'Unknown account'}`
+                                                ? `${sourceAccount?.name ?? t('transactions.unknownAccount')} → ${destinationAccount?.name ?? t('transactions.unknownAccount')}`
                                                 : ''
                                             const icon: IconName = transfer
                                                 ? 'transfer'
@@ -1430,29 +1439,29 @@ export function TransactionsPage() {
                                                             <strong>
                                                                 {transfer
                                                                     ? isReversal
-                                                                        ? `Reversal · ${transferLabel}`
+                                                                        ? `${t('transactions.reversal')} · ${transferLabel}`
                                                                         : transferLabel
-                                                                    : transactionTitle(transaction)}
+                                                                    : transactionTitle(transaction, t)}
                                                             </strong>
                                                             <small>
                                                                 {transfer
                                                                     ? transfer.note?.trim()
                                                                         || (isReversal
-                                                                            ? 'Transfer reversal'
+                                                                            ? t('transactions.transferReversal')
                                                                             : isReversed
-                                                                                ? 'Reversed transfer'
-                                                                                : 'Account transfer')
+                                                                                ? t('transactions.reversedTransfer')
+                                                                                : t('transactions.accountTransfer'))
                                                                     : transaction.note?.trim()
                                                                     || (transaction.recurringTransactionTemplateId
-                                                                        ? 'Recurring transaction'
+                                                                        ? t('transactions.recurringTransaction')
                                                                         : transaction.type === 'INCOME'
-                                                                            ? 'Recorded income'
-                                                                            : 'Recorded expense')}
+                                                                            ? t('transactions.recordedIncome')
+                                                                            : t('transactions.recordedExpense'))}
                                                             </small>
                                                             <em>
                                                                 {transfer
-                                                                    ? `Transfer · ${transferLabel}`
-                                                                    : `${category?.name ?? 'Uncategorized'} · ${account?.name ?? 'Unknown account'}`}
+                                                                    ? `${t('transactions.transfer')} · ${transferLabel}`
+                                                                    : `${category?.name ?? t('transactions.uncategorized')} · ${account?.name ?? t('transactions.unknownAccount')}`}
                                                             </em>
                                                         </div>
                                                     </div>
@@ -1461,21 +1470,21 @@ export function TransactionsPage() {
                                                         <span className="transaction-category-cell">
                                                             {transfer
                                                                 ? isReversal
-                                                                    ? 'Reversal'
-                                                                    : 'Transfer'
-                                                                : category?.name ?? 'Uncategorized'}
+                                                                    ? t('transactions.reversal')
+                                                                    : t('transactions.transfer')
+                                                                : category?.name ?? t('transactions.uncategorized')}
                                                         </span>
 
                                                         <span className="transaction-account-cell">
                                                             {transfer
                                                                 ? transferLabel
-                                                                : account?.name ?? 'Unknown account'}
+                                                                : account?.name ?? t('transactions.unknownAccount')}
                                                         </span>
 
                                                         <time dateTime={transaction.occurredAt}>
                                                             {new Date(transaction.occurredAt)
                                                                 .toLocaleTimeString(
-                                                                    'en-US',
+                                                                    locale,
                                                                     {
                                                                         hour: '2-digit',
                                                                         minute: '2-digit',
@@ -1497,6 +1506,7 @@ export function TransactionsPage() {
                                                                 ? formatMoney(
                                                                     transfer.amount,
                                                                     transfer.currency,
+                                                                    locale,
                                                                 )
                                                                 : account
                                                                 ? formatMoney(
@@ -1504,6 +1514,7 @@ export function TransactionsPage() {
                                                                         ? transaction.amount
                                                                         : -transaction.amount,
                                                                     account.currency,
+                                                                    locale,
                                                                     transaction.type === 'INCOME',
                                                                 )
                                                                 : transaction.amount}
@@ -1520,7 +1531,7 @@ export function TransactionsPage() {
                                                                 )
                                                                 : (
                                                                     <span className="transfer-state-pill">
-                                                                        {isReversal ? 'Reversal' : 'Reversed'}
+                                                                        {isReversal ? t('transactions.reversal') : t('transactions.reversed')}
                                                                     </span>
                                                                 )
                                                             : (
@@ -1549,7 +1560,7 @@ export function TransactionsPage() {
                         <section className="spending-category-card">
                             <header>
                                 <div>
-                                    <h2>Spending by category</h2>
+                                    <h2>{t('transactions.spendingByCategory')}</h2>
                                     <p>{dateLabel}</p>
                                 </div>
                                 <div className="spending-category-summary">
@@ -1568,12 +1579,15 @@ export function TransactionsPage() {
                                             </SelectOption>
                                         ))}
                                     </Select>
-                                    {spendingByCategory.items.length > 0 && <strong>
-                                        {formatMoney(
-                                            spendingByCategory.total,
-                                            spendingByCategory.currency,
-                                        )}
-                                    </strong>}
+                                    {spendingByCategory.items.length > 0 && (
+                                        <strong>
+                                            {formatMoney(
+                                                spendingByCategory.total,
+                                                spendingByCategory.currency,
+                                                locale,
+                                            )}
+                                        </strong>
+                                    )}
                                 </div>
                             </header>
 
@@ -1581,7 +1595,7 @@ export function TransactionsPage() {
                                 <div className="spending-category-message">
                                     <Icon name="categories"/>
                                     <p>
-                                        No expenses in {spendingCurrency} for this period.
+                                        {t('transactions.categoriesEmpty')}
                                     </p>
                                 </div>
                             )}
@@ -1605,6 +1619,7 @@ export function TransactionsPage() {
                                                         {formatMoney(
                                                             item.amount,
                                                             spendingByCategory.currency,
+                                                            locale,
                                                         )} · {percentage}%
                                                     </strong>
                                                 </p>
@@ -1628,12 +1643,12 @@ export function TransactionsPage() {
                             className="transaction-quick-filters"
                         >
                             <header>
-                                <h2>Quick filters</h2>
-                                <p>Narrow the activity list</p>
+                                <h2>{t('transactions.quickFilters')}</h2>
+                                <p>{t('transactions.quickFiltersSubtitle')}</p>
                             </header>
 
                             <label htmlFor="transaction-period-filter">
-                                Period
+                                {t('transactions.period')}
                             </label>
                             <div className="quick-filter-select wide">
                                 <Icon name="calendar"/>
@@ -1653,10 +1668,10 @@ export function TransactionsPage() {
                                         }
                                     }}
                                 >
-                                    {Object.entries(periodLabels)
-                                        .map(([value, label]) => (
+                                    {periodPresets
+                                        .map((value) => (
                                             <SelectOption value={value} key={value}>
-                                                {label}
+                                                {t(`transactions.periods.${value}`)}
                                             </SelectOption>
                                         ))}
                                 </Select>
@@ -1676,7 +1691,7 @@ export function TransactionsPage() {
                                     }}
                                 >
                                     <label>
-                                        <span>From</span>
+                                        <span>{t('transactions.from')}</span>
                                         <input
                                             type="date"
                                             value={customPeriodDraft.from}
@@ -1691,7 +1706,7 @@ export function TransactionsPage() {
                                     </label>
 
                                     <label>
-                                        <span>To</span>
+                                        <span>{t('transactions.to')}</span>
                                         <input
                                             type="date"
                                             value={customPeriodDraft.to}
@@ -1709,19 +1724,19 @@ export function TransactionsPage() {
                                         type="submit"
                                         disabled={!canApplyCustomPeriod}
                                     >
-                                        Apply range
+                                        {t('transactions.applyRange')}
                                     </button>
 
                                     {customPeriodIsReversed && (
                                         <p role="alert">
-                                            The end date must be on or after the start date.
+                                            {t('transactions.invalidRange')}
                                         </p>
                                     )}
                                 </form>
                             )}
 
                             <label htmlFor="transaction-account-filter">
-                                Account
+                                {t('transactions.account')}
                             </label>
                             <div className="quick-filter-grid">
                                 <div className="quick-filter-select">
@@ -1733,7 +1748,7 @@ export function TransactionsPage() {
                                             setAccountFilter(value)
                                         }
                                     >
-                                        <SelectOption value="">All accounts</SelectOption>
+                                        <SelectOption value="">{t('transactions.allAccounts')}</SelectOption>
                                         {accounts.map((account) => (
                                             <SelectOption
                                                 value={account.id}
@@ -1748,13 +1763,13 @@ export function TransactionsPage() {
                                 <div className="quick-filter-select">
                                     <Icon name="tag"/>
                                     <Select
-                                        aria-label="Category filter"
+                                        aria-label={t('transactions.categoryFilter')}
                                         value={categoryFilter}
                                         onValueChange={(value) =>
                                             setCategoryFilter(value)
                                         }
                                     >
-                                        <SelectOption value="">All categories</SelectOption>
+                                        <SelectOption value="">{t('transactions.allCategories')}</SelectOption>
                                         {categories.map((category) => (
                                             <SelectOption
                                                 value={category.id}
@@ -1783,7 +1798,7 @@ export function TransactionsPage() {
                                             setCustomPeriodDraft(defaultPeriod)
                                         }}
                                     >
-                                        Clear quick filters
+                                        {t('transactions.clearFilters')}
                                     </button>
                                 )}
                         </section>
@@ -1793,16 +1808,16 @@ export function TransactionsPage() {
                         >
                             <span><Icon name="repeat"/></span>
                             <div>
-                                <strong>Recurring transactions</strong>
+                                <strong>{t('transactions.recurringView.title')}</strong>
                                 <p>
-                                    {recurringCount} in this period
+                                    {t('transactions.inPeriod', {count: recurringCount})}
                                 </p>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => setActiveView('RECURRING')}
                             >
-                                Manage
+                                {t('transactions.manage')}
                             </button>
                         </section>
                     </aside>

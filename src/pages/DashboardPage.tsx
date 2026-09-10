@@ -1,6 +1,8 @@
 import {Select, SelectOption} from '../components/Select'
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import type {CSSProperties, ReactNode} from 'react'
+import {useTranslation} from 'react-i18next'
+import type {TFunction} from 'i18next'
 import {Link} from 'react-router-dom'
 import {Icon} from '../components/Icons'
 import {LoadingIndicator} from '../components/LoadingIndicator'
@@ -38,6 +40,7 @@ import type {
 } from '../features/transactions/api/transactionsApi'
 import {TransactionFormModal} from '../features/transactions/components/TransactionFormModal'
 import {ApiError} from '../shared/api/ApiError'
+import {useLanguage} from '../i18n/useLanguage'
 import './DashboardPage.css'
 
 type AccountsStatus = 'loading' | 'ready' | 'error'
@@ -50,13 +53,6 @@ const dashboardGoalStyle = (color: string): DashboardGoalStyle => ({
     '--dashboard-goal-accent': color,
 })
 
-const accountTypeLabels: Record<AccountType, string> = {
-    CASH: 'Cash',
-    BANK: 'Bank account',
-    CARD: 'Card',
-    INVESTMENT: 'Investment',
-}
-
 const accountTypeIcons: Record<AccountType, IconName> = {
     CASH: 'wallet',
     BANK: 'bank',
@@ -66,8 +62,8 @@ const accountTypeIcons: Record<AccountType, IconName> = {
 
 const currencyOrder: AccountCurrency[] = ['RUB', 'EUR', 'USD']
 
-const formatMoney = (value: number, currency: AccountCurrency) =>
-    new Intl.NumberFormat('en-US', {
+const formatMoney = (value: number, currency: AccountCurrency, locale: string) =>
+    new Intl.NumberFormat(locale, {
         style: 'currency',
         currency,
         currencyDisplay: 'narrowSymbol',
@@ -75,25 +71,25 @@ const formatMoney = (value: number, currency: AccountCurrency) =>
         maximumFractionDigits: 2,
     }).format(value)
 
-const getDateCopy = () =>
-    new Intl.DateTimeFormat('en-US', {
+const getDateCopy = (locale: string) =>
+    new Intl.DateTimeFormat(locale, {
         weekday: 'long',
         month: 'long',
         day: 'numeric',
     }).format(new Date())
 
-const getGreeting = () => {
+const getGreeting = (t: TFunction) => {
     const hour = new Date().getHours()
 
     if (hour < 12) {
-        return 'Good morning'
+        return t('dashboard.greeting.morning')
     }
 
     if (hour < 18) {
-        return 'Good afternoon'
+        return t('dashboard.greeting.afternoon')
     }
 
-    return 'Good evening'
+    return t('dashboard.greeting.evening')
 }
 
 const getCurrentMonth = (): string => {
@@ -102,25 +98,25 @@ const getCurrentMonth = (): string => {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 }
 
-const transactionCountHint = (transactionCount: number): string => {
+const transactionCountHint = (transactionCount: number, t: TFunction): string => {
     if (transactionCount === 0) {
-        return 'No transactions this month'
+        return t('dashboard.noTransactionsMonth')
     }
 
-    return `${transactionCount} ${transactionCount === 1 ? 'transaction' : 'transactions'} this month`
+    return t('dashboard.transactionCount', {count: transactionCount})
 }
 
-const transactionTitle = (transaction: Transaction): string =>
+const transactionTitle = (transaction: Transaction, t: TFunction): string =>
     transaction.merchant?.trim()
     || transaction.note?.trim()
     || (transaction.transferId
-        ? 'Account transfer'
+        ? t('dashboard.accountTransfer')
         : transaction.type === 'INCOME'
-            ? 'Income transaction'
-            : 'Expense transaction')
+            ? t('dashboard.incomeTransaction')
+            : t('dashboard.expenseTransaction'))
 
-const formatTransactionDate = (dateValue: string): string =>
-    new Intl.DateTimeFormat('en-US', {
+const formatTransactionDate = (dateValue: string, locale: string): string =>
+    new Intl.DateTimeFormat(locale, {
         month: 'short',
         day: 'numeric',
     }).format(new Date(dateValue))
@@ -128,6 +124,7 @@ const formatTransactionDate = (dateValue: string): string =>
 const formatTransactionAmount = (
     transaction: Transaction,
     currency: AccountCurrency | undefined,
+    locale: string,
 ): string => {
     const amount = Number(transaction.amount)
     const signedAmount = transaction.type === 'INCOME'
@@ -135,12 +132,12 @@ const formatTransactionAmount = (
         : -amount
 
     if (!currency) {
-        return new Intl.NumberFormat('en-US', {
+        return new Intl.NumberFormat(locale, {
             maximumFractionDigits: 2,
         }).format(signedAmount)
     }
 
-    const formatted = formatMoney(signedAmount, currency)
+    const formatted = formatMoney(signedAmount, currency, locale)
         .replace(/^-/, '−')
 
     return transaction.type === 'INCOME' && amount > 0
@@ -159,6 +156,8 @@ type SummaryCardProps = {
 }
 
 function SummaryCard({loading = false, label, value, hint, icon, tone}: SummaryCardProps) {
+    const {t} = useTranslation()
+
     return (
         <article className="summary-card">
             <div className="summary-card-copy">
@@ -167,14 +166,14 @@ function SummaryCard({loading = false, label, value, hint, icon, tone}: SummaryC
                     ? (
                         <LoadingIndicator
                             className="summary-card-loading"
-                            label={`Loading ${label.toLowerCase()}`}
+                            label={t('dashboard.loadingLabel', {label: label.toLowerCase()})}
                             showLabel
                         />
                     )
                     : <strong>{value}</strong>}
                 <span className="summary-card-hint">
                     {loading
-                        ? 'Fetching the latest data'
+                        ? t('dashboard.fetching')
                         : hint}
                 </span>
             </div>
@@ -193,6 +192,8 @@ type PanelHeaderProps = {
 }
 
 function PanelHeader({eyebrow, title, action, actionHref}: PanelHeaderProps) {
+    const {t} = useTranslation()
+
     return (
         <header className="dashboard-panel-header">
             <div>
@@ -206,7 +207,7 @@ function PanelHeader({eyebrow, title, action, actionHref}: PanelHeaderProps) {
                 </Link>
             )}
             {action && !actionHref && (
-                <button type="button" disabled title={`${action} — coming soon`}>
+                <button type="button" disabled title={t('dashboard.comingSoon', {action})}>
                     {action}
                     <Icon name="chevron-right"/>
                 </button>
@@ -236,6 +237,8 @@ function EmptyState({
 }
 
 export function DashboardPage() {
+    const {t} = useTranslation()
+    const {locale} = useLanguage()
     const {
         profile,
         setProfile,
@@ -283,7 +286,7 @@ export function DashboardPage() {
             if (!loadedAccounts.some(account => !account.closedAt)) {
                 setTransactionNotice({
                     kind: 'no-accounts',
-                    message: 'Create an account before adding a transaction.',
+                    message: t('dashboard.createAccountFirst'),
                 })
                 return
             }
@@ -298,7 +301,7 @@ export function DashboardPage() {
             setTransactionNotice({
                 kind: 'error',
                 message: error instanceof ApiError ? error.message
-                    : 'We could not load the transaction form. Please try again.',
+                    : t('dashboard.formLoadError'),
             })
         } finally {
             if (requestId === transactionRequestIdRef.current) setIsPreparingTransaction(false)
@@ -325,7 +328,7 @@ export function DashboardPage() {
                     setAccountsNotice(
                         error instanceof ApiError
                             ? error.message
-                            : 'We could not load your accounts. Please try again.',
+                            : t('dashboard.accountLoadError'),
                     )
                 }
             },
@@ -334,7 +337,7 @@ export function DashboardPage() {
         return () => {
             isActive = false
         }
-    }, [])
+    }, [t])
 
     const retryAccounts = useCallback(async () => {
         setAccountsStatus('loading')
@@ -348,10 +351,10 @@ export function DashboardPage() {
             setAccountsNotice(
                 error instanceof ApiError
                     ? error.message
-                    : 'We could not load your accounts. Please try again.',
+                    : t('dashboard.accountLoadError'),
             )
         }
-    }, [])
+    }, [t])
 
     const activeAccounts = useMemo(
         () => accounts.filter((account) => !account.closedAt),
@@ -392,7 +395,7 @@ export function DashboardPage() {
 
     const handleTransactionSaved = () => {
         setIsTransactionOpen(false)
-        setTransactionNotice({kind: 'success', message: 'Transaction added.'})
+        setTransactionNotice({kind: 'success', message: t('dashboard.transactionAdded')})
         setDashboardRevision(revision => revision + 1)
         reloadRecentTransactions()
         void retryAccounts()
@@ -437,7 +440,7 @@ export function DashboardPage() {
         (total, account) => total + Number(account.balance),
         0,
     )
-    const profileName = profile?.name ?? 'there'
+    const profileName = profile?.name ?? t('dashboard.greeting.fallbackName')
 
     const completeProfileSetup = (createdProfile: Profile) => {
         setRequestedCurrency(createdProfile.preferredCurrency)
@@ -449,15 +452,15 @@ export function DashboardPage() {
             return '—'
         }
 
-        return formatMoney(amount ?? 0, selectedCurrency)
+        return formatMoney(amount ?? 0, selectedCurrency, locale)
     }
 
     const monthlySummaryHint = (transactionCount: number | undefined): string => {
         if (monthlyAnalyticsState === 'error') {
-            return 'Monthly summary unavailable'
+            return t('dashboard.monthlyUnavailable')
         }
 
-        return transactionCountHint(transactionCount ?? 0)
+        return transactionCountHint(transactionCount ?? 0, t)
     }
 
     return (
@@ -470,19 +473,19 @@ export function DashboardPage() {
             <main className="dashboard-content">
                 <header className="dashboard-topbar">
                     <div>
-                        <p>{getDateCopy()}</p>
+                        <p>{getDateCopy(locale)}</p>
                         <h1>
-                            {getGreeting()}, {profileName}
+                            {getGreeting(t)}, {profileName}
                         </h1>
-                        <span>Here&apos;s what your money is doing today.</span>
+                        <span>{t('dashboard.subtitle')}</span>
                     </div>
                     <div className="dashboard-actions">
                         <button
                             type="button"
                             className="dashboard-icon-button"
                             disabled
-                            title="Search — coming soon"
-                            aria-label="Search — coming soon"
+                            title={t('dashboard.searchSoon')}
+                            aria-label={t('dashboard.searchSoon')}
                         >
                             <Icon name="search"/>
                         </button>
@@ -490,20 +493,20 @@ export function DashboardPage() {
                             type="button"
                             className="dashboard-icon-button dashboard-notification-button"
                             disabled
-                            title="Notifications — coming soon"
-                            aria-label="Notifications — coming soon"
+                            title={t('dashboard.notificationsSoon')}
+                            aria-label={t('dashboard.notificationsSoon')}
                         >
                             <Icon name="bell"/>
                         </button>
                         <label className="dashboard-currency-action">
-                            <span>Currency</span>
+                            <span>{t('dashboard.currency')}</span>
                             <Select
                                 value={selectedCurrency}
                                 onValueChange={(value) =>
                                     setRequestedCurrency(value as AccountCurrency)
                                 }
                                 disabled={availableCurrencies.length < 2}
-                                aria-label="Dashboard currency"
+                                aria-label={t('dashboard.currencyLabel')}
                             >
                                 {(availableCurrencies.length > 0
                                         ? availableCurrencies
@@ -522,33 +525,33 @@ export function DashboardPage() {
                     <div className={`dashboard-transaction-notice ${transactionNotice.kind}`}
                         role={transactionNotice.kind === 'error' ? 'alert' : 'status'}>
                         <span>{transactionNotice.message}</span>
-                        {transactionNotice.kind === 'no-accounts' && <Link to="/accounts">Go to accounts</Link>}
+                        {transactionNotice.kind === 'no-accounts' && <Link to="/accounts">{t('dashboard.goToAccounts')}</Link>}
                         {transactionNotice.kind === 'error' && (
                             <button type="button" disabled={isPreparingTransaction}
-                                onClick={() => void openTransactionForm()}>Try again</button>
+                                onClick={() => void openTransactionForm()}>{t('dashboard.tryAgain')}</button>
                         )}
                     </div>
                 )}
 
-                <section className="dashboard-summary" aria-label="Financial summary">
+                <section className="dashboard-summary" aria-label={t('dashboard.financialSummary')}>
                     <SummaryCard
-                        label="Total balance"
+                        label={t('dashboard.totalBalance')}
                         loading={accountsStatus === 'loading'}
                         value={
                             accountsStatus === 'error'
                                     ? '—'
-                                    : formatMoney(totalBalance, selectedCurrency)
+                                    : formatMoney(totalBalance, selectedCurrency, locale)
                         }
                         hint={
                             visibleAccounts.length > 0
-                                ? `Across ${visibleAccounts.length} active ${visibleAccounts.length === 1 ? 'account' : 'accounts'}`
-                                : 'Add an account to get started'
+                                ? t('dashboard.acrossAccounts', {count: visibleAccounts.length})
+                                : t('dashboard.addAccountHint')
                         }
                         icon="wallet"
                         tone="navy"
                     />
                     <SummaryCard
-                        label="Income"
+                        label={t('dashboard.income')}
                         loading={
                             monthlyAnalyticsState === 'loading'
                             || monthlyAnalyticsState === 'idle'
@@ -559,7 +562,7 @@ export function DashboardPage() {
                         tone="green"
                     />
                     <SummaryCard
-                        label="Expenses"
+                        label={t('dashboard.expenses')}
                         loading={
                             monthlyAnalyticsState === 'loading'
                             || monthlyAnalyticsState === 'idle'
@@ -570,9 +573,9 @@ export function DashboardPage() {
                         tone="red"
                     />
                     <SummaryCard
-                        label="Savings rate"
+                        label={t('dashboard.savingsRate')}
                         value="0%"
-                        hint="Available after your first month"
+                        hint={t('dashboard.firstMonthHint')}
                         icon="piggy-bank"
                         tone="gold"
                     />
@@ -583,36 +586,36 @@ export function DashboardPage() {
                         refreshRevision={dashboardRevision}/>
 
                     <article className="dashboard-panel budget-panel">
-                        <PanelHeader eyebrow="This month" title="Budget overview" action="Manage"/>
+                        <PanelHeader eyebrow={t('dashboard.thisMonth')} title={t('dashboard.budgetOverview')} action={t('dashboard.manage')}/>
                         <div className="budget-overview">
                             <BudgetRing percentage={0}/>
                             <div>
-                                <span>Total budget</span>
-                                <strong>{formatMoney(0, selectedCurrency)}</strong>
-                                <small>No budget created yet</small>
+                                <span>{t('dashboard.totalBudget')}</span>
+                                <strong>{formatMoney(0, selectedCurrency, locale)}</strong>
+                                <small>{t('dashboard.noBudget')}</small>
                             </div>
                         </div>
-                        <EmptyState icon="gauge" title="Plan your month">
-                            Category progress will appear here once budgets are available.
+                        <EmptyState icon="gauge" title={t('dashboard.planMonth')}>
+                            {t('dashboard.budgetEmpty')}
                         </EmptyState>
                     </article>
                 </section>
 
                 <section className="dashboard-detail-grid">
                     <article className="dashboard-panel accounts-panel">
-                        <PanelHeader title="Accounts" action="View all" actionHref="/accounts"/>
+                        <PanelHeader title={t('dashboard.accounts')} action={t('dashboard.viewAll')} actionHref="/accounts"/>
                         <div className="accounts-panel-summary">
-                            <span>Combined balance</span>
+                            <span>{t('dashboard.combinedBalance')}</span>
                             <strong>
                                 {accountsStatus === 'ready'
-                                    ? formatMoney(totalBalance, selectedCurrency)
+                                    ? formatMoney(totalBalance, selectedCurrency, locale)
                                     : '—'}
                             </strong>
                         </div>
 
                         <div className="accounts-list">
                             {accountsStatus === 'loading' && (
-                                <div className="accounts-loading" aria-label="Loading accounts">
+                                <div className="accounts-loading" aria-label={t('dashboard.loadingAccounts')}>
                                     <span/>
                                     <span/>
                                     <span/>
@@ -624,14 +627,14 @@ export function DashboardPage() {
                                     <Icon name="alert"/>
                                     <p>{accountsNotice}</p>
                                     <button type="button" onClick={() => void retryAccounts()}>
-                                        Try again
+                                        {t('dashboard.tryAgain')}
                                     </button>
                                 </div>
                             )}
 
                             {accountsStatus === 'ready' && visibleAccounts.length === 0 && (
-                                <EmptyState icon="wallet" title="No accounts yet">
-                                    Add an account to see its live balance on your dashboard.
+                                <EmptyState icon="wallet" title={t('dashboard.noAccounts')}>
+                                    {t('dashboard.noAccountsDescription')}
                                 </EmptyState>
                             )}
 
@@ -645,9 +648,9 @@ export function DashboardPage() {
                                         </span>
                                         <div>
                                             <strong>{account.name}</strong>
-                                            <small>{accountTypeLabels[account.type]}</small>
+                                            <small>{t(`dashboard.accountTypes.${account.type}`)}</small>
                                         </div>
-                                        <b>{formatMoney(Number(account.balance), account.currency)}</b>
+                                        <b>{formatMoney(Number(account.balance), account.currency, locale)}</b>
                                     </div>
                                 ))}
                         </div>
@@ -660,16 +663,23 @@ export function DashboardPage() {
                             onClick={() => setIsAccountFormOpen(true)}
                         >
                             <Icon name="plus"/>
-                            Add new account
+                            {t('dashboard.addNewAccount')}
                         </button>
                     </article>
 
                     <article className="dashboard-panel goals-panel">
-                        <PanelHeader title="Goals" action="View all" actionHref="/goals"/>
+                        <PanelHeader
+                            title={t('dashboard.goals')}
+                            action={t('dashboard.viewAll')}
+                            actionHref="/goals"
+                        />
 
                         {(dashboardGoalsState === 'loading'
                             || dashboardGoalsState === 'idle') && (
-                            <div className="dashboard-goals-loading" aria-label="Loading goals">
+                            <div
+                                className="dashboard-goals-loading"
+                                aria-label={t('dashboard.loadingGoals')}
+                            >
                                 <span/><span/>
                             </div>
                         )}
@@ -677,17 +687,17 @@ export function DashboardPage() {
                         {dashboardGoalsState === 'error' && (
                             <div className="dashboard-goals-error" role="alert">
                                 <Icon name="alert"/>
-                                <p>We could not load your goals.</p>
+                                <p>{t('dashboard.goalLoadError')}</p>
                                 <button type="button" onClick={reloadDashboardGoals}>
-                                    Try again
+                                    {t('dashboard.tryAgain')}
                                 </button>
                             </div>
                         )}
 
                         {dashboardGoalsState === 'ready'
                             && dashboardGoals.length === 0 && (
-                            <EmptyState icon="target" title="No savings goals yet">
-                                Create a goal to turn a future purchase into a clear plan.
+                            <EmptyState icon="target" title={t('dashboard.noGoals')}>
+                                {t('dashboard.noGoalsDescription')}
                             </EmptyState>
                         )}
 
@@ -710,7 +720,15 @@ export function DashboardPage() {
                                                 <span><Icon name={goalIconName(goal.icon)}/></span>
                                                 <div>
                                                     <strong>{goal.name}</strong>
-                                                    <small>Target · {formatGoalMonth(goal.targetMonth)}</small>
+                                                    <small>
+                                                        {t('dashboard.goalTarget', {
+                                                            date: formatGoalMonth(
+                                                                goal.targetMonth,
+                                                                locale,
+                                                                t('dashboard.noGoalTarget'),
+                                                            ),
+                                                        })}
+                                                    </small>
                                                 </div>
                                                 <b>{Math.round(goal.progressPercentage)}%</b>
                                             </header>
@@ -718,15 +736,33 @@ export function DashboardPage() {
                                                 <i style={{width: `${progress}%`}}/>
                                             </span>
                                             <footer>
-                                                <span>{formatGoalMoney(goal.savedAmount, goal.currency)} saved</span>
-                                                <span>{formatGoalMoney(goal.remainingAmount, goal.currency)} left</span>
+                                                <span>
+                                                    {t('dashboard.goalSaved', {
+                                                        amount: formatGoalMoney(
+                                                            goal.savedAmount,
+                                                            goal.currency,
+                                                            locale,
+                                                        ),
+                                                    })}
+                                                </span>
+                                                <span>
+                                                    {t('dashboard.goalLeft', {
+                                                        amount: formatGoalMoney(
+                                                            goal.remainingAmount,
+                                                            goal.currency,
+                                                            locale,
+                                                        ),
+                                                    })}
+                                                </span>
                                             </footer>
                                         </div>
                                     )
                                 })}
                                 {totalDashboardGoals > dashboardGoals.length && (
                                     <span className="dashboard-goals-more">
-                                        +{totalDashboardGoals - dashboardGoals.length} more active
+                                        {t('dashboard.moreActiveGoals', {
+                                            count: totalDashboardGoals - dashboardGoals.length,
+                                        })}
                                     </span>
                                 )}
                             </div>
@@ -740,14 +776,14 @@ export function DashboardPage() {
                             onClick={() => setIsGoalFormOpen(true)}
                         >
                             <Icon name="plus"/>
-                            Create a goal
+                            {t('dashboard.createGoal')}
                         </button>
                     </article>
 
                     <article className="dashboard-panel transactions-panel">
                         <PanelHeader
-                            title="Recent transactions"
-                            action="View all"
+                            title={t('dashboard.recentTransactions')}
+                            action={t('dashboard.viewAll')}
                             actionHref="/transactions"
                         />
 
@@ -755,7 +791,7 @@ export function DashboardPage() {
                             || recentTransactionsState === 'idle') && (
                             <div
                                 className="transaction-preview-list"
-                                aria-label="Loading recent transactions"
+                                aria-label={t('dashboard.loadingTransactions')}
                             >
                                 {[0, 1, 2].map((item) => (
                                     <span key={item}>
@@ -770,20 +806,20 @@ export function DashboardPage() {
                         {recentTransactionsState === 'error' && (
                             <div className="recent-transactions-error" role="alert">
                                 <Icon name="alert"/>
-                                <p>We could not load your recent transactions.</p>
+                                <p>{t('dashboard.transactionLoadError')}</p>
                                 <button
                                     type="button"
                                     onClick={reloadRecentTransactions}
                                 >
-                                    Try again
+                                    {t('dashboard.tryAgain')}
                                 </button>
                             </div>
                         )}
 
                         {recentTransactionsState === 'ready'
                             && recentTransactions.length === 0 && (
-                            <EmptyState icon="receipt" title="No transactions yet">
-                                Income and expenses will appear here with the newest first.
+                            <EmptyState icon="receipt" title={t('dashboard.noTransactions')}>
+                                {t('dashboard.noTransactionsDescription')}
                             </EmptyState>
                         )}
 
@@ -813,12 +849,12 @@ export function DashboardPage() {
                                                 />
                                             </span>
                                             <div className="recent-transaction-copy">
-                                                <strong>{transactionTitle(transaction)}</strong>
+                                                <strong>{transactionTitle(transaction, t)}</strong>
                                                 <small>
-                                                    {account?.name ?? 'Unknown account'}
+                                                    {account?.name ?? t('dashboard.unknownAccount')}
                                                     {' · '}
                                                     <time dateTime={transaction.occurredAt}>
-                                                        {formatTransactionDate(transaction.occurredAt)}
+                                                        {formatTransactionDate(transaction.occurredAt, locale)}
                                                     </time>
                                                 </small>
                                             </div>
@@ -828,6 +864,7 @@ export function DashboardPage() {
                                                 {formatTransactionAmount(
                                                     transaction,
                                                     account?.currency,
+                                                    locale,
                                                 )}
                                             </strong>
                                         </article>
@@ -849,15 +886,15 @@ export function DashboardPage() {
                                     <>
                                         <LoadingIndicator
                                             className="dashboard-action-loading"
-                                            label="Loading transaction form"
+                                            label={t('dashboard.loadingForm')}
                                         />
-                                        Loading form…
+                                        {t('dashboard.loadingFormCopy')}
                                     </>
                                 )
                                 : (
                                     <>
                                         <Icon name="plus"/>
-                                        Add transaction
+                                        {t('dashboard.addTransaction')}
                                     </>
                                 )}
                         </button>

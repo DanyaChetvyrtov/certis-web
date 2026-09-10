@@ -3,6 +3,7 @@ import {
     useRef,
     useState,
 } from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import {WorkspaceSidebar} from '../../../layouts/WorkspaceSidebar'
 import {useSession} from '../../auth/session/SessionContext'
@@ -45,12 +46,8 @@ type UncategorizedModalState = {
     restoreFocus: () => void
 }
 
-const categoryTypeLabel: Record<CategoryType, string> = {
-    EXPENSE: 'Expense',
-    INCOME: 'Income',
-}
-
 export function CategoriesPage() {
+    const {t} = useTranslation()
     const {profile} = useSession()
     const {
         activeCategories,
@@ -230,22 +227,23 @@ export function CategoriesPage() {
         ])
     }
 
-    const activeTypeCopy =
-        categoryTypeLabel[selectedType].toLocaleLowerCase()
+    const activeTypeCopy = selectedType === 'EXPENSE'
+        ? t('categories.type.expenseLower')
+        : t('categories.type.incomeLower')
     const isStatusEmpty = statusCategories.length === 0
     const hasNoCategories = totalElements === 0
     const emptyStateTitle = isStatusEmpty
         ? hasNoCategories && selectedStatus === 'ACTIVE'
-            ? 'Create your first category'
+            ? t('categories.empty.first')
             : selectedStatus === 'ACTIVE'
-                ? 'No active categories on this page'
-                : 'No archived categories on this page'
-        : `No ${activeTypeCopy} categories found`
+                ? t('categories.empty.active')
+                : t('categories.empty.archived')
+        : t('categories.empty.type', {type: activeTypeCopy})
     const emptyStateDescription = isStatusEmpty
         ? hasNoCategories && selectedStatus === 'ACTIVE'
-            ? 'Add a reusable label for your transactions and budgets.'
-            : 'Try another page or change the category status.'
-        : 'Try changing the category type or search query on this page.'
+            ? t('categories.empty.firstDescription')
+            : t('categories.empty.statusDescription')
+        : t('categories.empty.filterDescription')
 
     return (
         <div className="categories-workspace">
@@ -254,10 +252,8 @@ export function CategoriesPage() {
             <main className="categories-main">
                 <header className="categories-page-header">
                     <div>
-                        <h1>Categories</h1>
-                        <p>
-                            Organize income and expenses with a consistent vocabulary.
-                        </p>
+                        <h1>{t('categories.title')}</h1>
+                        <p>{t('categories.subtitle')}</p>
                     </div>
 
                     <button
@@ -268,7 +264,7 @@ export function CategoriesPage() {
                         }
                     >
                         <Icon name="plus"/>
-                        New category
+                        {t('categories.newCategory')}
                     </button>
                 </header>
 
@@ -321,7 +317,7 @@ export function CategoriesPage() {
                         {loadState === 'loading' && (
                             <div
                                 className="category-loading-state"
-                                aria-label="Loading categories"
+                                aria-label={t('categories.loading')}
                             >
                                 {[0, 1, 2, 3].map((item) => (
                                     <span key={item}/>
@@ -335,13 +331,13 @@ export function CategoriesPage() {
                                 role="alert"
                             >
                                 <span><Icon name="alert"/></span>
-                                <h3>Categories could not be loaded</h3>
+                                <h3>{t('categories.loadTitle')}</h3>
                                 <p>{loadError}</p>
                                 <button
                                     type="button"
                                     onClick={() => void loadCategories()}
                                 >
-                                    Try again
+                                    {t('categories.tryAgain')}
                                 </button>
                             </div>
                         )}
@@ -374,7 +370,7 @@ export function CategoriesPage() {
                                                     )
                                                 }
                                             >
-                                                Add category
+                                                {t('categories.addCategory')}
                                             </button>
                                         )}
                                 </div>

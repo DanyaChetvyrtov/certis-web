@@ -1,5 +1,6 @@
 import {CertisLogo} from '../components/Icons'
 import {LoadingIndicator} from '../components/LoadingIndicator'
+import {useTranslation} from 'react-i18next'
 import './SessionCheckPage.css'
 
 type SessionCheckPageProps = {
@@ -13,20 +14,19 @@ export function SessionCheckPage({
                                      onBack,
                                      onRetry,
                                  }: SessionCheckPageProps) {
+    const {t} = useTranslation()
+
     return (
         <main className="session-check-page">
             <CertisLogo className="session-check-logo"/>
             {hasError ? (
                 <>
-                    <p className="eyebrow eyebrow-gold">Connection interrupted</p>
-                    <h1>Certis API is unavailable</h1>
-                    <p>
-                        Make sure certis-api is running on port 8080, then try the session
-                        check again.
-                    </p>
+                    <p className="eyebrow eyebrow-gold">{t('dashboard.session.interrupted')}</p>
+                    <h1>{t('dashboard.session.unavailable')}</h1>
+                    <p>{t('dashboard.session.unavailableDescription')}</p>
                     <div className="session-check-actions">
                         <button type="button" onClick={onRetry}>
-                            Try again
+                            {t('dashboard.session.retry')}
                         </button>
                         {onBack && (
                             <button
@@ -34,7 +34,7 @@ export function SessionCheckPage({
                                 type="button"
                                 onClick={onBack}
                             >
-                                Back to sign in
+                                {t('dashboard.session.back')}
                             </button>
                         )}
                     </div>
@@ -42,12 +42,12 @@ export function SessionCheckPage({
             ) : (
                 <>
                     <LoadingIndicator
-                        label="Checking your session"
+                        label={t('dashboard.session.checking')}
                         size="large"
                         tone="light"
                     />
-                    <h1>Checking your session</h1>
-                    <p>Connecting securely to Certis…</p>
+                    <h1>{t('dashboard.session.checking')}</h1>
+                    <p>{t('dashboard.session.connecting')}</p>
                 </>
             )}
         </main>

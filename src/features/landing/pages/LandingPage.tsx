@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
 import type { CSSProperties, ReactNode } from 'react'
+import {useTranslation} from 'react-i18next'
 import { Icon } from '../../../components/Icons'
 import type { IconName } from '../../../components/Icons'
+import {LanguageSwitcher} from '../../../components/LanguageSwitcher'
 import compactCrestUrl from '../../../assets/certis-crest-compact.webp'
 import detailedCrestUrl from '../../../assets/certis-crest-detailed.webp'
 import './LandingPage.css'
@@ -35,42 +37,46 @@ function BrandMark({ compact = false, detailed = false }: BrandMarkProps) {
 }
 
 function DashboardPreview() {
+  const {t} = useTranslation()
   const summary = [
     {
-      label: 'Total balance',
+      label: t('landing.preview.totalBalance'),
       value: '₽612,840',
-      note: '+₽12,580 this week',
+      note: t('landing.preview.totalBalanceNote'),
       icon: 'wallet' as IconName,
       tone: 'green',
     },
     {
-      label: 'Income',
+      label: t('landing.preview.income'),
       value: '₽185,000',
-      note: 'Salary · recurring',
+      note: t('landing.preview.incomeNote'),
       icon: 'trend-up' as IconName,
       tone: 'blue',
     },
     {
-      label: 'Spent',
+      label: t('landing.preview.spent'),
       value: '₽132,420',
-      note: '68% of budget',
+      note: t('landing.preview.spentNote'),
       icon: 'trend-down' as IconName,
       tone: 'red',
     },
     {
-      label: 'Planned savings',
+      label: t('landing.preview.plannedSavings'),
       value: '₽30,500',
-      note: '82% savings rate',
+      note: t('landing.preview.plannedSavingsNote'),
       icon: 'piggy-bank' as IconName,
       tone: 'gold',
     },
   ]
+  const months = t('landing.preview.months', {
+    returnObjects: true,
+  }) as unknown as string[]
 
   return (
     <div
       className="landing-dashboard-frame"
       role="img"
-      aria-label="Preview of the Certis personal finance dashboard"
+      aria-label={t('landing.preview.dashboardLabel')}
     >
       <div className="landing-window-bar" aria-hidden="true">
         <span />
@@ -81,30 +87,30 @@ function DashboardPreview() {
       <div className="landing-dashboard">
         <aside className="landing-dashboard-sidebar">
           <BrandMark compact />
-          <small>Overview</small>
+          <small>{t('landing.preview.overview')}</small>
           <div className="landing-dashboard-nav-item active">
             <Icon name="dashboard" />
-            Dashboard
+            {t('landing.preview.dashboard')}
           </div>
           <div className="landing-dashboard-nav-item">
             <Icon name="wallet" />
-            Accounts
+            {t('landing.preview.accounts')}
           </div>
           <div className="landing-dashboard-nav-item">
             <Icon name="transfer" />
-            Transactions
+            {t('landing.preview.transactions')}
           </div>
           <div className="landing-dashboard-nav-item">
             <Icon name="gauge" />
-            Budgets
+            {t('landing.preview.budgets')}
           </div>
           <div className="landing-dashboard-nav-item">
             <Icon name="target" />
-            Goals
+            {t('landing.preview.goals')}
           </div>
           <div className="landing-dashboard-nav-item">
             <Icon name="categories" />
-            Categories
+            {t('landing.preview.categories')}
           </div>
           <div className="landing-dashboard-user">
             <span>DC</span>
@@ -118,10 +124,10 @@ function DashboardPreview() {
         <div className="landing-dashboard-content">
           <header className="landing-dashboard-heading">
             <div>
-              <h3>Good morning, Danil</h3>
-              <p>Here is how your money is doing in August.</p>
+              <h3>{t('landing.preview.greeting')}</h3>
+              <p>{t('landing.preview.monthSummary')}</p>
             </div>
-            <span>August 2026</span>
+            <span>{t('landing.preview.month')}</span>
           </header>
 
           <div className="landing-summary-grid">
@@ -141,12 +147,12 @@ function DashboardPreview() {
             <article className="landing-chart-panel">
               <header>
                 <div>
-                  <h4>Cash flow</h4>
-                  <p>Income and spending over the last 6 months</p>
+                  <h4>{t('landing.preview.cashFlow')}</h4>
+                  <p>{t('landing.preview.cashFlowDescription')}</p>
                 </div>
                 <div className="landing-chart-legend">
-                  <span>Income</span>
-                  <span>Spent</span>
+                  <span>{t('landing.preview.income')}</span>
+                  <span>{t('landing.preview.spent')}</span>
                 </div>
               </header>
               <svg viewBox="0 0 560 190" aria-hidden="true">
@@ -171,25 +177,20 @@ function DashboardPreview() {
                 />
               </svg>
               <div className="landing-chart-labels" aria-hidden="true">
-                <span>Mar</span>
-                <span>Apr</span>
-                <span>May</span>
-                <span>Jun</span>
-                <span>Jul</span>
-                <span>Aug</span>
+                {months.map((month) => <span key={month}>{month}</span>)}
               </div>
             </article>
 
             <article className="landing-activity-panel">
               <header>
-                <h4>Recent activity</h4>
-                <span>View all</span>
+                <h4>{t('landing.preview.recentActivity')}</h4>
+                <span>{t('landing.preview.viewAll')}</span>
               </header>
               {[
-                ['Salary', 'Income · Today', '+₽185,000', 'trend-up'],
-                ['Apartment rent', 'Housing · Today', '−₽75,000', 'home'],
-                ['Groceries', 'Food · Yesterday', '−₽4,290', 'shopping-cart'],
-                ['Card transfer', 'Between accounts', '₽20,000', 'transfer'],
+                [t('landing.preview.salary'), t('landing.preview.salaryMeta'), '+₽185,000', 'trend-up'],
+                [t('landing.preview.apartmentRent'), t('landing.preview.housingToday'), '−₽75,000', 'home'],
+                [t('landing.preview.groceries'), t('landing.preview.foodYesterday'), '−₽4,290', 'shopping-cart'],
+                [t('landing.preview.cardTransfer'), t('landing.preview.betweenAccounts'), '₽20,000', 'transfer'],
               ].map(([title, category, amount, icon]) => (
                 <div className="landing-activity-row" key={title}>
                   <span>
@@ -211,16 +212,18 @@ function DashboardPreview() {
 }
 
 function AccountsPreview() {
+  const {t} = useTranslation()
+
   return (
     <div className="feature-visual accounts-visual" aria-hidden="true">
       <div className="mini-window accounts-window">
         <header>
           <div>
-            <h3>Accounts</h3>
-            <small>Total balance</small>
+            <h3>{t('landing.preview.accounts')}</h3>
+            <small>{t('landing.preview.totalBalance')}</small>
             <strong>₽612,840</strong>
           </div>
-          <span className="mini-action">Add account</span>
+          <span className="mini-action">{t('landing.preview.addAccount')}</span>
         </header>
         <div className="account-cards">
           <article>
@@ -229,11 +232,11 @@ function AccountsPreview() {
           </article>
           <article>
             <span><Icon name="piggy-bank" /></span>
-            <div><small>Savings</small><strong>₽80,000</strong></div>
+            <div><small>{t('landing.preview.savings')}</small><strong>₽80,000</strong></div>
           </article>
         </div>
         <article className="mini-chart-card">
-          <strong>Balance movement</strong>
+          <strong>{t('landing.preview.balanceMovement')}</strong>
           <svg viewBox="0 0 420 90">
             <path className="area" d="M0 73C42 65 52 42 92 48s62 8 98-13 70 15 106-5 73 11 124-20V90H0Z" />
             <path d="M0 73C42 65 52 42 92 48s62 8 98-13 70 15 106-5 73 11 124-20" />
@@ -245,18 +248,19 @@ function AccountsPreview() {
 }
 
 function BudgetPreview() {
+  const {t} = useTranslation()
   const categories = [
-    { name: 'Apartment rent', amount: '₽75,000 / ₽75,000', progress: 100, tone: 'gold' },
-    { name: 'Groceries', amount: '₽17,100 / ₽20,000', progress: 72, tone: 'green' },
-    { name: 'Dining out', amount: '₽8,100 / ₽8,000', progress: 92, tone: 'red' },
+    { name: t('landing.preview.apartmentRent'), amount: '₽75,000 / ₽75,000', progress: 100, tone: 'gold' },
+    { name: t('landing.preview.groceries'), amount: '₽17,100 / ₽20,000', progress: 72, tone: 'green' },
+    { name: t('landing.preview.diningOut'), amount: '₽8,100 / ₽8,000', progress: 92, tone: 'red' },
   ]
 
   return (
     <div className="feature-visual budget-visual" aria-hidden="true">
       <div className="mini-window budget-window">
         <header>
-          <div><h3>August budget</h3><small>Planned savings</small><strong>₽30,500</strong></div>
-          <span>82% spent</span>
+          <div><h3>{t('landing.preview.augustBudget')}</h3><small>{t('landing.preview.plannedSavings')}</small><strong>₽30,500</strong></div>
+          <span>{t('landing.preview.percentSpent')}</span>
         </header>
         {categories.map((category) => (
           <div className="budget-row" key={category.name}>
@@ -269,7 +273,7 @@ function BudgetPreview() {
         ))}
         <div className="budget-note">
           <Icon name="check-circle" />
-          <span><strong>Protected an additional ₽6,000</strong><small>Balances two flexible categories — only after your confirmation.</small></span>
+          <span><strong>{t('landing.preview.protectedMore')}</strong><small>{t('landing.preview.protectedMoreDescription')}</small></span>
         </div>
       </div>
     </div>
@@ -277,17 +281,18 @@ function BudgetPreview() {
 }
 
 function GoalsPreview() {
+  const {t} = useTranslation()
   const goals = [
     {
-      name: 'Emergency fund',
-      detail: 'Target · December 2026',
+      name: t('landing.preview.emergencyFund'),
+      detail: t('landing.preview.emergencyTarget'),
       amount: '₽180,000',
       progress: 67,
       tone: 'green',
     },
     {
-      name: 'Travel to Japan',
-      detail: 'Target · April 2027',
+      name: t('landing.preview.japanTrip'),
+      detail: t('landing.preview.japanTarget'),
       amount: '₽240,000',
       progress: 31,
       tone: 'gold',
@@ -297,7 +302,7 @@ function GoalsPreview() {
   return (
     <div className="feature-visual goals-visual" aria-hidden="true">
       <div className="mini-window goals-window">
-        <header><h3>Financial goals</h3><span className="mini-action">New goal</span></header>
+        <header><h3>{t('landing.preview.financialGoals')}</h3><span className="mini-action">{t('landing.preview.newGoal')}</span></header>
         {goals.map((goal) => (
           <article className="goal-row" key={goal.name}>
             <span className={goal.tone}>
@@ -316,7 +321,7 @@ function GoalsPreview() {
             <b>{goal.amount}</b>
           </article>
         ))}
-        <footer><strong>On track</strong><span>You are ₽6,200 ahead this month</span></footer>
+        <footer><strong>{t('landing.preview.onTrack')}</strong><span>{t('landing.preview.ahead')}</span></footer>
       </div>
     </div>
   )
@@ -346,39 +351,47 @@ function FeatureCopy({ eyebrow, title, description, bullets, link, anchorId }: F
 }
 
 export function LandingPage() {
+  const {t} = useTranslation()
+  const detailCards = [
+    ['transfer', t('landing.details.transfersTitle'), t('landing.details.transfersDescription'), t('landing.details.transfersMeta')],
+    ['calendar', t('landing.details.recurringTitle'), t('landing.details.recurringDescription'), t('landing.details.recurringMeta')],
+    ['categories', t('landing.details.categoriesTitle'), t('landing.details.categoriesDescription'), t('landing.details.categoriesMeta')],
+  ]
+
   return (
     <div className="landing-page">
       <section className="landing-hero">
-        <nav className="landing-nav" aria-label="Main navigation">
-          <a href="#top" className="landing-home-link" aria-label="Certis home">
+        <nav className="landing-nav" aria-label={t('landing.navigation.label')}>
+          <a href="#top" className="landing-home-link" aria-label={t('landing.navigation.home')}>
             <BrandMark />
           </a>
           <div className="landing-nav-links">
-            <a href="#product">Product</a>
-            <a href="#budgets">Budgets</a>
-            <a href="#goals">Goals</a>
-            <a href="#how-it-works">How it works</a>
-            <a href="#security">Security</a>
+            <a href="#product">{t('landing.navigation.product')}</a>
+            <a href="#budgets">{t('landing.navigation.budgets')}</a>
+            <a href="#goals">{t('landing.navigation.goals')}</a>
+            <a href="#how-it-works">{t('landing.navigation.howItWorks')}</a>
+            <a href="#security">{t('landing.navigation.security')}</a>
           </div>
           <div className="landing-nav-actions">
-            <Link to="/auth#sign-in" className="landing-sign-in">Sign in</Link>
-            <Link to="/auth#create-account" className="landing-nav-cta">Start planning</Link>
+            <LanguageSwitcher className="landing-language-switcher"/>
+            <Link to="/auth#sign-in" className="landing-sign-in">{t('landing.navigation.signIn')}</Link>
+            <Link to="/auth#create-account" className="landing-nav-cta">{t('landing.navigation.startPlanning')}</Link>
           </div>
         </nav>
 
         <div className="landing-hero-content" id="top">
           <div className="hero-mark"><BrandMark detailed /></div>
-          <p className="landing-kicker"><span>Personal finance, made clear</span></p>
-          <h1>Your money, with a clear<br />sense of <em>direction.</em></h1>
+          <p className="landing-kicker"><span>{t('landing.hero.kicker')}</span></p>
+          <h1>{t('landing.hero.titleStart')}<br /><em>{t('landing.hero.titleEnd')}</em></h1>
           <p className="landing-hero-copy">
-            Accounts, budgets, transactions and goals in one calm view.<br />
-            See what changed, understand why, and choose your next move.
+            {t('landing.hero.descriptionLine1')}<br />
+            {t('landing.hero.descriptionLine2')}
           </p>
           <div className="landing-hero-actions">
-            <Link to="/auth#create-account">Start planning <Icon name="arrow-right" /></Link>
-            <a href="#product">Explore Certis</a>
+            <Link to="/auth#create-account">{t('landing.navigation.startPlanning')} <Icon name="arrow-right" /></Link>
+            <a href="#product">{t('landing.hero.explore')}</a>
           </div>
-          <small className="landing-reassurance">No spreadsheets · No guesswork · Your plan stays yours</small>
+          <small className="landing-reassurance">{t('landing.hero.reassurance')}</small>
         </div>
 
         <div className="landing-dashboard-wrap">
@@ -388,22 +401,22 @@ export function LandingPage() {
 
       <main className="landing-story">
         <section className="landing-section-intro" id="product">
-          <p>The whole picture</p>
-          <h2>A clearer way to manage money.</h2>
-          <span>Built around the decisions you make every month — not around financial jargon.</span>
+          <p>{t('landing.intro.eyebrow')}</p>
+          <h2>{t('landing.intro.title')}</h2>
+          <span>{t('landing.intro.description')}</span>
         </section>
 
         <section className="landing-feature-row">
           <FeatureCopy
-            eyebrow="01 · Accounts & cash flow"
-            title={<>Every account.<br />One honest picture.</>}
-            description="See balances, income and spending without reconciling five different places in your head."
+            eyebrow={t('landing.accounts.eyebrow')}
+            title={<>{t('landing.accounts.titleLine1')}<br />{t('landing.accounts.titleLine2')}</>}
+            description={t('landing.accounts.description')}
             bullets={[
-              'Multiple cash, bank and card accounts',
-              'Transfers stay visible without inflating spend',
-              'Recurring activity appears before it surprises you',
+              t('landing.accounts.bullet1'),
+              t('landing.accounts.bullet2'),
+              t('landing.accounts.bullet3'),
             ]}
-            link="Explore accounts"
+            link={t('landing.accounts.link')}
           />
           <AccountsPreview />
         </section>
@@ -412,63 +425,59 @@ export function LandingPage() {
           <BudgetPreview />
           <FeatureCopy
             anchorId="budgets"
-            eyebrow="02 · Budgets"
-            title={<>Plan the month.<br />Adapt before it hurts.</>}
-            description="Set clear limits for fixed and variable costs. Certis compares them with reality and flags overspending while there is still time to act."
+            eyebrow={t('landing.budgets.eyebrow')}
+            title={<>{t('landing.budgets.titleLine1')}<br />{t('landing.budgets.titleLine2')}</>}
+            description={t('landing.budgets.description')}
             bullets={[
-              'Fixed vs variable allocations',
-              'Forecasts and real-time warnings',
-              'Suggestions remain under your control',
+              t('landing.budgets.bullet1'),
+              t('landing.budgets.bullet2'),
+              t('landing.budgets.bullet3'),
             ]}
-            link="Build a budget"
+            link={t('landing.budgets.link')}
           />
         </section>
 
         <section className="landing-feature-row">
           <FeatureCopy
             anchorId="goals"
-            eyebrow="03 · Goals & direction"
-            title={<>Turn intention into<br />visible progress.</>}
-            description="Give each goal a target, a date and a place in your monthly plan. Progress updates as you save."
+            eyebrow={t('landing.goals.eyebrow')}
+            title={<>{t('landing.goals.titleLine1')}<br />{t('landing.goals.titleLine2')}</>}
+            description={t('landing.goals.description')}
             bullets={[
-              'Clear target and monthly contribution',
-              'A realistic completion forecast',
-              'Savings stay connected to the plan',
+              t('landing.goals.bullet1'),
+              t('landing.goals.bullet2'),
+              t('landing.goals.bullet3'),
             ]}
-            link="Set a goal"
+            link={t('landing.goals.link')}
           />
           <GoalsPreview />
         </section>
 
         <section className="optimization-card" id="how-it-works">
           <div>
-            <p><Icon name="gauge" /> Optimization mode</p>
-            <h2>Save more, without breaking the plan.</h2>
-            <span>Certis can model smarter allocations across flexible categories while protecting fixed costs and essential limits. Nothing changes until you approve it.</span>
-            <Link to="/auth#create-account">Optimize my budget <Icon name="arrow-right" /></Link>
+            <p><Icon name="gauge" /> {t('landing.optimization.eyebrow')}</p>
+            <h2>{t('landing.optimization.title')}</h2>
+            <span>{t('landing.optimization.description')}</span>
+            <Link to="/auth#create-account">{t('landing.optimization.link')} <Icon name="arrow-right" /></Link>
           </div>
-          <div className="optimization-result" aria-label="Example saving reallocation">
-            <small>Safe reallocation</small>
-            <strong>+₽6,000 <span>possible savings</span></strong>
+          <div className="optimization-result" aria-label={t('landing.optimization.exampleLabel')}>
+            <small>{t('landing.optimization.safeReallocation')}</small>
+            <strong>+₽6,000 <span>{t('landing.optimization.possibleSavings')}</span></strong>
             <dl>
-              <div><dt>Dining out</dt><dd>−₽4,000</dd></div>
-              <div><dt>Shopping</dt><dd>−₽2,000</dd></div>
-              <div><dt>Protected essentials</dt><dd>Unchanged</dd></div>
+              <div><dt>{t('landing.optimization.diningOut')}</dt><dd>−₽4,000</dd></div>
+              <div><dt>{t('landing.optimization.shopping')}</dt><dd>−₽2,000</dd></div>
+              <div><dt>{t('landing.optimization.protectedEssentials')}</dt><dd>{t('landing.optimization.unchanged')}</dd></div>
             </dl>
           </div>
         </section>
 
         <section className="landing-details" id="security">
           <header>
-            <p>Everyday control</p>
-            <h2>The details stay beautifully simple.</h2>
+            <p>{t('landing.details.eyebrow')}</p>
+            <h2>{t('landing.details.title')}</h2>
           </header>
           <div className="landing-detail-grid">
-            {[
-              ['transfer', 'Transfers that make sense', 'Move money between your accounts without turning it into fake income or spending.', 'Accounts · Tracking · One activity feed'],
-              ['calendar', 'Recurring, not repetitive', 'Schedule salary, rent and subscriptions once. Certis keeps the timeline current automatically.', 'Daily · Weekly · Monthly · Yearly'],
-              ['categories', 'Categories with context', 'Shape the system around your real life, then archive what you no longer need.', 'Custom · Editable · Archivable'],
-            ].map(([icon, title, copy, meta]) => (
+            {detailCards.map(([icon, title, copy, meta]) => (
               <article key={title}>
                 <span><Icon name={icon as IconName} /></span>
                 <h3>{title}</h3>
@@ -482,22 +491,22 @@ export function LandingPage() {
         <section className="landing-final-cta">
           <BrandMark />
           <div>
-            <h2>Make the next decision with confidence.</h2>
-            <p>A calmer financial life starts with one clear view.</p>
+            <h2>{t('landing.finalCta.title')}</h2>
+            <p>{t('landing.finalCta.description')}</p>
           </div>
-          <Link to="/auth#create-account">Start planning free <Icon name="arrow-right" /></Link>
+          <Link to="/auth#create-account">{t('landing.finalCta.action')} <Icon name="arrow-right" /></Link>
         </section>
 
         <footer className="landing-footer">
           <div>
             <strong>Certis</strong>
-            <small>A Digital Hustle product · Clarity for every financial decision.</small>
+            <small>{t('landing.footer.description')}</small>
           </div>
           <div>
-            <a href="#product">Product</a>
-            <a href="#security">Privacy</a>
-            <a href="#security">Security</a>
-            <Link to="/auth#sign-in">Sign in</Link>
+            <a href="#product">{t('landing.navigation.product')}</a>
+            <a href="#security">{t('landing.footer.privacy')}</a>
+            <a href="#security">{t('landing.navigation.security')}</a>
+            <Link to="/auth#sign-in">{t('landing.navigation.signIn')}</Link>
             <span>© 2026 Certis</span>
           </div>
         </footer>

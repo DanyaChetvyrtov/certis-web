@@ -1,6 +1,7 @@
 import {Select, SelectOption} from '../../../components/Select'
 import {useMemo, useRef, useState} from 'react'
 import type {FormEvent} from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import {ApiError} from '../../../shared/api/ApiError'
 import {useModalAccessibility} from '../../../shared/hooks/useModalAccessibility'
@@ -17,6 +18,7 @@ import type {
 } from '../api/recurringTransactionsApi'
 import type {TransactionType} from '../api/transactionsApi'
 import './RecurringTransactionFormModal.css'
+import {useLanguage} from '../../../i18n/useLanguage'
 
 type Props = {
     accounts: Account[]
@@ -38,17 +40,10 @@ const localDate = (date = new Date()) => [
     String(date.getDate()).padStart(2, '0'),
 ].join('-')
 
-const frequencyLabel: Record<RecurringFrequency, string> = {
-    DAILY: 'daily',
-    WEEKLY: 'weekly',
-    MONTHLY: 'monthly',
-    YEARLY: 'yearly',
-}
+const previewDate = (value: string, locale: string, fallback: string) => {
+    if (!value) return fallback
 
-const previewDate = (value: string) => {
-    if (!value) return 'Choose the first occurrence'
-
-    return new Date(`${value}T00:00:00`).toLocaleDateString('en-US', {
+    return new Date(`${value}T00:00:00`).toLocaleDateString(locale, {
         month: 'long',
         day: 'numeric',
         year: 'numeric',
@@ -63,6 +58,8 @@ export function RecurringTransactionFormModal({
     onSaved,
     restoreFocus,
 }: Props) {
+    const {t} = useTranslation()
+    const {locale} = useLanguage()
     const editing = Boolean(transaction)
     const [type, setType] = useState<TransactionType>(transaction?.type ?? 'EXPENSE')
     const [name, setName] = useState(transaction?.name ?? '')
@@ -113,20 +110,20 @@ export function RecurringTransactionFormModal({
         const normalizedName = name.trim()
         const normalizedAmount = Number(amount)
 
-        if (!normalizedName) nextErrors.name = 'Enter a schedule name.'
-        else if (normalizedName.length > 150) nextErrors.name = 'Use no more than 150 characters.'
-        if (!accountId) nextErrors.accountId = 'Select an account.'
+        if (!normalizedName) nextErrors.name = t('transactions.recurringForm.nameRequired')
+        else if (normalizedName.length > 150) nextErrors.name = t('transactions.recurringForm.nameTooLong')
+        if (!accountId) nextErrors.accountId = t('transactions.recurringForm.accountRequired')
         if (!amount || !Number.isFinite(normalizedAmount) || normalizedAmount <= 0
             || !/^\d{1,15}(?:\.\d{1,4})?$/.test(amount)) {
-            nextErrors.amount = 'Enter a positive amount with up to 4 decimal places.'
+            nextErrors.amount = t('transactions.recurringForm.amountInvalid')
         }
-        if (!startDate) nextErrors.startDate = 'Choose the first occurrence.'
+        if (!startDate) nextErrors.startDate = t('transactions.recurringForm.firstRequired')
         if (endDate && startDate && endDate < startDate) {
-            nextErrors.endDate = 'End date cannot be before the first occurrence.'
+            nextErrors.endDate = t('transactions.recurringForm.endInvalid')
         }
         const category = categories.find((item) => item.id === categoryId)
         if (category && category.type !== type) {
-            nextErrors.categoryId = 'Choose a category with the same type.'
+            nextErrors.categoryId = t('transactions.recurringForm.categoryMismatch')
         }
 
         setErrors(nextErrors)
@@ -174,7 +171,7 @@ export function RecurringTransactionFormModal({
                 })
                 setFormError(error.message)
             } else {
-                setFormError('We could not save this schedule. Please try again.')
+                setFormError(t('transactions.recurringForm.error'))
             }
         } finally {
             setSaving(false)
@@ -194,11 +191,11 @@ export function RecurringTransactionFormModal({
                 <header>
                     <div>
                         <h2 id="recurring-modal-title">
-                            {editing ? 'Edit recurring transaction' : 'New recurring transaction'}
+                            {editing ? t('transactions.recurringForm.editTitle') : t('transactions.recurringForm.newTitle')}
                         </h2>
-                        <p>Set it once — Certis will create a real transaction on every due date.</p>
+                        <p>{t('transactions.recurringForm.description')}</p>
                     </div>
-                    <button type="button" aria-label="Close recurring transaction form" disabled={saving} onClick={onClose}>
+                    <button type="button" aria-label={t('transactions.recurringForm.close')} disabled={saving} onClick={onClose}>
                         <Icon name="close"/>
                     </button>
                 </header>
@@ -206,7 +203,7 @@ export function RecurringTransactionFormModal({
                 <form onSubmit={submit} noValidate>
                     {formError && <div className="recurring-form-error" role="alert">{formError}</div>}
                     <fieldset className="recurring-type">
-                        <legend>Transaction details</legend>
+                        <legend>{t('transactions.recurringForm.details')}</legend>
                         <div>
                             {(['INCOME', 'EXPENSE'] as const).map((value) => (
                                 <button
@@ -217,20 +214,20 @@ export function RecurringTransactionFormModal({
                                     onClick={() => changeType(value)}
                                 >
                                     <Icon name={value === 'INCOME' ? 'cash' : 'wallet'}/>
-                                    {value === 'INCOME' ? 'Income' : 'Expense'}
+                                    {value === 'INCOME' ? t('transactions.recurringForm.income') : t('transactions.recurringForm.expense')}
                                 </button>
                             ))}
                         </div>
                     </fieldset>
 
                     <div className="recurring-field wide">
-                        <label htmlFor="recurring-name">Name</label>
+                        <label htmlFor="recurring-name">{t('transactions.recurringForm.name')}</label>
                         <input ref={nameRef} id="recurring-name" value={name} onChange={(event) => setName(event.target.value)} aria-invalid={Boolean(errors.name)}/>
                         {errors.name && <small>{errors.name}</small>}
                     </div>
 
                     <div className="recurring-field wide">
-                        <label htmlFor="recurring-amount">Amount</label>
+                        <label htmlFor="recurring-amount">{t('transactions.recurringForm.amount')}</label>
                         <div className="recurring-amount-input">
                             <span>{selectedAccount ? selectedAccount.currency : '—'}</span>
                             <input id="recurring-amount" inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} aria-invalid={Boolean(errors.amount)}/>
@@ -240,39 +237,39 @@ export function RecurringTransactionFormModal({
 
                     <div className="recurring-fields-grid">
                         <div className="recurring-field">
-                            <label htmlFor="recurring-account">Account</label>
+                            <label htmlFor="recurring-account">{t('transactions.recurringForm.account')}</label>
                             <Select id="recurring-account" value={accountId} onValueChange={(value) => setAccountId(value)}>
-                                <SelectOption value="">Select account</SelectOption>
+                                <SelectOption value="">{t('transactions.recurringForm.selectAccount')}</SelectOption>
                                 {availableAccounts.map((account) => <SelectOption value={account.id} key={account.id}>{account.name} · {account.currency}</SelectOption>)}
                             </Select>
                             {errors.accountId && <small>{errors.accountId}</small>}
                         </div>
                         <div className="recurring-field">
-                            <label htmlFor="recurring-category">Category</label>
+                            <label htmlFor="recurring-category">{t('transactions.recurringForm.category')}</label>
                             <Select id="recurring-category" value={categoryId} onValueChange={(value) => setCategoryId(value)}>
-                                <SelectOption value="">Uncategorized</SelectOption>
+                                <SelectOption value="">{t('transactions.recurringForm.uncategorized')}</SelectOption>
                                 {availableCategories.map((category) => <SelectOption value={category.id} key={category.id}>{category.name}</SelectOption>)}
                             </Select>
                             {errors.categoryId && <small>{errors.categoryId}</small>}
                         </div>
                         <div className="recurring-field">
-                            <label htmlFor="recurring-merchant">Merchant <span>Optional</span></label>
+                            <label htmlFor="recurring-merchant">{t('transactions.recurringForm.merchant')} <span>{t('transactions.recurringForm.optional')}</span></label>
                             <input id="recurring-merchant" value={merchant} maxLength={255} onChange={(event) => setMerchant(event.target.value)}/>
                         </div>
                         <div className="recurring-field">
-                            <label htmlFor="recurring-note">Note <span>Optional</span></label>
+                            <label htmlFor="recurring-note">{t('transactions.recurringForm.note')} <span>{t('transactions.recurringForm.optional')}</span></label>
                             <input id="recurring-note" value={note} onChange={(event) => setNote(event.target.value)}/>
                         </div>
                     </div>
 
                     <fieldset className="recurring-frequency">
-                        <legend>Schedule</legend>
-                        <label htmlFor="recurring-interval">Every</label>
+                        <legend>{t('transactions.recurringForm.schedule')}</legend>
+                        <label htmlFor="recurring-interval">{t('transactions.recurringForm.every')}</label>
                         <div className="recurring-frequency-row">
                             <input id="recurring-interval" type="number" min="1" max="32767" value={intervalCount} onChange={(event) => setIntervalCount(Math.max(1, Number(event.target.value)))}/>
                             <div>
                                 {(['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'] as const).map((value) => (
-                                    <button type="button" className={frequency === value ? 'active' : undefined} aria-pressed={frequency === value} key={value} onClick={() => setFrequency(value)}>{value[0]}{value.slice(1).toLowerCase()}</button>
+                                    <button type="button" className={frequency === value ? 'active' : undefined} aria-pressed={frequency === value} key={value} onClick={() => setFrequency(value)}>{t(`transactions.recurringView.frequency.${value}`)}</button>
                                 ))}
                             </div>
                         </div>
@@ -280,12 +277,12 @@ export function RecurringTransactionFormModal({
 
                     <div className="recurring-fields-grid">
                         <div className="recurring-field">
-                            <label htmlFor="recurring-start">First occurrence</label>
+                            <label htmlFor="recurring-start">{t('transactions.recurringForm.first')}</label>
                             <input id="recurring-start" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)}/>
                             {errors.startDate && <small>{errors.startDate}</small>}
                         </div>
                         <div className="recurring-field">
-                            <label htmlFor="recurring-end">End date <span>Optional</span></label>
+                            <label htmlFor="recurring-end">{t('transactions.recurringForm.end')} <span>{t('transactions.recurringForm.optional')}</span></label>
                             <input id="recurring-end" type="date" min={startDate} value={endDate} onChange={(event) => setEndDate(event.target.value)}/>
                             {errors.endDate && <small>{errors.endDate}</small>}
                         </div>
@@ -293,14 +290,17 @@ export function RecurringTransactionFormModal({
 
                     <div className="recurring-preview">
                         <Icon name="repeat"/>
-                        <div><small>First transaction</small><strong>{previewDate(startDate)}</strong><span>Then repeats every {intervalCount > 1 ? `${intervalCount} ` : ''}{frequencyLabel[frequency]} · Future transactions only</span></div>
+                        <div><small>{t('transactions.recurringForm.firstTransaction')}</small><strong>{previewDate(startDate, locale, t('transactions.recurringForm.chooseFirst'))}</strong><span>{t('transactions.recurringForm.repeat', {
+                            interval: intervalCount,
+                            frequency: t(`transactions.recurringView.frequencyUnit.${frequency}`, {count: intervalCount}),
+                        })}</span></div>
                         <strong className={type === 'INCOME' ? 'income' : 'expense'}>{type === 'INCOME' ? '+' : '−'}{amount || '0'} {selectedAccount?.currency ?? ''}</strong>
                     </div>
 
                     <footer>
-                        <p>The schedule can be paused or edited at any time.</p>
-                        <button type="button" disabled={saving} onClick={onClose}>Cancel</button>
-                        <button type="submit" disabled={saving}>{saving ? 'Saving…' : editing ? 'Save changes' : 'Create schedule'}</button>
+                        <p>{t('transactions.recurringForm.footer')}</p>
+                        <button type="button" disabled={saving} onClick={onClose}>{t('transactions.recurringForm.cancel')}</button>
+                        <button type="submit" disabled={saving}>{saving ? t('transactions.recurringForm.saving') : editing ? t('transactions.recurringForm.save') : t('transactions.recurringForm.create')}</button>
                     </footer>
                 </form>
             </div>

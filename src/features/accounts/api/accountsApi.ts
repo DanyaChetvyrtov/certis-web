@@ -1,6 +1,7 @@
 import { apiRequest } from '../../../shared/api/client'
 import {currencies} from '../../../shared/currency'
 import type {Currency} from '../../../shared/currency'
+import i18n from '../../../i18n/i18n'
 
 export const accountTypes = ['CASH', 'BANK', 'CARD', 'INVESTMENT'] as const
 export {currencies}
@@ -40,19 +41,19 @@ const accountPath = (accountId: string) => `/api/v1/accounts/${accountId}`
 
 export const getAccounts = () =>
   apiRequest<Account[]>('/api/v1/accounts', {
-    fallbackMessage: 'We could not load your accounts. Please try again.',
+    fallbackMessage: i18n.t('accounts.loadError'),
   })
 
 export const getAccount = (accountId: string) =>
   apiRequest<Account>(accountPath(accountId), {
-    fallbackMessage: 'We could not load this account. Please try again.',
+    fallbackMessage: i18n.t('accounts.loadError'),
   })
 
 export const createAccount = (request: CreateAccountRequest) =>
   apiRequest<Account>('/api/v1/accounts', {
     method: 'POST',
     body: request,
-    fallbackMessage: 'We could not create this account. Please try again.',
+    fallbackMessage: i18n.t('accounts.form.saveError'),
   })
 
 export const updateAccount = (
@@ -62,11 +63,11 @@ export const updateAccount = (
   apiRequest<Account>(accountPath(accountId), {
     method: 'PUT',
     body: request,
-    fallbackMessage: 'We could not update this account. Please try again.',
+    fallbackMessage: i18n.t('accounts.form.saveError'),
   })
 
 export const closeAccount = (accountId: string) =>
   apiRequest(accountPath(accountId), {
     method: 'DELETE',
-    fallbackMessage: 'We could not close this account. Please try again.',
+    fallbackMessage: i18n.t('accounts.closeDialog.error'),
   })

@@ -8,10 +8,12 @@ import type {
     CSSProperties,
     FormEvent,
 } from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import {Select, SelectOption} from '../../../components/Select'
+import {useLanguage} from '../../../i18n/useLanguage'
 import type {Account} from '../../accounts/api/accountsApi'
-import {currencies, currencyLabels} from '../../../shared/currency'
+import {currencies} from '../../../shared/currency'
 import type {Currency} from '../../../shared/currency'
 import {ApiError} from '../../../shared/api/ApiError'
 import {useModalAccessibility} from '../../../shared/hooks/useModalAccessibility'
@@ -33,7 +35,6 @@ import {
     goalColors,
     goalIconName,
     goalIcons,
-    paceLabels,
 } from '../goalPresentation'
 import './GoalModals.css'
 
@@ -64,6 +65,8 @@ export function GoalFormModal({
     onSaved,
     restoreFocus,
 }: GoalFormModalProps) {
+    const {t} = useTranslation()
+    const {locale} = useLanguage()
     const isEditing = Boolean(goal)
     const [name, setName] = useState(goal?.name ?? '')
     const [targetAmount, setTargetAmount] = useState(
@@ -175,25 +178,29 @@ export function GoalFormModal({
     const validate = (): boolean => {
         const errors: Record<string, string> = {}
 
-        if (!name.trim()) errors.name = 'Enter a goal name.'
-        if (name.trim().length > 100) errors.name = 'Use no more than 100 characters.'
+        if (!name.trim()) {
+            errors.name = t('goals.form.validation.name')
+        }
+        if (name.trim().length > 100) {
+            errors.name = t('goals.form.validation.nameLength')
+        }
         if (!Number.isFinite(numericTarget) || numericTarget <= 0) {
-            errors.targetAmount = 'Enter an amount greater than zero.'
+            errors.targetAmount = t('goals.form.validation.targetAmount')
         }
         if (!targetMonth || targetMonth < currentMonth()) {
-            errors.targetMonth = 'Choose the current month or a later month.'
+            errors.targetMonth = t('goals.form.validation.targetMonth')
         }
         if (!isEditing && (!Number.isFinite(numericInitial) || numericInitial < 0)) {
-            errors.initialAmount = 'Enter zero or a positive amount.'
+            errors.initialAmount = t('goals.form.validation.initialAmount')
         }
         if (!isEditing && numericInitial > numericTarget) {
-            errors.initialAmount = 'Initial contribution cannot exceed the target.'
+            errors.initialAmount = t('goals.form.validation.initialMaximum')
         }
         if (!isEditing && numericInitial > 0 && !accountId) {
-            errors.accountId = 'Choose the account that will fund this contribution.'
+            errors.accountId = t('goals.form.validation.account')
         }
         if (planType === 'CUSTOM' && (!Number.isFinite(numericCustom) || numericCustom <= 0)) {
-            errors.customMonthlyAmount = 'Enter a monthly amount greater than zero.'
+            errors.customMonthlyAmount = t('goals.form.validation.customAmount')
         }
 
         setFieldErrors(errors)
@@ -236,7 +243,7 @@ export function GoalFormModal({
                             initialContribution: {
                                 accountId,
                                 amount: numericInitial,
-                                note: 'Initial goal contribution',
+                                note: t('goals.form.initialNote'),
                             },
                         }
                         : {}),
@@ -252,8 +259,8 @@ export function GoalFormModal({
             } else {
                 setFormError(
                     isEditing
-                        ? 'We could not update this goal. Please try again.'
-                        : 'We could not create this goal. Please try again.',
+                        ? t('goals.form.updateError')
+                        : t('goals.form.createError'),
                 )
             }
         } finally {
@@ -285,12 +292,21 @@ export function GoalFormModal({
                 <header className="goal-modal-heading">
                     <span className="goal-modal-mark"><Icon name="target"/></span>
                     <div>
-                        <h2 id="goal-form-title">{isEditing ? 'Edit goal' : 'Create a goal'}</h2>
+                        <h2 id="goal-form-title">
+                            {isEditing
+                                ? t('goals.form.editTitle')
+                                : t('goals.form.createTitle')}
+                        </h2>
                         <p>{isEditing
-                            ? 'Update the target, contribution pace and appearance.'
-                            : 'Define the target. Certis will calculate a realistic monthly pace.'}</p>
+                            ? t('goals.form.editSubtitle')
+                            : t('goals.form.createSubtitle')}</p>
                     </div>
-                    <button type="button" aria-label="Close goal form" disabled={isSaving} onClick={onClose}>
+                    <button
+                        type="button"
+                        aria-label={t('goals.form.close')}
+                        disabled={isSaving}
+                        onClick={onClose}
+                    >
                         <Icon name="close"/>
                     </button>
                 </header>
@@ -298,15 +314,15 @@ export function GoalFormModal({
                 <form onSubmit={(event) => void submit(event)} noValidate>
                     <div className="goal-form-fields">
                         <section>
-                            <h3>Goal details</h3>
+                            <h3>{t('goals.form.details')}</h3>
                             <div className="goal-field goal-field-wide">
-                                <label htmlFor="goal-name">Goal name</label>
+                                <label htmlFor="goal-name">{t('goals.form.name')}</label>
                                 <input
                                     ref={nameRef}
                                     id="goal-name"
                                     value={name}
                                     maxLength={100}
-                                    placeholder="e.g. Travel to Iceland"
+                                    placeholder={t('goals.form.namePlaceholder')}
                                     aria-invalid={Boolean(fieldErrors.name)}
                                     onChange={(event) => {
                                         setName(event.target.value)
@@ -318,7 +334,9 @@ export function GoalFormModal({
 
                             <div className="goal-field-row">
                                 <div className="goal-field">
-                                    <label htmlFor="goal-target-amount">Target amount</label>
+                                    <label htmlFor="goal-target-amount">
+                                        {t('goals.form.targetAmount')}
+                                    </label>
                                     <input
                                         id="goal-target-amount"
                                         type="number"
@@ -333,10 +351,12 @@ export function GoalFormModal({
                                 </div>
 
                                 <div className="goal-field">
-                                    <label htmlFor="goal-currency">Currency</label>
+                                    <label htmlFor="goal-currency">
+                                        {t('goals.form.currency')}
+                                    </label>
                                     <Select
                                         id="goal-currency"
-                                        aria-label="Goal currency"
+                                        aria-label={t('goals.form.currencyLabel')}
                                         value={currency}
                                         disabled={isEditing}
                                         onValueChange={(value) => {
@@ -346,7 +366,7 @@ export function GoalFormModal({
                                     >
                                         {currencies.map((item) => (
                                             <SelectOption value={item} key={item}>
-                                                {item} · {currencyLabels[item]}
+                                                {item} · {t(`currencies.${item}`)}
                                             </SelectOption>
                                         ))}
                                     </Select>
@@ -356,7 +376,9 @@ export function GoalFormModal({
                             <div className="goal-field-row">
                                 {!isEditing && (
                                     <div className="goal-field">
-                                        <label htmlFor="goal-initial-amount">Initial contribution</label>
+                                        <label htmlFor="goal-initial-amount">
+                                            {t('goals.form.initialContribution')}
+                                        </label>
                                         <input
                                             id="goal-initial-amount"
                                             type="number"
@@ -371,7 +393,9 @@ export function GoalFormModal({
                                 )}
 
                                 <div className="goal-field">
-                                    <label htmlFor="goal-target-month">Target month</label>
+                                    <label htmlFor="goal-target-month">
+                                        {t('goals.form.targetMonth')}
+                                    </label>
                                     <input
                                         id="goal-target-month"
                                         type="month"
@@ -386,29 +410,43 @@ export function GoalFormModal({
 
                             {!isEditing && numericInitial > 0 && (
                                 <div className="goal-field goal-field-wide">
-                                    <label htmlFor="goal-source-account">Source account</label>
+                                    <label htmlFor="goal-source-account">
+                                        {t('goals.form.sourceAccount')}
+                                    </label>
                                     <Select
                                         id="goal-source-account"
-                                        aria-label="Initial contribution account"
+                                        aria-label={t('goals.form.accountLabel')}
                                         value={accountId}
                                         onValueChange={setAccountId}
                                     >
-                                        <SelectOption value="">Choose account</SelectOption>
+                                        <SelectOption value="">
+                                            {t('goals.form.chooseAccount')}
+                                        </SelectOption>
                                         {eligibleAccounts.map((account) => (
                                             <SelectOption value={account.id} key={account.id}>
-                                                {account.name} · {formatGoalMoney(account.balance, account.currency)}
+                                                {account.name} · {formatGoalMoney(
+                                                    account.balance,
+                                                    account.currency,
+                                                    locale,
+                                                )}
                                             </SelectOption>
                                         ))}
                                     </Select>
                                     {fieldErrors.accountId && <small>{fieldErrors.accountId}</small>}
                                     {eligibleAccounts.length === 0 && (
-                                        <p className="goal-field-hint">No active {currency} account is available.</p>
+                                        <p className="goal-field-hint">
+                                            {t('goals.form.noAccount', {currency})}
+                                        </p>
                                     )}
                                 </div>
                             )}
 
-                            <h3 className="goal-section-heading">Contribution plan</h3>
-                            <p className="goal-section-copy">Use the calculated pace or enter your own monthly amount.</p>
+                            <h3 className="goal-section-heading">
+                                {t('goals.form.contributionPlan')}
+                            </h3>
+                            <p className="goal-section-copy">
+                                {t('goals.form.planDescription')}
+                            </p>
                             <div className="goal-plan-options">
                                 <label className={planType === 'RECOMMENDED' ? 'selected' : undefined}>
                                     <input
@@ -417,9 +455,18 @@ export function GoalFormModal({
                                         checked={planType === 'RECOMMENDED'}
                                         onChange={() => setPlanType('RECOMMENDED')}
                                     />
-                                    <span><b>Recommended</b><strong>{visiblePreview
-                                        ? `${formatGoalMoney(visiblePreview.recommendedMonthlyAmount, currency)} / month`
-                                        : 'Calculated automatically'}</strong></span>
+                                    <span>
+                                        <b>{t('goals.form.recommended')}</b>
+                                        <strong>{visiblePreview
+                                            ? t('goals.form.perMonth', {
+                                                amount: formatGoalMoney(
+                                                    visiblePreview.recommendedMonthlyAmount,
+                                                    currency,
+                                                    locale,
+                                                ),
+                                            })
+                                            : t('goals.form.calculatedAutomatically')}</strong>
+                                    </span>
                                 </label>
                                 <label className={planType === 'CUSTOM' ? 'selected' : undefined}>
                                     <input
@@ -428,13 +475,18 @@ export function GoalFormModal({
                                         checked={planType === 'CUSTOM'}
                                         onChange={() => setPlanType('CUSTOM')}
                                     />
-                                    <span><b>Custom amount</b><small>Set a different monthly pace</small></span>
+                                    <span>
+                                        <b>{t('goals.form.customAmount')}</b>
+                                        <small>{t('goals.form.customDescription')}</small>
+                                    </span>
                                 </label>
                             </div>
 
                             {planType === 'CUSTOM' && (
                                 <div className="goal-field goal-field-wide goal-custom-amount">
-                                    <label htmlFor="goal-custom-amount">Monthly amount</label>
+                                    <label htmlFor="goal-custom-amount">
+                                        {t('goals.form.monthlyAmount')}
+                                    </label>
                                     <input
                                         id="goal-custom-amount"
                                         type="number"
@@ -448,10 +500,12 @@ export function GoalFormModal({
                                 </div>
                             )}
 
-                            <h3 className="goal-section-heading">Appearance</h3>
+                            <h3 className="goal-section-heading">
+                                {t('goals.form.appearance')}
+                            </h3>
                             <div className="goal-appearance-row">
                                 <fieldset>
-                                    <legend>Icon</legend>
+                                    <legend>{t('goals.form.icon')}</legend>
                                     <div className="goal-icon-options">
                                         {goalIcons.map((item) => (
                                             <label className={goalIconName(icon) === item ? 'selected' : undefined} key={item}>
@@ -459,7 +513,7 @@ export function GoalFormModal({
                                                     type="radio"
                                                     name="goal-icon"
                                                     value={item}
-                                                    aria-label={`${item} icon`}
+                                                    aria-label={`${t('goals.form.icon')}: ${item}`}
                                                     checked={goalIconName(icon) === item}
                                                     onChange={() => setIcon(item)}
                                                 />
@@ -469,7 +523,7 @@ export function GoalFormModal({
                                     </div>
                                 </fieldset>
                                 <fieldset>
-                                    <legend>Color</legend>
+                                    <legend>{t('goals.form.color')}</legend>
                                     <div className="goal-color-options">
                                         {goalColors.map((item) => (
                                             <label
@@ -481,7 +535,7 @@ export function GoalFormModal({
                                                     type="radio"
                                                     name="goal-color"
                                                     value={item.value}
-                                                    aria-label={item.name}
+                                                    aria-label={t(`goals.form.colors.${item.name}`)}
                                                     checked={color.toUpperCase() === item.value.toUpperCase()}
                                                     onChange={() => setColor(item.value)}
                                                 />
@@ -493,54 +547,129 @@ export function GoalFormModal({
                             </div>
                         </section>
 
-                        <aside className="goal-live-preview" aria-label="Goal preview">
-                            <p>Live preview</p>
+                        <aside
+                            className="goal-live-preview"
+                            aria-label={t('goals.form.previewLabel')}
+                        >
+                            <p>{t('goals.form.livePreview')}</p>
                             <article className="goal-preview-card">
                                 <header>
                                     <span><Icon name={goalIconName(icon)}/></span>
-                                    <div><strong>{name.trim() || 'Your new goal'}</strong><small>Target · {formatGoalMonth(targetMonth)}</small></div>
-                                    <em className={`pace-${previewPace.toLowerCase()}`}>{paceLabels[previewPace]}</em>
+                                    <div>
+                                        <strong>
+                                            {name.trim() || t('goals.form.newGoal')}
+                                        </strong>
+                                        <small>
+                                            {t('goals.form.targetDate', {
+                                                date: formatGoalMonth(
+                                                    targetMonth,
+                                                    locale,
+                                                    t('goals.summary.noTarget'),
+                                                ),
+                                            })}
+                                        </small>
+                                    </div>
+                                    <em className={`pace-${previewPace.toLowerCase()}`}>
+                                        {t(`goals.pace.${previewPace}`)}
+                                    </em>
                                 </header>
                                 <div className="goal-preview-amount">
-                                    <strong>{formatGoalMoney(numericInitial || 0, currency)}</strong>
-                                    <span>of {formatGoalMoney(numericTarget || 0, currency)}</span>
+                                    <strong>{formatGoalMoney(
+                                        numericInitial || 0,
+                                        currency,
+                                        locale,
+                                    )}</strong>
+                                    <span>
+                                        {t('goals.form.ofAmount', {
+                                            amount: formatGoalMoney(
+                                                numericTarget || 0,
+                                                currency,
+                                                locale,
+                                            ),
+                                        })}
+                                    </span>
                                     <b>{Math.round(previewProgress)}%</b>
                                 </div>
                                 <span className="goal-progress-track"><i style={{width: `${Math.min(previewProgress, 100)}%`}}/></span>
                                 <footer>
-                                    <span><small>Monthly contribution</small><strong>{formatGoalMoney(previewAmount, currency)}</strong></span>
-                                    <span><small>Remaining</small><strong>{formatGoalMoney(previewRemaining, currency)}</strong></span>
+                                    <span>
+                                        <small>{t('goals.form.monthlyContribution')}</small>
+                                        <strong>{formatGoalMoney(
+                                            previewAmount,
+                                            currency,
+                                            locale,
+                                        )}</strong>
+                                    </span>
+                                    <span>
+                                        <small>{t('goals.form.remaining')}</small>
+                                        <strong>{formatGoalMoney(
+                                            previewRemaining,
+                                            currency,
+                                            locale,
+                                        )}</strong>
+                                    </span>
                                 </footer>
                             </article>
 
-                            <h3>Calculated plan</h3>
+                            <h3>{t('goals.form.calculatedPlan')}</h3>
                             <section className="goal-calculated-plan">
-                                <small>Target gap</small>
-                                <strong>{formatGoalMoney(previewRemaining, currency)}</strong>
-                                <div><span>{formatGoalMonth(currentMonth())} → {formatGoalMonth(targetMonth)}</span><b>{formatGoalMoney(previewAmount, currency)}/mo</b></div>
+                                <small>{t('goals.form.targetGap')}</small>
+                                <strong>{formatGoalMoney(
+                                    previewRemaining,
+                                    currency,
+                                    locale,
+                                )}</strong>
+                                <div>
+                                    <span>
+                                        {formatGoalMonth(currentMonth(), locale)}
+                                        {' → '}
+                                        {formatGoalMonth(targetMonth, locale)}
+                                    </span>
+                                    <b>{t('goals.form.perMonthShort', {
+                                        amount: formatGoalMoney(
+                                            previewAmount,
+                                            currency,
+                                            locale,
+                                        ),
+                                    })}</b>
+                                </div>
                             </section>
 
                             <div className="goal-plan-notice">
                                 <Icon name="alert"/>
                                 <span>{isEditing
-                                    ? 'Editing this plan does not move its existing savings.'
+                                    ? t('goals.form.editMoneyNotice')
                                     : numericInitial > 0
-                                        ? 'The initial contribution will be moved from the selected account.'
-                                        : 'Creating a goal without an initial contribution does not move money.'}</span>
+                                        ? t('goals.form.initialMoneyNotice')
+                                        : t('goals.form.noInitialMoneyNotice')}</span>
                             </div>
 
-                            {canPreview && previewState === 'loading' && <p className="goal-preview-status">Calculating plan…</p>}
-                            {canPreview && previewState === 'error' && <p className="goal-preview-status error">Plan preview is unavailable.</p>}
+                            {canPreview && previewState === 'loading' && (
+                                <p className="goal-preview-status">
+                                    {t('goals.form.calculating')}
+                                </p>
+                            )}
+                            {canPreview && previewState === 'error' && (
+                                <p className="goal-preview-status error">
+                                    {t('goals.form.previewUnavailable')}
+                                </p>
+                            )}
                         </aside>
                     </div>
 
                     {formError && <p className="goal-form-error" role="alert"><Icon name="alert"/>{formError}</p>}
 
                     <footer className="goal-modal-actions">
-                        <span>You can edit the target, pace and appearance at any time.</span>
-                        <button type="button" disabled={isSaving} onClick={onClose}>Cancel</button>
+                        <span>{t('goals.form.footer')}</span>
+                        <button type="button" disabled={isSaving} onClick={onClose}>
+                            {t('goals.form.cancel')}
+                        </button>
                         <button className="primary" type="submit" disabled={isSaving}>
-                            {isSaving ? 'Saving…' : isEditing ? 'Save changes' : 'Create goal'}
+                            {isSaving
+                                ? t('goals.form.saving')
+                                : isEditing
+                                    ? t('goals.form.save')
+                                    : t('goals.form.create')}
                         </button>
                     </footer>
                 </form>

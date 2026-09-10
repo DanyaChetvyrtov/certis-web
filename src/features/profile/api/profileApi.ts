@@ -1,6 +1,7 @@
 import {ApiError} from '../../../shared/api/ApiError'
 import {apiRequest} from '../../../shared/api/client'
 import type {Currency} from '../../../shared/currency'
+import i18n from '../../../i18n/i18n'
 
 export type ProfileRequest = {
     name: string
@@ -53,8 +54,7 @@ const createPhotoForm = (
     return body
 }
 
-const fallbackMessage =
-    'We could not load your profile. Please try again.'
+const fallbackMessage = () => i18n.t('profile.loadError')
 
 export const getCurrentProfile =
     async (): Promise<Profile | null> => {
@@ -62,7 +62,7 @@ export const getCurrentProfile =
             return await apiRequest<Profile>(
                 '/api/v1/profiles/me',
                 {
-                    fallbackMessage,
+                    fallbackMessage: fallbackMessage(),
                 },
             )
         } catch (error) {
@@ -84,7 +84,7 @@ export const createProfile = (
         method: 'POST',
         body: request,
         fallbackMessage:
-            'We could not save your profile. Please try again.',
+            i18n.t('profile.saveError'),
     })
 
 export const updateProfile = (
@@ -97,7 +97,7 @@ export const updateProfile = (
             method: 'PUT',
             body: request,
             fallbackMessage:
-                'We could not update your profile. Please try again.',
+                i18n.t('profile.updateError'),
         },
     )
 
@@ -111,7 +111,7 @@ export const uploadProfilePhoto = (
             method: 'POST',
             body: createPhotoForm(photo),
             fallbackMessage:
-                'We could not upload your photo. Please try again.',
+                i18n.t('profile.photoSaveError'),
         },
     )
 
@@ -125,7 +125,7 @@ export const updateProfilePhoto = (
             method: 'PUT',
             body: createPhotoForm(photo),
             fallbackMessage:
-                'We could not update your photo. Please try again.',
+                i18n.t('profile.photoSaveError'),
         },
     )
 
@@ -137,6 +137,6 @@ export const deleteProfilePhoto = (
         {
             method: 'DELETE',
             fallbackMessage:
-                'We could not remove your photo. Please try again.',
+                i18n.t('profile.photoRemoveError'),
         },
     )

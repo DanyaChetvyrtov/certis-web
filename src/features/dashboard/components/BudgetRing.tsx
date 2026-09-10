@@ -1,21 +1,23 @@
 import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts'
+import { useTranslation } from 'react-i18next'
 
 type BudgetRingProps = {
   percentage: number
 }
 
 export function BudgetRing({ percentage }: BudgetRingProps) {
+  const { t } = useTranslation()
   const normalizedPercentage = Math.min(100, Math.max(0, percentage))
   const data = [
-    { name: 'Used', value: normalizedPercentage },
-    { name: 'Remaining', value: 100 - normalizedPercentage },
+    { name: t('dashboard.budgetRing.usedName'), value: normalizedPercentage },
+    { name: t('dashboard.budgetRing.remainingName'), value: 100 - normalizedPercentage },
   ]
 
   return (
     <div
       className="budget-ring"
       role="img"
-      aria-label={`${normalizedPercentage}% of the monthly budget used`}
+      aria-label={t('dashboard.budgetRing.label', {value: normalizedPercentage})}
     >
       <ResponsiveContainer width="100%" height="100%">
         <PieChart accessibilityLayer>
@@ -35,7 +37,7 @@ export function BudgetRing({ percentage }: BudgetRingProps) {
       </ResponsiveContainer>
       <span className="budget-ring-value">
         <strong>{normalizedPercentage}%</strong>
-        <small>used</small>
+        <small>{t('dashboard.budgetRing.used')}</small>
       </span>
     </div>
   )

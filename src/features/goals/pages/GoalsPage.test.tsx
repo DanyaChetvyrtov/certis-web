@@ -8,6 +8,7 @@ import {
 import {http, HttpResponse} from 'msw'
 import {MemoryRouter} from 'react-router-dom'
 import {beforeEach, describe, expect, it, vi} from 'vitest'
+import i18n from '../../../i18n/i18n'
 import {selectOption} from '../../../test/selectOption'
 import {server} from '../../../test/server'
 import {currentMonth} from '../goalPresentation'
@@ -164,6 +165,23 @@ describe('GoalsPage', () => {
             currency: 'RUB', status: 'ACTIVE', sort: 'TARGET_MONTH_ASC', page: '0', size: '20',
         })
         expect(requestedOverview).toEqual({month: currentMonth(), currency: 'RUB'})
+    })
+
+    it('renders the goals workspace and create form in Russian', async () => {
+        await i18n.changeLanguage('ru')
+        renderPage()
+
+        expect(await screen.findByRole('heading', {name: 'Ваши цели'}))
+            .toBeInTheDocument()
+        expect(screen.getByText('Всего накоплено')).toBeInTheDocument()
+        expect(screen.getByRole('link', {name: 'Цели'}))
+            .toHaveAttribute('aria-current', 'page')
+
+        fireEvent.click(screen.getByRole('button', {name: 'Новая цель'}))
+
+        const dialog = within(screen.getByRole('dialog', {name: 'Создать цель'}))
+        expect(dialog.getByLabelText('Название цели')).toHaveFocus()
+        expect(dialog.getByText('План взносов')).toBeInTheDocument()
     })
 
     it('creates a goal from the design modal with a calculated preview', async () => {

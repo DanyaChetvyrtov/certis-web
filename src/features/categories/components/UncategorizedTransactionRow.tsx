@@ -1,5 +1,6 @@
 import {Select, SelectOption} from '../../../components/Select'
 import type {CSSProperties} from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import type {IconName} from '../../../components/Icons'
 import type {Currency} from '../../../shared/currency'
@@ -13,6 +14,7 @@ import type {
     CategoryOption,
     CategoryType,
 } from '../api/categoriesApi'
+import {useLanguage} from '../../../i18n/useLanguage'
 
 type UncategorizedTransactionRowProps = {
     categories: CategoryOption[]
@@ -50,8 +52,9 @@ const formatMoney = (
     amount: number,
     currency: Currency,
     type: CategoryType,
+    locale: string,
 ): string => {
-    const formatted = new Intl.NumberFormat('en-US', {
+    const formatted = new Intl.NumberFormat(locale, {
         style: 'currency',
         currency,
         currencyDisplay: 'narrowSymbol',
@@ -61,13 +64,6 @@ const formatMoney = (
 
     return `${type === 'EXPENSE' ? '−' : '+'}${formatted}`
 }
-
-const transactionName = (
-    transaction: UncategorizedTransaction,
-): string =>
-    transaction.merchant?.trim()
-    || transaction.note?.trim()
-    || 'Untitled transaction'
 
 export function UncategorizedTransactionRow({
     categories,
@@ -80,7 +76,11 @@ export function UncategorizedTransactionRow({
     onCategoryChange,
     onSelectionChange,
 }: UncategorizedTransactionRowProps) {
-    const name = transactionName(transaction)
+    const {t} = useTranslation()
+    const {locale} = useLanguage()
+    const name = transaction.merchant?.trim()
+        || transaction.note?.trim()
+        || t('categories.uncategorized.untitled')
     const occurredAt = new Date(transaction.occurredAt)
     const selectedCategory = categories.find(
         (category) => category.id === categoryId,
@@ -101,7 +101,7 @@ export function UncategorizedTransactionRow({
                 <input
                     type="checkbox"
                     checked={isSelected}
-                    aria-label={`Select ${name}`}
+                    aria-label={t('categories.uncategorized.selectName', {name})}
                     onChange={(event) =>
                         onSelectionChange(
                             transaction.id,
@@ -115,12 +115,12 @@ export function UncategorizedTransactionRow({
             <div className="uncategorized-transaction-copy">
                 <time dateTime={transaction.occurredAt}>
                     <span>
-                        {occurredAt.toLocaleDateString('en-US', {
+                        {occurredAt.toLocaleDateString(locale, {
                             month: 'short',
                         })}
                     </span>
                     <strong>
-                        {occurredAt.toLocaleDateString('en-US', {
+                        {occurredAt.toLocaleDateString(locale, {
                             day: '2-digit',
                         })}
                     </strong>
@@ -128,8 +128,8 @@ export function UncategorizedTransactionRow({
                 <div>
                     <h4>{name}</h4>
                     <p>
-                        {transaction.note || 'No note'} · {' '}
-                        {occurredAt.toLocaleTimeString('en-US', {
+                        {transaction.note || t('categories.uncategorized.noNote')} · {' '}
+                        {occurredAt.toLocaleTimeString(locale, {
                             hour: 'numeric',
                             minute: '2-digit',
                         })}
@@ -143,7 +143,7 @@ export function UncategorizedTransactionRow({
                 </span>
                 <div>
                     <strong>{transaction.account.name}</strong>
-                    <p>{transaction.account.type.toLocaleLowerCase()}</p>
+                    <p>{t(`dashboard.accountTypes.${transaction.account.type}`)}</p>
                 </div>
             </div>
 
@@ -153,16 +153,16 @@ export function UncategorizedTransactionRow({
                 }
             >
                 <strong>
-                    {formatMoney(transaction.amount, currency, type)}
+                    {formatMoney(transaction.amount, currency, type, locale)}
                 </strong>
-                <p>{type === 'EXPENSE' ? 'Expense' : 'Income'}</p>
+                <p>{t(`categories.type.${type}`)}</p>
             </div>
 
             <label
                 className="uncategorized-category-field"
                 style={categoryStyle}
             >
-                <span className="sr-only">Category for {name}</span>
+                <span className="sr-only">{t('categories.uncategorized.categoryFor', {name})}</span>
                 {selectedCategory && (
                     <Icon
                         name={
@@ -173,7 +173,7 @@ export function UncategorizedTransactionRow({
                     />
                 )}
                 <Select
-                    aria-label={`Category for ${name}`}
+                    aria-label={t('categories.uncategorized.categoryFor', {name})}
                     value={categoryId}
                     disabled={!isOptionReady || categories.length === 0}
                     onValueChange={(value) =>
@@ -183,7 +183,7 @@ export function UncategorizedTransactionRow({
                         )
                     }
                 >
-                    <SelectOption value="">Choose category</SelectOption>
+                    <SelectOption value="">{t('categories.uncategorized.chooseCategory')}</SelectOption>
                     {categories.map((category) => (
                         <SelectOption value={category.id} key={category.id}>
                             {category.name}

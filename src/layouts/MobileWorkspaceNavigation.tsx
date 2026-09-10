@@ -1,6 +1,7 @@
 import type {
     RefObject,
 } from 'react'
+import {useTranslation} from 'react-i18next'
 import {
     Link,
 } from 'react-router-dom'
@@ -56,10 +57,12 @@ export function MobileWorkspaceNavigation({
                                               onOpenSettings,
                                               onSignOut,
                                           }: MobileWorkspaceNavigationProps) {
+    const {t} = useTranslation()
+
     return (
         <nav
             className="workspace-mobile-navigation"
-            aria-label="Mobile workspace navigation"
+            aria-label={t('navigation.mobileNavigation')}
         >
             <Link
                 className={
@@ -68,7 +71,7 @@ export function MobileWorkspaceNavigation({
                         : undefined
                 }
                 to="/dashboard"
-                aria-label="Dashboard"
+                aria-label={t('navigation.dashboard')}
                 aria-current={
                     activePage === 'dashboard'
                         ? 'page'
@@ -85,7 +88,7 @@ export function MobileWorkspaceNavigation({
                         : undefined
                 }
                 to="/accounts"
-                aria-label="Accounts"
+                aria-label={t('navigation.accounts')}
                 aria-current={
                     activePage === 'accounts'
                         ? 'page'
@@ -102,7 +105,7 @@ export function MobileWorkspaceNavigation({
                         : undefined
                 }
                 to="/transactions"
-                aria-label="Transactions"
+                aria-label={t('navigation.transactions')}
                 aria-current={
                     activePage === 'transactions'
                         ? 'page'
@@ -119,7 +122,7 @@ export function MobileWorkspaceNavigation({
                         : undefined
                 }
                 to="/budgets"
-                aria-label="Budgets"
+                aria-label={t('navigation.budgets')}
                 aria-current={
                     activePage === 'budgets'
                         ? 'page'
@@ -143,7 +146,7 @@ export function MobileWorkspaceNavigation({
                             : 'workspace-mobile-more-trigger'
                     }
                     type="button"
-                    aria-label="More"
+                    aria-label={t('navigation.more')}
                     aria-haspopup="menu"
                     aria-expanded={
                         isAccountMenuOpen
@@ -181,7 +184,7 @@ export function MobileWorkspaceNavigation({
                         >
                             <span className="workspace-account-menu-label">
                                 <Icon name="target"/>
-                                <span>Goals</span>
+                                <span>{t('navigation.goals')}</span>
                             </span>
                             <Icon name="chevron-right"/>
                         </Link>
@@ -202,7 +205,7 @@ export function MobileWorkspaceNavigation({
                         >
                             <span className="workspace-account-menu-label">
                                 <Icon name="tag"/>
-                                <span>Categories</span>
+                                <span>{t('navigation.categories')}</span>
                             </span>
                             <Icon name="chevron-right"/>
                         </Link>
@@ -215,7 +218,7 @@ export function MobileWorkspaceNavigation({
                         >
                             <span className="workspace-account-menu-label">
                                 <Icon name="settings"/>
-                                <span>Settings</span>
+                                <span>{t('navigation.settings')}</span>
                             </span>
                             <Icon name="chevron-right"/>
                         </button>
@@ -242,7 +245,7 @@ export function MobileWorkspaceNavigation({
 
                             <div>
                                 <strong>{displayName}</strong>
-                                <small>Certis account</small>
+                                <small>{t('navigation.certisAccount')}</small>
                             </div>
                         </div>
 
@@ -260,7 +263,7 @@ export function MobileWorkspaceNavigation({
                                         <Icon name="user"/>
 
                                         <span>
-                                            Profile
+                                            {t('navigation.profile')}
                                         </span>
                                     </span>
 
@@ -287,8 +290,8 @@ export function MobileWorkspaceNavigation({
                         >
                             <span>
                                 {isSigningOut
-                                    ? 'Signing out…'
-                                    : 'Sign out'}
+                                    ? t('navigation.signingOut')
+                                    : t('navigation.signOut')}
                             </span>
 
                             {isSigningOut

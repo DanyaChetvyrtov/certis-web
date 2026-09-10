@@ -1,4 +1,5 @@
 import {apiRequest} from '../../../shared/api/client'
+import i18n from '../../../i18n/i18n'
 import type {Currency} from '../../../shared/currency'
 
 export const categoryTypes = ['EXPENSE', 'INCOME'] as const
@@ -133,7 +134,7 @@ export const getCategoryCards = (
         `/api/v1/categories?${searchParams}`,
         {
             signal,
-            fallbackMessage: 'We could not load your categories. Please try again.',
+            fallbackMessage: i18n.t('categories.loadError'),
         },
     )
 }
@@ -184,7 +185,7 @@ export const getCategoryAnalytics = (
         `/api/v1/categories/analytics?${searchParams}`,
         {
             signal,
-            fallbackMessage: 'We could not load category statistics. Please try again.',
+            fallbackMessage: i18n.t('categories.analytics.loadError'),
         },
     )
 }
@@ -199,14 +200,14 @@ export const getCategoryOptions = (
         `/api/v1/categories/options?${searchParams}`,
         {
             signal,
-            fallbackMessage: 'We could not load category options. Please try again.',
+            fallbackMessage: i18n.t('categories.uncategorized.optionsError'),
         },
     )
 }
 
 export const getCategory = (categoryId: string) =>
     apiRequest<Category>(categoryPath(categoryId), {
-        fallbackMessage: 'We could not load this category. Please try again.',
+        fallbackMessage: i18n.t('categories.loadError'),
     })
 
 export const createCategory = (
@@ -215,7 +216,7 @@ export const createCategory = (
     apiRequest<Category>('/api/v1/categories', {
         method: 'POST',
         body: request,
-        fallbackMessage: 'We could not create this category. Please try again.',
+        fallbackMessage: i18n.t('categories.form.createError'),
     })
 
 export const updateCategory = (
@@ -225,17 +226,17 @@ export const updateCategory = (
     apiRequest<Category>(categoryPath(categoryId), {
         method: 'PUT',
         body: request,
-        fallbackMessage: 'We could not update this category. Please try again.',
+        fallbackMessage: i18n.t('categories.form.updateError'),
     })
 
 export const archiveCategory = (categoryId: string) =>
     apiRequest(categoryPath(categoryId), {
         method: 'DELETE',
-        fallbackMessage: 'We could not archive this category. Please try again.',
+        fallbackMessage: i18n.t('categories.archive.error'),
     })
 
 export const restoreCategory = (categoryId: string) =>
     apiRequest(`${categoryPath(categoryId)}/restore`, {
         method: 'POST',
-        fallbackMessage: 'We could not restore this category. Please try again.',
+        fallbackMessage: i18n.t('categories.notice.restoreError'),
     })

@@ -7,7 +7,9 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { useTranslation } from 'react-i18next'
 import type { AccountCurrency } from '../../accounts/api/accountsApi'
+import { useLanguage } from '../../../i18n/useLanguage'
 
 export type CashFlowPoint = {
   bucketStart?: string
@@ -22,13 +24,8 @@ type CashFlowChartProps = {
   data: CashFlowPoint[]
 }
 
-const compactFormatter = new Intl.NumberFormat('en-US', {
-  notation: 'compact',
-  maximumFractionDigits: 1,
-})
-
-const formatMoney = (value: number, currency: AccountCurrency) =>
-  new Intl.NumberFormat('en-US', {
+const formatMoney = (value: number, currency: AccountCurrency, locale: string) =>
+  new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
     currencyDisplay: 'narrowSymbol',
@@ -36,12 +33,19 @@ const formatMoney = (value: number, currency: AccountCurrency) =>
     maximumFractionDigits: 2,
   }).format(value)
 
-export function CashFlowChart({ currency, data, description = 'Income and expenses for the last six months' }: CashFlowChartProps) {
+export function CashFlowChart({ currency, data, description }: CashFlowChartProps) {
+  const { t } = useTranslation()
+  const { locale } = useLanguage()
+  const compactFormatter = new Intl.NumberFormat(locale, {
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  })
+
   return (
     <div
       className="cash-flow-chart"
       role="img"
-      aria-label={description}
+      aria-label={description ?? t('dashboard.cashFlow.chartDescription')}
     >
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
@@ -94,8 +98,8 @@ export function CashFlowChart({ currency, data, description = 'Income and expens
               fontSize: 12,
             }}
             formatter={(value, name) => [
-              formatMoney(Number(value), currency),
-              name === 'income' ? 'Income' : 'Expenses',
+              formatMoney(Number(value), currency, locale),
+              name === 'income' ? t('dashboard.income') : t('dashboard.expenses'),
             ]}
           />
           <Area

@@ -129,6 +129,24 @@
   font-weight: 700;
 }
 
+.landing-language-switcher {
+  border-color: rgb(255 255 255 / 30%);
+  background: rgb(255 255 255 / 9%);
+}
+
+.landing-language-switcher button {
+  color: rgb(255 255 255 / 70%);
+}
+
+.landing-language-switcher button:hover {
+  color: #fff;
+}
+
+.landing-language-switcher button.active {
+  color: #071a31;
+  background: #fff;
+}
+
 .landing-sign-in {
   padding: 11px 16px;
   color: rgb(255 255 255 / 86%);
