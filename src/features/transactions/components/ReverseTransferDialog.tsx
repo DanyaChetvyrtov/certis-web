@@ -3,6 +3,7 @@ import {
     useState,
 } from 'react'
 import type {FormEvent} from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import {ApiError} from '../../../shared/api/ApiError'
 import {useModalAccessibility} from '../../../shared/hooks/useModalAccessibility'
@@ -38,6 +39,7 @@ export function ReverseTransferDialog({
     onReversed,
     restoreFocus,
 }: Props) {
+    const {t} = useTranslation()
     const [note, setNote] = useState('')
     const [occurredAt, setOccurredAt] = useState(localDateTime)
     const [dateError, setDateError] = useState('')
@@ -60,7 +62,7 @@ export function ReverseTransferDialog({
         const date = new Date(occurredAt)
 
         if (!occurredAt || Number.isNaN(date.getTime())) {
-            setDateError('Select a valid reversal date and time.')
+            setDateError(t('transactions.reverseDialog.dateInvalid'))
             return
         }
 
@@ -75,7 +77,7 @@ export function ReverseTransferDialog({
                 setDateError(error.fieldErrors?.occurredAt ?? '')
                 setFormError(error.message)
             } else {
-                setFormError('We could not reverse this transfer. Please try again.')
+                setFormError(t('transactions.reverseDialog.error'))
             }
         } finally {
             setSaving(false)
@@ -94,10 +96,10 @@ export function ReverseTransferDialog({
             >
                 <header className="transaction-modal-heading">
                     <div>
-                        <h2 id="reverse-transfer-title">Reverse transfer</h2>
-                        <p>This creates an opposite transfer and restores both account balances.</p>
+                        <h2 id="reverse-transfer-title">{t('transactions.reverseDialog.title')}</h2>
+                        <p>{t('transactions.reverseDialog.description')}</p>
                     </div>
-                    <button type="button" aria-label="Close reversal form" disabled={saving} onClick={onClose}>
+                    <button type="button" aria-label={t('transactions.reverseDialog.close')} disabled={saving} onClick={onClose}>
                         <Icon name="close"/>
                     </button>
                 </header>
@@ -106,14 +108,14 @@ export function ReverseTransferDialog({
                     <div className="transfer-reversal-summary">
                         <span><Icon name="transfer"/></span>
                         <div>
-                            <strong>{source?.name ?? 'Unknown account'} → {destination?.name ?? 'Unknown account'}</strong>
+                            <strong>{source?.name ?? t('transactions.unknownAccount')} → {destination?.name ?? t('transactions.unknownAccount')}</strong>
                             <p>{transfer.amount} {transfer.currency}{transfer.note ? ` · ${transfer.note}` : ''}</p>
                         </div>
                     </div>
 
                     <div className="transaction-form-grid">
                         <div className="transaction-form-field">
-                            <label htmlFor="reversal-date">Reversal date and time</label>
+                            <label htmlFor="reversal-date">{t('transactions.reverseDialog.dateTime')}</label>
                             <div className="transaction-date-shell">
                                 <Icon name="calendar"/>
                                 <input
@@ -127,12 +129,12 @@ export function ReverseTransferDialog({
                             {dateError && <small className="transaction-field-error">{dateError}</small>}
                         </div>
                         <div className="transaction-form-field">
-                            <label htmlFor="reversal-note">Reason <span>Optional</span></label>
+                            <label htmlFor="reversal-note">{t('transactions.reverseDialog.reason')} <span>{t('transactions.reverseDialog.optional')}</span></label>
                             <input
                                 ref={noteRef}
                                 id="reversal-note"
                                 value={note}
-                                placeholder="e.g. Transferred by mistake"
+                                placeholder={t('transactions.reverseDialog.placeholder')}
                                 onChange={(event) => setNote(event.target.value)}
                             />
                         </div>
@@ -141,17 +143,17 @@ export function ReverseTransferDialog({
                     <div className="transaction-balance-note transfer-reversal-note">
                         <span><Icon name="alert"/></span>
                         <div>
-                            <strong>The original history will remain</strong>
-                            <p>Certis keeps an audit trail by creating a linked reversal instead of editing or deleting the original transfer.</p>
+                            <strong>{t('transactions.reverseDialog.infoTitle')}</strong>
+                            <p>{t('transactions.reverseDialog.infoDescription')}</p>
                         </div>
                     </div>
 
                     {formError && <p className="transaction-form-error" role="alert"><Icon name="alert"/>{formError}</p>}
 
                     <div className="transaction-modal-actions">
-                        <button type="button" disabled={saving} onClick={onClose}>Keep transfer</button>
+                        <button type="button" disabled={saving} onClick={onClose}>{t('transactions.reverseDialog.keep')}</button>
                         <button className="primary transfer-reverse-button" type="submit" disabled={saving}>
-                            {saving ? 'Reversing…' : 'Reverse transfer'}
+                            {saving ? t('transactions.reverseDialog.reversing') : t('transactions.reverseDialog.action')}
                         </button>
                     </div>
                 </form>

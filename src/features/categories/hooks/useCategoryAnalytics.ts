@@ -4,6 +4,7 @@ import {
     useRef,
     useState,
 } from 'react'
+import {useTranslation} from 'react-i18next'
 import {ApiError} from '../../../shared/api/ApiError'
 import type {Currency} from '../../../shared/currency'
 import {
@@ -21,16 +22,18 @@ export type CategoryAnalyticsLoadState =
 
 const analyticsLoadErrorMessage = (
     error: unknown,
+    fallback: string,
 ): string =>
     error instanceof ApiError
         ? error.message
-        : 'We could not load category statistics. Please try again.'
+        : fallback
 
 export function useCategoryAnalytics(
     month: string,
     currency: Currency,
     type: CategoryType,
 ) {
+    const {t} = useTranslation()
     const [analytics, setAnalytics] =
         useState<CategoryAnalytics | null>(null)
     const [loadState, setLoadState] =
@@ -63,10 +66,13 @@ export function useCategoryAnalytics(
                 return
             }
 
-            setLoadError(analyticsLoadErrorMessage(error))
+            setLoadError(analyticsLoadErrorMessage(
+                error,
+                t('categories.analytics.loadError'),
+            ))
             setLoadState('error')
         }
-    }, [currency, month, type])
+    }, [currency, month, type, t])
 
     useEffect(() => {
         let isActive = true

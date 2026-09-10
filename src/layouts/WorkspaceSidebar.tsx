@@ -3,6 +3,7 @@ import {
     useRef,
     useState,
 } from 'react'
+import {useTranslation} from 'react-i18next'
 import {
     Link,
     useNavigate,
@@ -36,15 +37,11 @@ type WorkspaceSidebarProps = {
     activeAccounts?: number
 }
 
-const signOutErrorMessage = (error: unknown): string =>
-    error instanceof ApiError
-        ? error.message
-        : 'We could not sign you out. Please try again.'
-
 export function WorkspaceSidebar({
                                      activePage,
                                      activeAccounts = 0,
                                  }: WorkspaceSidebarProps) {
+    const {t} = useTranslation()
     const navigate = useNavigate()
     const {
         profile,
@@ -104,7 +101,7 @@ export function WorkspaceSidebar({
 
     const displayName = profile
         ? `${profile.name} ${profile.surname.charAt(0)}.`
-        : 'Personal workspace'
+        : t('navigation.personalWorkspace')
 
     const initials = profile
         ? `${profile.name.charAt(0)}${profile.surname.charAt(0)}`
@@ -199,7 +196,11 @@ export function WorkspaceSidebar({
             await signOut()
             navigate('/', {replace: true})
         } catch (error) {
-            setSignOutError(signOutErrorMessage(error))
+            setSignOutError(
+                error instanceof ApiError
+                    ? error.message
+                    : t('navigation.signOutError'),
+            )
         } finally {
             setSigningOut(false)
         }
@@ -211,16 +212,16 @@ export function WorkspaceSidebar({
                 <Link
                     className="workspace-brand-link"
                     to="/dashboard"
-                    aria-label="Certis dashboard"
+                    aria-label={t('navigation.dashboardLabel')}
                 >
                     <CertisLogo className="workspace-logo"/>
                 </Link>
 
                 <nav
                     className="workspace-navigation"
-                    aria-label="Workspace navigation"
+                    aria-label={t('navigation.workspaceNavigation')}
                 >
-                    <p>Workspace</p>
+                    <p>{t('navigation.workspace')}</p>
 
                     <Link
                         className={
@@ -236,7 +237,7 @@ export function WorkspaceSidebar({
                         }
                     >
                         <Icon name="dashboard"/>
-                        <span>Dashboard</span>
+                        <span>{t('navigation.dashboard')}</span>
                     </Link>
 
                     <Link
@@ -253,7 +254,7 @@ export function WorkspaceSidebar({
                         }
                     >
                         <Icon name="wallet"/>
-                        <span>Accounts</span>
+                        <span>{t('navigation.accounts')}</span>
                     </Link>
 
                     <Link
@@ -270,7 +271,7 @@ export function WorkspaceSidebar({
                         }
                     >
                         <Icon name="receipt"/>
-                        <span>Transactions</span>
+                        <span>{t('navigation.transactions')}</span>
                     </Link>
 
                     <Link
@@ -287,7 +288,7 @@ export function WorkspaceSidebar({
                         }
                     >
                         <Icon name="gauge"/>
-                        <span>Budgets</span>
+                        <span>{t('navigation.budgets')}</span>
                     </Link>
 
                     <Link
@@ -304,7 +305,7 @@ export function WorkspaceSidebar({
                         }
                     >
                         <Icon name="target"/>
-                        <span>Goals</span>
+                        <span>{t('navigation.goals')}</span>
                     </Link>
 
                     <Link
@@ -321,7 +322,7 @@ export function WorkspaceSidebar({
                         }
                     >
                         <Icon name="tag"/>
-                        <span>Categories</span>
+                        <span>{t('navigation.categories')}</span>
                     </Link>
                 </nav>
 
@@ -329,22 +330,20 @@ export function WorkspaceSidebar({
 
                 <section
                     className="workspace-insight"
-                    aria-label="Account overview"
+                    aria-label={t('navigation.overviewLabel')}
                 >
                 <span>
                     <Icon name="piggy-bank"/>
                 </span>
 
-                    <strong>Your money, one place</strong>
+                    <strong>{t('navigation.overviewTitle')}</strong>
 
                     <p>
                         {activeAccounts === 0
-                            ? 'Create your first account to start tracking balances.'
-                            : `${activeAccounts} active ${
-                                activeAccounts === 1
-                                    ? 'account is'
-                                    : 'accounts are'
-                            } included in your overview.`}
+                            ? t('navigation.createFirstAccount')
+                            : t('navigation.activeAccounts', {
+                                count: activeAccounts,
+                            })}
                     </p>
                 </section>
 
@@ -359,7 +358,7 @@ export function WorkspaceSidebar({
                     }
                 >
                 <Icon name="settings"/>
-                <span>Settings</span>
+                <span>{t('navigation.settings')}</span>
             </button>
 
                 <div
@@ -392,7 +391,7 @@ export function WorkspaceSidebar({
 
                         <span className="workspace-person-copy">
                         <strong>{displayName}</strong>
-                        <small>Personal workspace</small>
+                        <small>{t('navigation.personalWorkspace')}</small>
                     </span>
 
                         <Icon name="chevron-down"/>
@@ -406,7 +405,7 @@ export function WorkspaceSidebar({
                         >
                             <div className="workspace-account-menu-header">
                                 <strong>{displayName}</strong>
-                                <small>Certis account</small>
+                                <small>{t('navigation.certisAccount')}</small>
                             </div>
 
                             {profile && (
@@ -423,7 +422,7 @@ export function WorkspaceSidebar({
                                     >
                                 <span className="workspace-account-menu-label">
                                     <Icon name="user"/>
-                                    <span>Profile</span>
+                                    <span>{t('navigation.profile')}</span>
                                 </span>
 
                                         <Icon name="chevron-right"/>
@@ -445,8 +444,8 @@ export function WorkspaceSidebar({
                             >
                             <span>
                                 {isSigningOut
-                                    ? 'Signing out…'
-                                    : 'Sign out'}
+                                    ? t('navigation.signingOut')
+                                    : t('navigation.signOut')}
                             </span>
 
                                 {isSigningOut

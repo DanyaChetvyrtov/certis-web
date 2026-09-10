@@ -1,5 +1,6 @@
 import {apiRequest} from '../../../shared/api/client'
 import type {Currency} from '../../accounts/api/accountsApi'
+import i18n from '../../../i18n/i18n'
 
 export type Transfer = {
     id: string
@@ -34,7 +35,7 @@ const transferPath = (transferId: string): string =>
 export const getTransfers = (signal?: AbortSignal) =>
     apiRequest<Transfer[]>(TRANSFERS_PATH, {
         signal,
-        fallbackMessage: 'We could not load your transfers. Please try again.',
+        fallbackMessage: i18n.t('transactions.api.transfersLoad'),
     })
 
 export const getTransfer = (
@@ -42,7 +43,7 @@ export const getTransfer = (
     signal?: AbortSignal,
 ) => apiRequest<Transfer>(transferPath(transferId), {
     signal,
-    fallbackMessage: 'We could not load this transfer. Please try again.',
+    fallbackMessage: i18n.t('transactions.api.transferLoad'),
 })
 
 export const createTransfer = (
@@ -50,7 +51,7 @@ export const createTransfer = (
 ) => apiRequest<Transfer>(TRANSFERS_PATH, {
     method: 'POST',
     body: request,
-    fallbackMessage: 'We could not transfer the money. Please try again.',
+    fallbackMessage: i18n.t('transactions.api.transferCreate'),
 })
 
 export const reverseTransfer = (
@@ -59,5 +60,5 @@ export const reverseTransfer = (
 ) => apiRequest<Transfer>(`${transferPath(transferId)}/reversal`, {
     method: 'POST',
     body: request,
-    fallbackMessage: 'We could not reverse this transfer. Please try again.',
+    fallbackMessage: i18n.t('transactions.api.transferReverse'),
 })

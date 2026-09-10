@@ -1,5 +1,6 @@
 import {Select, SelectOption} from '../../../components/Select'
 import {useRef} from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import type {Currency} from '../../../shared/currency'
 import {
@@ -16,6 +17,7 @@ import {
     UncategorizedTransactionRow,
 } from './UncategorizedTransactionRow'
 import './UncategorizedTransactionsModal.css'
+import {useLanguage} from '../../../i18n/useLanguage'
 
 type UncategorizedTransactionsModalProps = {
     analytics: CategoryAnalytics
@@ -27,8 +29,8 @@ type UncategorizedTransactionsModalProps = {
     restoreFocus?: () => void
 }
 
-const formatPercentage = (value: number): string =>
-    new Intl.NumberFormat('en-US', {
+const formatPercentage = (value: number, locale: string): string =>
+    new Intl.NumberFormat(locale, {
         maximumFractionDigits: 1,
     }).format(value)
 
@@ -36,8 +38,9 @@ const formatMoney = (
     amount: number,
     currency: Currency,
     type: CategoryType,
+    locale: string,
 ): string => {
-    const formatted = new Intl.NumberFormat('en-US', {
+    const formatted = new Intl.NumberFormat(locale, {
         style: 'currency',
         currency,
         currencyDisplay: 'narrowSymbol',
@@ -48,8 +51,8 @@ const formatMoney = (
     return `${type === 'EXPENSE' ? '−' : '+'}${formatted}`
 }
 
-const formatMonth = (month: string): string =>
-    new Intl.DateTimeFormat('en-US', {
+const formatMonth = (month: string, locale: string): string =>
+    new Intl.DateTimeFormat(locale, {
         month: 'long',
         year: 'numeric',
         timeZone: 'UTC',
@@ -64,6 +67,8 @@ export function UncategorizedTransactionsModal({
     onClose,
     restoreFocus,
 }: UncategorizedTransactionsModalProps) {
+    const {t} = useTranslation()
+    const {locale} = useLanguage()
     const searchInputRef = useRef<HTMLInputElement>(null)
     const {
         accountId,
@@ -126,13 +131,13 @@ export function UncategorizedTransactionsModal({
                     <span><Icon name="tag"/></span>
                     <div>
                         <h2 id="uncategorized-modal-title">
-                            Uncategorized transactions
+                            {t('categories.uncategorized.title')}
                         </h2>
-                        <p>Assign categories without leaving this page.</p>
+                        <p>{t('categories.uncategorized.subtitle')}</p>
                     </div>
                     <button
                         type="button"
-                        aria-label="Close uncategorized transactions"
+                        aria-label={t('categories.uncategorized.close')}
                         disabled={isAssigning}
                         onClick={onClose}
                     >
@@ -143,19 +148,19 @@ export function UncategorizedTransactionsModal({
                 <section className="uncategorized-summary">
                     <div>
                         <p>
-                            {formatMonth(month)} · {type === 'EXPENSE' ? 'Expenses' : 'Income'} · {currency}
+                            {formatMonth(month, locale)} · {t(`categories.type.${type}`)} · {currency}
                         </p>
                         <strong>
                             {analytics.coveragePercentage === null
                                 ? '—'
-                                : `${formatPercentage(percentage)}%`}
-                            <span> of transaction value categorized</span>
+                                : `${formatPercentage(percentage, locale)}%`}
+                            <span> {t('categories.uncategorized.categorizedValue')}</span>
                         </strong>
                     </div>
                     <div
                         className="uncategorized-summary-progress"
                         role="progressbar"
-                        aria-label="Category coverage"
+                        aria-label={t('categories.uncategorized.coverage')}
                         aria-valuemin={0}
                         aria-valuemax={100}
                         aria-valuenow={percentage}
@@ -166,14 +171,17 @@ export function UncategorizedTransactionsModal({
                         <span><Icon name="alert"/></span>
                         <div>
                             <strong>
-                                {itemCount} {itemCount === 1 ? 'transaction' : 'transactions'}
+                                {t('categories.uncategorized.transactionCount', {count: itemCount})}
                             </strong>
                             <p>
-                                {formatMoney(
-                                    analytics.uncategorizedSum,
-                                    currency,
-                                    type,
-                                )} remains uncategorized
+                                {t('categories.uncategorized.remains', {
+                                    amount: formatMoney(
+                                        analytics.uncategorizedSum,
+                                        currency,
+                                        type,
+                                        locale,
+                                    ),
+                                })}
                             </p>
                         </div>
                     </div>
@@ -182,34 +190,34 @@ export function UncategorizedTransactionsModal({
                 <section className="uncategorized-transactions">
                     <div className="uncategorized-transactions-heading">
                         <div>
-                            <h3>Transactions</h3>
-                            <p>Select one or more rows, then assign a category.</p>
+                            <h3>{t('categories.uncategorized.transactions')}</h3>
+                            <p>{t('categories.uncategorized.selectDescription')}</p>
                         </div>
                         <label className="uncategorized-search-field">
                             <Icon name="search"/>
-                            <span className="sr-only">Search transactions</span>
+                            <span className="sr-only">{t('categories.uncategorized.search')}</span>
                             <input
                                 ref={searchInputRef}
                                 value={searchQuery}
                                 type="search"
                                 maxLength={255}
-                                placeholder="Search transactions"
+                                placeholder={t('categories.uncategorized.search')}
                                 onChange={(event) =>
                                     setSearchQuery(event.target.value)
                                 }
                             />
                         </label>
                         <label className="uncategorized-account-field">
-                            <span>Account</span>
+                            <span>{t('categories.uncategorized.account')}</span>
                             <Select
-                                aria-label="Filter by account"
+                                aria-label={t('categories.uncategorized.filterAccount')}
                                 value={accountId}
                                 disabled={optionState === 'loading'}
                                 onValueChange={(value) =>
                                     changeAccount(value)
                                 }
                             >
-                                <SelectOption value="">All accounts</SelectOption>
+                                <SelectOption value="">{t('categories.uncategorized.allAccounts')}</SelectOption>
                                 {visibleAccounts.map((account) => (
                                     <SelectOption value={account.id} key={account.id}>
                                         {account.name}
@@ -223,7 +231,7 @@ export function UncategorizedTransactionsModal({
                         <div className="uncategorized-inline-error" role="alert">
                             <span>{optionError}</span>
                             <button type="button" onClick={() => void loadOptions()}>
-                                Try again
+                                {t('categories.tryAgain')}
                             </button>
                         </div>
                     )}
@@ -232,22 +240,26 @@ export function UncategorizedTransactionsModal({
                         && categoryOptions.length === 0
                         && (
                             <div className="uncategorized-options-empty" role="status">
-                                Create an active {type === 'EXPENSE' ? 'expense' : 'income'} category before assigning transactions.
+                                {t('categories.uncategorized.optionsEmpty', {
+                                    type: type === 'EXPENSE'
+                                        ? t('categories.type.expenseLower')
+                                        : t('categories.type.incomeLower'),
+                                })}
                             </div>
                         )}
 
                     <div className="uncategorized-table-heading" aria-hidden="true">
-                        <span>Select</span>
-                        <span>Transaction</span>
-                        <span>Account</span>
-                        <span>Amount</span>
-                        <span>Category</span>
+                        <span>{t('categories.uncategorized.select')}</span>
+                        <span>{t('categories.uncategorized.transaction')}</span>
+                        <span>{t('categories.uncategorized.account')}</span>
+                        <span>{t('categories.uncategorized.amount')}</span>
+                        <span>{t('categories.uncategorized.category')}</span>
                     </div>
 
                     {transactionState === 'loading' && (
                         <div
                             className="uncategorized-loading"
-                            aria-label="Loading uncategorized transactions"
+                            aria-label={t('categories.uncategorized.loading')}
                         >
                             <span/>
                             <span/>
@@ -257,13 +269,13 @@ export function UncategorizedTransactionsModal({
                     {transactionState === 'error' && (
                         <div className="uncategorized-empty" role="alert">
                             <Icon name="alert"/>
-                            <h3>Transactions could not be loaded</h3>
+                            <h3>{t('categories.uncategorized.loadTitle')}</h3>
                             <p>{transactionError}</p>
                             <button
                                 type="button"
                                 onClick={() => void loadTransactions()}
                             >
-                                Try again
+                                {t('categories.tryAgain')}
                             </button>
                         </div>
                     )}
@@ -273,11 +285,15 @@ export function UncategorizedTransactionsModal({
                         && (
                             <div className="uncategorized-empty">
                                 <Icon name="check-circle"/>
-                                <h3>Nothing left to categorize</h3>
+                                <h3>{t('categories.uncategorized.nothingLeft')}</h3>
                                 <p>
                                     {appliedSearch || accountId
-                                        ? 'No uncategorized transactions match these filters.'
-                                        : `All ${type === 'EXPENSE' ? 'expense' : 'income'} transactions are categorized.`}
+                                        ? t('categories.uncategorized.noMatches')
+                                        : t('categories.uncategorized.allTypeCategorized', {
+                                            type: type === 'EXPENSE'
+                                                ? t('categories.type.expenseLower')
+                                                : t('categories.type.incomeLower'),
+                                        })}
                                 </p>
                             </div>
                         )}
@@ -309,17 +325,20 @@ export function UncategorizedTransactionsModal({
                     {transactions && transactions.totalPages > 1 && (
                         <nav
                             className="uncategorized-pagination"
-                            aria-label="Uncategorized transaction pages"
+                            aria-label={t('categories.uncategorized.pages')}
                         >
                             <button
                                 type="button"
                                 disabled={page === 0 || transactionState === 'loading'}
                                 onClick={goToPreviousPage}
                             >
-                                Previous
+                                {t('categories.uncategorized.previous')}
                             </button>
                             <span>
-                                Page {transactions.page + 1} of {transactions.totalPages}
+                                {t('categories.uncategorized.page', {
+                                    page: transactions.page + 1,
+                                    total: transactions.totalPages,
+                                })}
                             </span>
                             <button
                                 type="button"
@@ -329,7 +348,7 @@ export function UncategorizedTransactionsModal({
                                 }
                                 onClick={goToNextPage}
                             >
-                                Next
+                                {t('categories.uncategorized.next')}
                             </button>
                         </nav>
                     )}
@@ -354,7 +373,7 @@ export function UncategorizedTransactionsModal({
                         disabled={isAssigning}
                         onClick={onClose}
                     >
-                        Cancel
+                        {t('categories.uncategorized.cancel')}
                     </button>
                     <button
                         type="button"
@@ -367,8 +386,10 @@ export function UncategorizedTransactionsModal({
                         onClick={() => void assignSelected()}
                     >
                         {isAssigning
-                            ? 'Assigning…'
-                            : `Assign${selectedCount > 0 ? ` ${selectedCount}` : ''}`}
+                            ? t('categories.uncategorized.assigning')
+                            : selectedCount > 0
+                                ? t('categories.uncategorized.assignCount', {count: selectedCount})
+                                : t('categories.uncategorized.assign')}
                     </button>
                 </footer>
             </div>

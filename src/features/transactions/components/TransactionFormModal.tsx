@@ -7,6 +7,7 @@ import {
 import type {
     FormEvent,
 } from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import type {
     Account,
@@ -83,6 +84,7 @@ export function TransactionFormModal({
     onSaved,
     restoreFocus,
 }: TransactionFormModalProps) {
+    const {t} = useTranslation()
     const isEditing = Boolean(transaction)
     const [type, setType] = useState<TransactionType>(
         transaction?.type ?? 'EXPENSE',
@@ -179,7 +181,7 @@ export function TransactionFormModal({
         const normalizedAmount = Number(amount)
 
         if (!accountId) {
-            nextErrors.accountId = 'Select an account.'
+            nextErrors.accountId = t('transactions.form.accountRequired')
         }
 
         if (
@@ -189,12 +191,12 @@ export function TransactionFormModal({
             || !/^\d{1,15}(?:\.\d{1,4})?$/.test(amount)
         ) {
             nextErrors.amount =
-                'Enter a positive amount with up to 4 decimal places.'
+                t('transactions.form.amountInvalid')
         }
 
         if (normalizedMerchant.length > 255) {
             nextErrors.merchant =
-                'Use no more than 255 characters.'
+                t('transactions.form.merchantTooLong')
         }
 
         const selectedCategory = categories.find(
@@ -206,13 +208,13 @@ export function TransactionFormModal({
             && selectedCategory.type !== type
         ) {
             nextErrors.categoryId =
-                'Select a category with the same transaction type.'
+                t('transactions.form.categoryMismatch')
         }
 
         const transactionDate = new Date(date)
 
         if (!date || Number.isNaN(transactionDate.getTime())) {
-            nextErrors.date = 'Select a valid date and time.'
+            nextErrors.date = t('transactions.form.dateInvalid')
         }
 
         setFieldErrors(nextErrors)
@@ -284,8 +286,8 @@ export function TransactionFormModal({
             } else {
                 setFormError(
                     isEditing
-                        ? 'We could not update this transaction. Please try again.'
-                        : 'We could not create this transaction. Please try again.',
+                        ? t('transactions.form.updateError')
+                        : t('transactions.form.createError'),
                 )
             }
         } finally {
@@ -310,19 +312,19 @@ export function TransactionFormModal({
                     <div>
                         <h2 id="transaction-modal-title">
                             {isEditing
-                                ? 'Edit transaction'
-                                : 'New transaction'}
+                                ? t('transactions.form.editTitle')
+                                : t('transactions.form.newTitle')}
                         </h2>
                         <p>
                             {isEditing
-                                ? 'Update this movement in your financial history.'
-                                : 'Record income or an expense on one of your accounts.'}
+                                ? t('transactions.form.editDescription')
+                                : t('transactions.form.newDescription')}
                         </p>
                     </div>
 
                     <button
                         type="button"
-                        aria-label="Close transaction form"
+                        aria-label={t('transactions.form.close')}
                         disabled={isSaving}
                         onClick={onClose}
                     >
@@ -332,7 +334,7 @@ export function TransactionFormModal({
 
                 <form onSubmit={submit} noValidate>
                     <fieldset className="transaction-type-fieldset">
-                        <legend>Type</legend>
+                        <legend>{t('transactions.form.type')}</legend>
                         <div className="transaction-type-options">
                             <label
                                 className={
@@ -348,7 +350,7 @@ export function TransactionFormModal({
                                     checked={type === 'EXPENSE'}
                                     onChange={() => changeType('EXPENSE')}
                                 />
-                                Expense
+                                {t('transactions.form.expense')}
                             </label>
 
                             <label
@@ -365,14 +367,14 @@ export function TransactionFormModal({
                                     checked={type === 'INCOME'}
                                     onChange={() => changeType('INCOME')}
                                 />
-                                Income
+                                {t('transactions.form.income')}
                             </label>
                         </div>
                     </fieldset>
 
                     <div className="transaction-form-field transaction-amount-field">
                         <label htmlFor="transaction-amount">
-                            Amount
+                            {t('transactions.form.amount')}
                         </label>
                         <div
                             className={
@@ -426,7 +428,7 @@ export function TransactionFormModal({
                     <div className="transaction-form-grid">
                         <div className="transaction-form-field">
                             <label htmlFor="transaction-account">
-                                Account
+                                {t('transactions.form.account')}
                             </label>
                             <div className="transaction-select-shell">
                                 <Icon name="card"/>
@@ -446,7 +448,7 @@ export function TransactionFormModal({
                                     }}
                                 >
                                     <SelectOption value="">
-                                        Select account
+                                        {t('transactions.form.selectAccount')}
                                     </SelectOption>
                                     {availableAccounts.map((account) => (
                                         <SelectOption
@@ -454,7 +456,7 @@ export function TransactionFormModal({
                                             key={account.id}
                                         >
                                             {account.name} · {account.currency}
-                                            {account.closedAt ? ' · Closed' : ''}
+                                            {account.closedAt ? ` · ${t('transactions.form.closed')}` : ''}
                                         </SelectOption>
                                     ))}
                                 </Select>
@@ -471,7 +473,7 @@ export function TransactionFormModal({
 
                         <div className="transaction-form-field">
                             <label htmlFor="transaction-category">
-                                Category <span>Optional</span>
+                                {t('transactions.form.category')} <span>{t('transactions.form.optional')}</span>
                             </label>
                             <div className="transaction-select-shell">
                                 <Icon name="tag"/>
@@ -491,7 +493,7 @@ export function TransactionFormModal({
                                     }}
                                 >
                                     <SelectOption value="">
-                                        No category
+                                        {t('transactions.form.noCategory')}
                                     </SelectOption>
                                     {availableCategories.map((category) => (
                                         <SelectOption
@@ -499,7 +501,7 @@ export function TransactionFormModal({
                                             key={category.id}
                                         >
                                             {category.name}
-                                            {category.archivedAt ? ' · Archived' : ''}
+                                            {category.archivedAt ? ` · ${t('transactions.form.archived')}` : ''}
                                         </SelectOption>
                                     ))}
                                 </Select>
@@ -516,14 +518,14 @@ export function TransactionFormModal({
 
                         <div className="transaction-form-field">
                             <label htmlFor="transaction-merchant">
-                                Merchant <span>Optional</span>
+                                {t('transactions.form.merchant')} <span>{t('transactions.form.optional')}</span>
                             </label>
                             <input
                                 id="transaction-merchant"
                                 name="merchant"
                                 value={merchant}
                                 maxLength={255}
-                                placeholder="e.g. Greenfield Market"
+                                placeholder={t('transactions.form.merchantPlaceholder')}
                                 aria-invalid={Boolean(fieldErrors.merchant)}
                                 aria-describedby={
                                     fieldErrors.merchant
@@ -547,7 +549,7 @@ export function TransactionFormModal({
 
                         <div className="transaction-form-field">
                             <label htmlFor="transaction-date">
-                                Date &amp; time
+                                {t('transactions.form.dateTime')}
                             </label>
                             <div className="transaction-date-shell">
                                 <Icon name="calendar"/>
@@ -581,13 +583,13 @@ export function TransactionFormModal({
 
                     <div className="transaction-form-field transaction-note-field">
                         <label htmlFor="transaction-note">
-                            Note <span>Optional</span>
+                            {t('transactions.form.note')} <span>{t('transactions.form.optional')}</span>
                         </label>
                         <textarea
                             id="transaction-note"
                             name="note"
                             value={note}
-                            placeholder="Add a note about this transaction…"
+                            placeholder={t('transactions.form.notePlaceholder')}
                             onChange={(event) => setNote(event.target.value)}
                         />
                     </div>
@@ -596,10 +598,10 @@ export function TransactionFormModal({
                         <span><Icon name="repeat"/></span>
                         <div>
                             <strong>
-                                Account balance updates automatically
+                                {t('transactions.form.balanceTitle')}
                             </strong>
                             <p>
-                                The transaction becomes part of your financial history.
+                                {t('transactions.form.balanceDescription')}
                             </p>
                         </div>
                     </section>
@@ -610,7 +612,7 @@ export function TransactionFormModal({
                             role="alert"
                         >
                             <Icon name="alert"/>
-                            Create an active account before recording a transaction.
+                            {t('transactions.form.accountNeeded')}
                         </p>
                     )}
 
@@ -630,7 +632,7 @@ export function TransactionFormModal({
                             disabled={isSaving}
                             onClick={onClose}
                         >
-                            Cancel
+                            {t('transactions.form.cancel')}
                         </button>
                         <button
                             className="primary"
@@ -642,11 +644,11 @@ export function TransactionFormModal({
                         >
                             {isSaving
                                 ? isEditing
-                                    ? 'Saving…'
-                                    : 'Adding…'
+                                    ? t('transactions.form.saving')
+                                    : t('transactions.form.adding')
                                 : isEditing
-                                    ? 'Save changes'
-                                    : 'Add transaction'}
+                                    ? t('transactions.form.save')
+                                    : t('transactions.form.add')}
                         </button>
                     </footer>
                 </form>

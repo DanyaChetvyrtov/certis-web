@@ -2,6 +2,7 @@ import {
     useRef,
     useState,
 } from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import {ApiError} from '../../../shared/api/ApiError'
 import {
@@ -21,19 +22,13 @@ type DeleteTransactionDialogProps = {
     restoreFocus?: () => void
 }
 
-const deletionErrorMessage = (
-    error: unknown,
-): string =>
-    error instanceof ApiError
-        ? error.message
-        : 'We could not delete this transaction. Please try again.'
-
 export function DeleteTransactionDialog({
     transaction,
     onCancel,
     onDeleted,
     restoreFocus,
 }: DeleteTransactionDialogProps) {
+    const {t} = useTranslation()
     const [isDeleting, setIsDeleting] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
     const cancelButtonRef = useRef<HTMLButtonElement>(null)
@@ -54,7 +49,11 @@ export function DeleteTransactionDialog({
             await deleteTransaction(transaction.id)
             onDeleted(transaction)
         } catch (error) {
-            setErrorMessage(deletionErrorMessage(error))
+            setErrorMessage(
+                error instanceof ApiError
+                    ? error.message
+                    : t('transactions.deleteDialog.error'),
+            )
         } finally {
             setIsDeleting(false)
         }
@@ -64,8 +63,8 @@ export function DeleteTransactionDialog({
         transaction.merchant?.trim()
         || transaction.note?.trim()
         || (transaction.type === 'INCOME'
-            ? 'Income transaction'
-            : 'Expense transaction')
+            ? t('transactions.incomeTransaction')
+            : t('transactions.expenseTransaction'))
 
     return (
         <div
@@ -86,11 +85,11 @@ export function DeleteTransactionDialog({
                 </span>
 
                 <h2 id="delete-transaction-title">
-                    Delete “{transactionName}”?
+                    {t('transactions.deleteDialog.title', {name: transactionName})}
                 </h2>
 
                 <p id="delete-transaction-description">
-                    This removes the transaction from your activity and recalculates the account balance.
+                    {t('transactions.deleteDialog.description')}
                 </p>
 
                 {errorMessage && (
@@ -110,7 +109,7 @@ export function DeleteTransactionDialog({
                         disabled={isDeleting}
                         onClick={onCancel}
                     >
-                        Cancel
+                        {t('transactions.deleteDialog.cancel')}
                     </button>
                     <button
                         className="danger"
@@ -119,8 +118,8 @@ export function DeleteTransactionDialog({
                         onClick={() => void confirmDeletion()}
                     >
                         {isDeleting
-                            ? 'Deleting…'
-                            : 'Delete transaction'}
+                            ? t('transactions.deleteDialog.deleting')
+                            : t('transactions.deleteDialog.action')}
                     </button>
                 </footer>
             </div>

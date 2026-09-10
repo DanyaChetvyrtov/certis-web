@@ -1,5 +1,6 @@
 import {ApiError} from '../../../shared/api/ApiError'
 import {apiRequest} from '../../../shared/api/client'
+import i18n from '../../../i18n/i18n'
 
 export type BudgetCategoryType = 'FIXED' | 'VARIABLE'
 export type BudgetAllocationStatus = 'ON_TRACK' | 'NEAR_LIMIT' | 'OVERSPENT'
@@ -77,7 +78,7 @@ export async function getBudget(month: string, signal?: AbortSignal): Promise<Bu
     try {
         return await apiRequest<Budget>(budgetPath(month), {
             signal,
-            fallbackMessage: 'We could not load your budget. Please try again.',
+            fallbackMessage: i18n.t('budgets.loadError'),
         })
     } catch (error) {
         if (error instanceof ApiError && error.status === 404) return null
@@ -89,14 +90,14 @@ export const saveBudget = (month: string, request: SaveBudgetRequest) =>
     apiRequest<Budget>(budgetPath(month), {
         method: 'PUT',
         body: request,
-        fallbackMessage: 'We could not save your budget. Please try again.',
+        fallbackMessage: i18n.t('budgets.form.saveError'),
     })
 
 export async function getLatestOptimization(month: string, signal?: AbortSignal): Promise<BudgetOptimization | null> {
     try {
         return await apiRequest<BudgetOptimization>(`${budgetPath(month)}/optimizations/latest`, {
             signal,
-            fallbackMessage: 'We could not load the latest optimization.',
+            fallbackMessage: i18n.t('budgets.latestOptimizationError'),
         })
     } catch (error) {
         if (error instanceof ApiError && error.status === 404) return null
@@ -107,17 +108,17 @@ export async function getLatestOptimization(month: string, signal?: AbortSignal)
 export const generateOptimization = (month: string) =>
     apiRequest<BudgetOptimization>(`${budgetPath(month)}/optimizations`, {
         method: 'POST',
-        fallbackMessage: 'We could not generate budget suggestions.',
+        fallbackMessage: i18n.t('budgets.generateError'),
     })
 
 export const applyOptimization = (month: string, optimizationId: string) =>
     apiRequest<Budget>(`${optimizationPath(month, optimizationId)}/apply`, {
         method: 'POST',
-        fallbackMessage: 'We could not apply these suggestions.',
+        fallbackMessage: i18n.t('budgets.applyError'),
     })
 
 export const dismissOptimization = (month: string, optimizationId: string) =>
     apiRequest<void>(`${optimizationPath(month, optimizationId)}/dismiss`, {
         method: 'POST',
-        fallbackMessage: 'We could not dismiss these suggestions.',
+        fallbackMessage: i18n.t('budgets.dismissError'),
     })

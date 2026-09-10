@@ -1,4 +1,5 @@
 import {useRef} from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import type {Profile} from '../api/profileApi'
 import {
@@ -22,6 +23,7 @@ export function ProfilePhotoSection({
                                         onPhotoSelected,
                                         onRemovePhoto,
                                     }: ProfilePhotoSectionProps) {
+    const {t} = useTranslation()
     const photoInputRef =
         useRef<HTMLInputElement>(null)
 
@@ -32,7 +34,7 @@ export function ProfilePhotoSection({
     return (
         <section className="profile-editor-section">
             <p className="profile-editor-eyebrow">
-                Profile photo
+                {t('profile.photo')}
             </p>
 
             <div className="profile-editor-photo-row">
@@ -59,7 +61,7 @@ export function ProfilePhotoSection({
                     </strong>
 
                     <small>
-                        Your Certis profile
+                        {t('profile.profileLabel')}
                     </small>
 
                     <div className="profile-editor-photo-actions">
@@ -98,8 +100,8 @@ export function ProfilePhotoSection({
                             <Icon name="edit"/>
 
                             {profile.photoUrl
-                                ? 'Change photo'
-                                : 'Add photo'}
+                                ? t('profile.changePhoto')
+                                : t('profile.addPhoto')}
                         </button>
 
                         {profile.photoUrl && (
@@ -114,14 +116,14 @@ export function ProfilePhotoSection({
                                 }
                             >
                                 <Icon name="trash"/>
-                                Remove
+                                {t('profile.removePhoto')}
                             </button>
                         )}
 
                         <span>
-                            JPG, PNG or WebP
+                            {t('profile.photoFormats')}
                             <br/>
-                            Up to 5 MB
+                            {t('profile.photoSize')}
                         </span>
                     </div>
                 </div>

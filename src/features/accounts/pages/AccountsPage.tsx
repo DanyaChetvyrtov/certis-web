@@ -1,11 +1,11 @@
 import {Select, SelectOption} from '../../../components/Select'
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import {WorkspaceSidebar} from '../../../layouts/WorkspaceSidebar'
 import {ApiError} from '../../../shared/api/ApiError'
 import {
     accountTypes,
-    accountTypeLabels,
     currencies,
     getAccounts,
 } from '../api/accountsApi'
@@ -20,15 +20,10 @@ import './AccountsPage.css'
 import {
     AccountActionMenu,
 } from '../components/AccountActionMenu'
+import {useLanguage} from '../../../i18n/useLanguage'
 
 type AccountFilter = 'all' | 'active' | 'closed'
 type AccountSort = 'newest' | 'name' | 'balance'
-
-const currencySymbols: Record<Currency, string> = {
-    RUB: '₽',
-    EUR: '€',
-    USD: '$',
-}
 
 const typeColors: Record<AccountType, string> = {
     CARD: '#10b889',
@@ -47,28 +42,34 @@ const accountIcon = (type: AccountType) => {
 const formatAmount = (
     amount: number,
     currency: Currency,
+    locale: string,
     maximumFractionDigits = 2,
 ) => {
-    const value = new Intl.NumberFormat('en-US', {
+    const value = new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency,
+        currencyDisplay: 'narrowSymbol',
         minimumFractionDigits: maximumFractionDigits,
         maximumFractionDigits,
-    }).format(Math.abs(amount))
-    return `${amount < 0 ? '-' : ''}${currencySymbols[currency]}${value}`
+    }).format(amount)
+    return value
 }
 
-const formatDate = (date: string) => new Intl.DateTimeFormat('en-US', {
+const formatDate = (date: string, locale: string) => new Intl.DateTimeFormat(locale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
 }).format(new Date(date))
 
-const accountErrorMessage = (error: unknown) => (
+const accountErrorMessage = (error: unknown, fallback: string) => (
     error instanceof ApiError
         ? error.message
-        : 'We could not load your accounts. Please try again.'
+        : fallback
 )
 
 export function AccountsPage() {
+    const {t} = useTranslation()
+    const {locale} = useLanguage()
     const [accounts, setAccounts] = useState<Account[]>([])
     const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading')
     const [loadError, setLoadError] = useState('')
@@ -141,10 +142,10 @@ export function AccountsPage() {
             setAccounts(loadedAccounts)
             setLoadState('ready')
         } catch (error) {
-            setLoadError(accountErrorMessage(error))
+            setLoadError(accountErrorMessage(error, t('accounts.loadError')))
             setLoadState('error')
         }
-    }, [])
+    }, [t])
 
     useEffect(() => {
         let isActive = true
@@ -158,7 +159,7 @@ export function AccountsPage() {
             },
             (error: unknown) => {
                 if (isActive) {
-                    setLoadError(accountErrorMessage(error))
+                    setLoadError(accountErrorMessage(error, t('accounts.loadError')))
                     setLoadState('error')
                 }
             },
@@ -167,7 +168,7 @@ export function AccountsPage() {
         return () => {
             isActive = false
         }
-    }, [])
+    }, [t])
 
     useEffect(() => {
         if (!notice) return
@@ -220,17 +221,17 @@ export function AccountsPage() {
                 || (filter === 'closed' && Boolean(account.closedAt))
             const matchesSearch = !normalizedQuery
                 || account.name.toLocaleLowerCase().includes(normalizedQuery)
-                || accountTypeLabels[account.type].toLocaleLowerCase().includes(normalizedQuery)
+                || t(`accounts.types.${account.type}`).toLocaleLowerCase().includes(normalizedQuery)
                 || account.currency.toLocaleLowerCase().includes(normalizedQuery)
             return matchesStatus && matchesSearch
         })
 
         return [...filtered].sort((first, second) => {
-            if (sort === 'name') return first.name.localeCompare(second.name)
+            if (sort === 'name') return first.name.localeCompare(second.name, locale)
             if (sort === 'balance') return second.balance - first.balance
             return new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime()
         })
-    }, [accounts, filter, searchQuery, sort])
+    }, [accounts, filter, locale, searchQuery, sort, t])
 
     const saveAccount = (
         savedAccount: Account,
@@ -254,7 +255,7 @@ export function AccountsPage() {
         })
 
         setFormModal(null)
-        setNotice(isNewAccount ? 'Account created.' : 'Account updated.',)
+        setNotice(isNewAccount ? t('accounts.createdNotice') : t('accounts.updatedNotice'))
     }
 
     const finishClosing = async () => {
@@ -267,8 +268,8 @@ export function AccountsPage() {
 
         setNotice(
             closedName
-                ? `${closedName} was closed.`
-                : 'Account closed.',
+                ? t('accounts.namedClosedNotice', {name: closedName})
+                : t('accounts.closedNotice'),
         )
     }
 
@@ -282,15 +283,15 @@ export function AccountsPage() {
             <main className="accounts-main">
                 <header className="accounts-page-header">
                     <div>
-                        <p>Money sources</p>
-                        <h1>Accounts</h1>
-                        <span>Manage every place where your money lives.</span>
+                        <p>{t('accounts.eyebrow')}</p>
+                        <h1>{t('accounts.title')}</h1>
+                        <span>{t('accounts.subtitle')}</span>
                     </div>
                     <div className="accounts-header-actions">
                         <button
                             className="accounts-icon-button"
                             type="button"
-                            aria-label="Focus account search"
+                            aria-label={t('accounts.focusSearch')}
                             onClick={() => searchInputRef.current?.focus()}
                         >
                             <Icon name="search"/>
@@ -298,7 +299,7 @@ export function AccountsPage() {
                         <button
                             className="accounts-icon-button notification-button"
                             type="button"
-                            aria-label="Notifications are not available yet"
+                            aria-label={t('accounts.notificationsUnavailable')}
                             disabled
                         >
                             <Icon name="bell"/>
@@ -309,29 +310,29 @@ export function AccountsPage() {
                             onClick={openNewAccount}
                         >
                             <Icon name="plus"/>
-                            New account
+                            {t('accounts.newAccount')}
                         </button>
                     </div>
                 </header>
 
                 {notice && <div className="accounts-notice" role="status">{notice}</div>}
 
-                <section className="accounts-summary-card" aria-label="Balance summary">
+                <section className="accounts-summary-card" aria-label={t('accounts.balanceSummary')}>
                     <div className="total-balance-panel">
-                        <p>Total balance · {currency}</p>
-                        <strong>{formatAmount(totalBalance, currency, 0)}</strong>
+                        <p>{t('accounts.totalBalance', {currency})}</p>
+                        <strong>{formatAmount(totalBalance, currency, locale, 0)}</strong>
                         <div className="account-counts">
-                            <span><i/>{activeAccounts.length} active</span>
-                            <span>{closedAccounts.length} closed</span>
+                            <span><i/>{t('accounts.activeCount', {count: activeAccounts.length})}</span>
+                            <span>{t('accounts.closedCount', {count: closedAccounts.length})}</span>
                         </div>
-                        <small>Only open accounts are included in the total.</small>
+                        <small>{t('accounts.totalHint')}</small>
                     </div>
 
                     <div className="balance-type-panel">
                         <div className="balance-type-heading">
-                            <p>Balance by type</p>
+                            <p>{t('accounts.balanceByType')}</p>
                             <label>
-                                <span className="sr-only">Summary currency</span>
+                                <span className="sr-only">{t('accounts.summaryCurrency')}</span>
                                 <Select
                                     value={currency}
                                     onValueChange={(value) => setCurrency(value as Currency)}
@@ -343,13 +344,13 @@ export function AccountsPage() {
 
                         {balanceByType.length === 0 ? (
                             <div className="balance-type-empty">
-                                No active {currency} accounts yet.
+                                {t('accounts.noActiveCurrency', {currency})}
                             </div>
                         ) : (
                             <div className="balance-type-list">
                                 {balanceByType.map((item) => (
                                     <div className="balance-type-row" key={item.type}>
-                                        <span>{accountTypeLabels[item.type]}</span>
+                                        <span>{t(`accounts.types.${item.type}`)}</span>
                                         <span className="balance-type-track">
                       <i
                           style={{
@@ -358,7 +359,7 @@ export function AccountsPage() {
                           }}
                       />
                     </span>
-                                        <strong>{formatAmount(item.balance, currency, 0)}</strong>
+                                        <strong>{formatAmount(item.balance, currency, locale, 0)}</strong>
                                         <small>{item.percentage}%</small>
                                     </div>
                                 ))}
@@ -374,73 +375,73 @@ export function AccountsPage() {
                                 ref={accountsHeadingRef}
                                 tabIndex={-1}
                             >
-                                Your accounts
+                                {t('accounts.yourAccounts')}
                             </h2>
-                            <p>Balances update automatically from transactions and goal transfers.</p>
+                            <p>{t('accounts.balancesHint')}</p>
                         </div>
                     </div>
 
                     <div className="accounts-list-toolbar">
-                        <div className="account-filter-tabs" role="group" aria-label="Filter accounts">
+                        <div className="account-filter-tabs" role="group" aria-label={t('accounts.filterLabel')}>
                             <button
                                 className={filter === 'all' ? 'active' : undefined}
                                 type="button"
                                 onClick={() => setFilter('all')}
                             >
-                                All · {accounts.length}
+                                {t('accounts.all')} · {accounts.length}
                             </button>
                             <button
                                 className={filter === 'active' ? 'active' : undefined}
                                 type="button"
                                 onClick={() => setFilter('active')}
                             >
-                                Active · {activeAccounts.length}
+                                {t('accounts.active')} · {activeAccounts.length}
                             </button>
                             <button
                                 className={filter === 'closed' ? 'active' : undefined}
                                 type="button"
                                 onClick={() => setFilter('closed')}
                             >
-                                Closed · {closedAccounts.length}
+                                {t('accounts.closed')} · {closedAccounts.length}
                             </button>
                         </div>
 
                         <div className="account-search-sort">
                             <label className="account-search-field">
                                 <Icon name="search"/>
-                                <span className="sr-only">Search accounts</span>
+                                <span className="sr-only">{t('accounts.search')}</span>
                                 <input
                                     ref={searchInputRef}
                                     type="search"
-                                    placeholder="Search accounts"
+                                    placeholder={t('accounts.search')}
                                     value={searchQuery}
                                     onChange={(event) => setSearchQuery(event.target.value)}
                                 />
                             </label>
                             <label className="account-sort-field">
-                                <span className="sr-only">Sort accounts</span>
+                                <span className="sr-only">{t('accounts.sort')}</span>
                                 <Select
                                     value={sort}
                                     onValueChange={(value) => setSort(value as AccountSort)}
                                 >
-                                    <SelectOption value="newest">Newest</SelectOption>
-                                    <SelectOption value="name">Name</SelectOption>
-                                    <SelectOption value="balance">Balance</SelectOption>
+                                    <SelectOption value="newest">{t('accounts.newest')}</SelectOption>
+                                    <SelectOption value="name">{t('accounts.name')}</SelectOption>
+                                    <SelectOption value="balance">{t('accounts.balance')}</SelectOption>
                                 </Select>
                             </label>
                         </div>
                     </div>
 
                     <div className="account-table-head" aria-hidden="true">
-                        <span>Account</span>
-                        <span>Current balance</span>
-                        <span>Account timeline</span>
-                        <span>Status</span>
+                        <span>{t('accounts.account')}</span>
+                        <span>{t('accounts.currentBalance')}</span>
+                        <span>{t('accounts.timeline')}</span>
+                        <span>{t('accounts.status')}</span>
                         <span/>
                     </div>
 
                     {loadState === 'loading' && (
-                        <div className="account-loading-state" aria-label="Loading accounts">
+                        <div className="account-loading-state" aria-label={t('accounts.loading')}>
                             {[0, 1, 2].map((item) => <span key={item}/>)}
                         </div>
                     )}
@@ -448,24 +449,24 @@ export function AccountsPage() {
                     {loadState === 'error' && (
                         <div className="account-empty-state" role="alert">
                             <span><Icon name="alert"/></span>
-                            <h3>Accounts could not be loaded</h3>
+                            <h3>{t('accounts.loadTitle')}</h3>
                             <p>{loadError}</p>
-                            <button type="button" onClick={() => void loadAccounts()}>Try again</button>
+                            <button type="button" onClick={() => void loadAccounts()}>{t('accounts.tryAgain')}</button>
                         </div>
                     )}
 
                     {loadState === 'ready' && visibleAccounts.length === 0 && (
                         <div className="account-empty-state">
                             <span><Icon name={accounts.length === 0 ? 'wallet' : 'search'}/></span>
-                            <h3>{accounts.length === 0 ? 'Create your first account' : 'No accounts found'}</h3>
+                            <h3>{accounts.length === 0 ? t('accounts.createFirst') : t('accounts.noResults')}</h3>
                             <p>
                                 {accounts.length === 0
-                                    ? 'Add cash, a card, a bank account, or an investment account.'
-                                    : 'Try changing the filter or search query.'}
+                                    ? t('accounts.createFirstDescription')
+                                    : t('accounts.noResultsDescription')}
                             </p>
                             {accounts.length === 0 && (
                                 <button type="button" onClick={openNewAccount}>
-                                    Add account
+                                    {t('accounts.addAccount')}
                                 </button>
                             )}
                         </div>
@@ -484,20 +485,20 @@ export function AccountsPage() {
                       </span>
                                             <span>
                         <strong>{account.name}</strong>
-                        <small>{accountTypeLabels[account.type]} · {account.currency}</small>
+                        <small>{t(`accounts.types.${account.type}`)} · {account.currency}</small>
                       </span>
                                         </div>
                                         <div className="account-balance">
-                                            <strong>{formatAmount(account.balance, account.currency)}</strong>
-                                            <small>{isClosed ? 'Final balance' : 'Calculated balance'}</small>
+                                            <strong>{formatAmount(account.balance, account.currency, locale)}</strong>
+                                            <small>{isClosed ? t('accounts.finalBalance') : t('accounts.calculatedBalance')}</small>
                                         </div>
                                         <div className="account-timeline">
-                                            <span>{isClosed ? `Closed ${formatDate(account.closedAt!)}` : `Created ${formatDate(account.createdAt)}`}</span>
+                                            <span>{isClosed ? t('accounts.closedAt', {date: formatDate(account.closedAt!, locale)}) : t('accounts.createdAt', {date: formatDate(account.createdAt, locale)})}</span>
                                         </div>
                                         <div>
                                             <span className={isClosed ? 'account-status closed' : 'account-status'}>
                                             {!isClosed && <i/>}
-                                                {isClosed ? 'Closed' : 'Active'}
+                                                {isClosed ? t('accounts.closed') : t('accounts.active')}
                                             </span>
                                         </div>
                                         {!isClosed && (

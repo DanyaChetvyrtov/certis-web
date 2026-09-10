@@ -1,3 +1,5 @@
+import i18n from '../../i18n/i18n'
+
 const MAX_PHOTO_SIZE =
     5 * 1024 * 1024
 
@@ -22,7 +24,7 @@ export const validateProfilePhoto = (
     photo: File,
 ): string | null => {
     if (photo.size > MAX_PHOTO_SIZE) {
-        return 'Photo must be 5 MB or smaller.'
+        return i18n.t('profile.validation.photoSize')
     }
 
     const extension =
@@ -40,7 +42,7 @@ export const validateProfilePhoto = (
             photo.type,
         )
     ) {
-        return 'Choose a JPG, PNG or WebP image.'
+        return i18n.t('profile.validation.photoType')
     }
 
     return null

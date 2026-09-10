@@ -1,0 +1,48 @@
+.language-switcher {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid rgb(136 146 176 / 38%);
+    border-radius: 999px;
+    background: rgb(10 25 47 / 8%);
+}
+
+.language-switcher button {
+    min-width: 34px;
+    height: 28px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 999px;
+    color: #738198;
+    background: transparent;
+    font: inherit;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    cursor: pointer;
+    transition: color 150ms ease,
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.language-switcher button:hover {
+    color: #10243c;
+}
+
+.language-switcher button.active {
+    color: #fff;
+    background: #0a2039;
+    box-shadow: 0 2px 7px rgb(3 18 35 / 20%);
+}
+
+.language-switcher button:focus-visible {
+    outline: 2px solid #10b981;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .language-switcher button {
+        transition: none;
+    }
+}

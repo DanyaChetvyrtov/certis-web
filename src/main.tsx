@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 import { initializeTheme } from './features/settings/theme'
+import './i18n/i18n'
 
 initializeTheme()
 

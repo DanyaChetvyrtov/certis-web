@@ -6,6 +6,7 @@ import {
 import type {
     KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
+import {useTranslation} from 'react-i18next'
 
 import {
     Icon,
@@ -35,6 +36,7 @@ export function AccountActionMenu({
                                       onCloseAccount,
                                       onEdit,
                                   }: AccountActionMenuProps) {
+    const {t} = useTranslation()
     const [isOpen, setOpen] =
         useState(false)
 
@@ -197,7 +199,7 @@ export function AccountActionMenu({
                 ref={triggerRef}
                 type="button"
                 aria-label={
-                    `Actions for ${account.name}`
+                    t('accounts.actions.label', {name: account.name})
                 }
                 aria-haspopup="menu"
                 aria-expanded={isOpen}
@@ -219,7 +221,7 @@ export function AccountActionMenu({
                     className="account-action-menu"
                     role="menu"
                     aria-label={
-                        `Actions for ${account.name}`
+                        t('accounts.actions.label', {name: account.name})
                     }
                 >
                     <button
@@ -235,7 +237,7 @@ export function AccountActionMenu({
                         }}
                     >
                         <Icon name="edit"/>
-                        Edit account
+                        {t('accounts.actions.edit')}
                     </button>
 
                     <button
@@ -252,7 +254,7 @@ export function AccountActionMenu({
                         }}
                     >
                         <Icon name="trash"/>
-                        Close account
+                        {t('accounts.actions.close')}
                     </button>
                 </div>
             )}

@@ -1,5 +1,6 @@
 import {apiRequest} from '../../../shared/api/client'
 import type {Currency} from '../../../shared/currency'
+import i18n from '../../../i18n/i18n'
 
 export const transactionTypes = [
     'EXPENSE',
@@ -83,7 +84,7 @@ export type CashFlowAnalytics = {
 export const getCashFlowAnalytics = (request: CashFlowRequest) =>
     apiRequest<CashFlowAnalytics>(
         `/api/v1/transactions/analytics/cash-flow?${new URLSearchParams(request)}`,
-        {fallbackMessage: 'We could not load cash flow. Please try again.'},
+        {fallbackMessage: i18n.t('transactions.api.cashFlow')},
     )
 
 export type MonthlyTransactionAnalyticsRequest = {
@@ -192,7 +193,7 @@ export const getTransactions = (
         transactionsPath(filters),
         {
             signal,
-            fallbackMessage: 'We could not load your transactions. Please try again.',
+            fallbackMessage: i18n.t('transactions.api.load'),
         },
     )
 
@@ -209,7 +210,7 @@ export const getMonthlyTransactionAnalytics = (
         `${MONTHLY_TRANSACTION_ANALYTICS_PATH}?${query}`,
         {
             signal,
-            fallbackMessage: 'We could not load your monthly summary. Please try again.',
+            fallbackMessage: i18n.t('transactions.api.summary'),
         },
     )
 }
@@ -233,7 +234,7 @@ export const getUncategorizedTransactions = (
         `${UNCATEGORIZED_TRANSACTIONS_PATH}?${query}`,
         {
             signal,
-            fallbackMessage: 'We could not load uncategorized transactions. Please try again.',
+            fallbackMessage: i18n.t('transactions.api.uncategorized'),
         },
     )
 }
@@ -244,7 +245,7 @@ export const assignTransactionCategories = (
     apiRequest<void>(CATEGORY_ASSIGNMENTS_PATH, {
         method: 'PATCH',
         body: {assignments},
-        fallbackMessage: 'We could not assign the selected categories. Please try again.',
+        fallbackMessage: i18n.t('transactions.api.assign'),
     })
 
 export const getAllTransactions = async (
@@ -284,7 +285,7 @@ export const createTransaction = (
     apiRequest<Transaction>(TRANSACTIONS_PATH, {
         method: 'POST',
         body: request,
-        fallbackMessage: 'We could not create this transaction. Please try again.',
+        fallbackMessage: i18n.t('transactions.api.create'),
     })
 
 export const updateTransaction = (
@@ -294,7 +295,7 @@ export const updateTransaction = (
     apiRequest<Transaction>(transactionPath(transactionId), {
         method: 'PUT',
         body: request,
-        fallbackMessage: 'We could not update this transaction. Please try again.',
+        fallbackMessage: i18n.t('transactions.api.update'),
     })
 
 export const deleteTransaction = (
@@ -302,5 +303,5 @@ export const deleteTransaction = (
 ) =>
     apiRequest(transactionPath(transactionId), {
         method: 'DELETE',
-        fallbackMessage: 'We could not delete this transaction. Please try again.',
+        fallbackMessage: i18n.t('transactions.api.delete'),
     })

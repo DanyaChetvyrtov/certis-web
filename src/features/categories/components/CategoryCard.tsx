@@ -1,4 +1,5 @@
 import type {CSSProperties} from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import type {Currency} from '../../../shared/currency'
 import {
@@ -9,6 +10,7 @@ import type {
     CategoryCard as CategoryCardModel,
 } from '../api/categoriesApi'
 import type {CategoryStatus} from './CategoryControls'
+import {useLanguage} from '../../../i18n/useLanguage'
 
 type CategoryAccentStyle = CSSProperties & {
     '--category-accent': string
@@ -42,16 +44,14 @@ const accentStyle = (
 const formatMoney = (
     amount: number,
     currency: Currency,
+    locale: string,
 ): string =>
-    new Intl.NumberFormat('en-US', {
+    new Intl.NumberFormat(locale, {
         style: 'currency',
         currency,
         currencyDisplay: 'narrowSymbol',
         maximumFractionDigits: 0,
     }).format(amount)
-
-const formatTransactionCount = (count: number): string =>
-    `${count} ${count === 1 ? 'transaction' : 'transactions'}`
 
 export function CategoryCard({
     category,
@@ -62,6 +62,8 @@ export function CategoryCard({
     onEdit,
     onRestore,
 }: CategoryCardProps) {
+    const {t} = useTranslation()
+    const {locale} = useLanguage()
     const isArchived = status === 'ARCHIVED'
 
     return (
@@ -89,9 +91,9 @@ export function CategoryCard({
                 <div className="category-item-copy">
                     <h3>{category.name}</h3>
                     <p>
-                        {formatTransactionCount(
-                            category.monthlyTransactionCount,
-                        )}
+                        {t('categories.card.transactions', {
+                            count: category.monthlyTransactionCount,
+                        })}
                     </p>
                 </div>
                 <div className="category-item-actions">
@@ -99,13 +101,13 @@ export function CategoryCard({
                         <button
                             className="category-item-action edit"
                             type="button"
-                            aria-label={`Edit ${category.name}`}
+                            aria-label={t('categories.card.editLabel', {name: category.name})}
                             onClick={(event) =>
                                 onEdit(category, event.currentTarget)
                             }
                         >
                             <Icon name="edit"/>
-                            Edit
+                            {t('categories.card.edit')}
                         </button>
                     )}
                     <button
@@ -118,8 +120,8 @@ export function CategoryCard({
                         disabled={isRestoring}
                         aria-label={
                             isArchived
-                                ? `Restore ${category.name}`
-                                : `Archive ${category.name}`
+                                ? t('categories.card.restoreLabel', {name: category.name})
+                                : t('categories.card.archiveLabel', {name: category.name})
                         }
                         onClick={(event) => {
                             if (isArchived) {
@@ -135,18 +137,18 @@ export function CategoryCard({
                         />
                         {isArchived
                             ? isRestoring
-                                ? 'Restoring…'
-                                : 'Restore'
-                            : 'Archive'}
+                                ? t('categories.card.restoring')
+                                : t('categories.card.restore')
+                            : t('categories.card.archive')}
                     </button>
                 </div>
             </div>
 
             <div className="category-item-stats">
-                <span>This month</span>
+                <span>{t('categories.card.thisMonth')}</span>
                 <div>
                     <strong>
-                        {formatMoney(category.monthlyAmount, currency)}
+                        {formatMoney(category.monthlyAmount, currency, locale)}
                     </strong>
                     <b>
                         {category.monthlySharePercentage.toFixed(0)}%
@@ -155,7 +157,7 @@ export function CategoryCard({
                 <div
                     className="category-item-progress"
                     role="progressbar"
-                    aria-label={`${category.name} share this month`}
+                    aria-label={t('categories.card.share', {name: category.name})}
                     aria-valuemin={0}
                     aria-valuemax={100}
                     aria-valuenow={category.monthlySharePercentage}
@@ -166,7 +168,7 @@ export function CategoryCard({
 
             {isArchived && (
                 <p className="category-item-archive-note">
-                    Existing history remains categorized
+                    {t('categories.card.archivedNote')}
                 </p>
             )}
         </article>

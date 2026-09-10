@@ -1,4 +1,5 @@
 import {ApiError} from './ApiError'
+import i18n from '../../i18n/i18n'
 import type {ApiErrorBody} from './ApiError'
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
@@ -143,7 +144,7 @@ const parseError = async (
     return new ApiError(
         body?.message
         || fallback
-        || 'We could not complete your request. Please try again.',
+        || i18n.t('common.requestError'),
         response.status,
         body?.errors,
     )
@@ -206,7 +207,7 @@ async function sendRequest<T>(
         }
 
         throw new ApiError(
-            'Could not reach Certis. Check that the API is running and try again.',
+            i18n.t('common.connectionError'),
             0,
         )
     }
@@ -242,8 +243,8 @@ export function refreshSession(): Promise<void> {
                 retryOnUnauthorized: false,
                 fallbackMessage: (status) =>
                     status === 401
-                        ? 'Your session has expired. Sign in again.'
-                        : 'We could not refresh your session. Please try again.',
+                        ? i18n.t('common.sessionExpired')
+                        : i18n.t('common.sessionRefreshError'),
             },
         )
             .then(() => {

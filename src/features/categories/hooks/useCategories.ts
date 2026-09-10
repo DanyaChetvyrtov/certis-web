@@ -5,6 +5,7 @@ import {
     useRef,
     useState,
 } from 'react'
+import {useTranslation} from 'react-i18next'
 import {ApiError} from '../../../shared/api/ApiError'
 import type {Currency} from '../../../shared/currency'
 import {
@@ -29,17 +30,19 @@ export type CategoryNotice = {
 
 const categoryLoadErrorMessage = (
     error: unknown,
+    fallback: string,
 ): string =>
     error instanceof ApiError
         ? error.message
-        : 'We could not load your categories. Please try again.'
+        : fallback
 
 const categoryRestoreErrorMessage = (
     error: unknown,
+    fallback: string,
 ): string =>
     error instanceof ApiError
         ? error.message
-        : 'We could not restore this category. Please try again.'
+        : fallback
 
 const currentMonth = (): string => {
     const today = new Date()
@@ -56,6 +59,7 @@ const emptyCategoryCard = (category: Category): CategoryCard => ({
 })
 
 export function useCategories(initialCurrency: Currency) {
+    const {t} = useTranslation()
     const [categories, setCategories] =
         useState<CategoryCard[]>([])
     const [month] = useState(currentMonth)
@@ -106,10 +110,13 @@ export function useCategories(initialCurrency: Currency) {
                 return
             }
 
-            setLoadError(categoryLoadErrorMessage(error))
+            setLoadError(categoryLoadErrorMessage(
+                error,
+                t('categories.loadError'),
+            ))
             setLoadState('error')
         }
-    }, [currency, month, page, pageSize, sort])
+    }, [currency, month, page, pageSize, sort, t])
 
     useEffect(() => {
         let isActive = true
@@ -179,10 +186,10 @@ export function useCategories(initialCurrency: Currency) {
         setNotice({
             kind: 'success',
             message: isEditing
-                ? 'Category updated.'
-                : 'Category created.',
+                ? t('categories.notice.updated')
+                : t('categories.notice.created'),
         })
-    }, [pageSize, totalElements])
+    }, [pageSize, totalElements, t])
 
     const changeCurrency = useCallback((nextCurrency: Currency) => {
         setPage(0)
@@ -208,9 +215,9 @@ export function useCategories(initialCurrency: Currency) {
         ))
         setNotice({
             kind: 'success',
-            message: 'Category archived. You can restore it from Archived.',
+            message: t('categories.notice.archived'),
         })
-    }, [])
+    }, [t])
 
     const restoreArchivedCategory = useCallback(async (
         category: Category,
@@ -231,19 +238,22 @@ export function useCategories(initialCurrency: Currency) {
             ))
             setNotice({
                 kind: 'success',
-                message: 'Category restored.',
+                message: t('categories.notice.restored'),
             })
             return true
         } catch (error) {
             setNotice({
                 kind: 'error',
-                message: categoryRestoreErrorMessage(error),
+                message: categoryRestoreErrorMessage(
+                    error,
+                    t('categories.notice.restoreError'),
+                ),
             })
             return false
         } finally {
             setRestoringCategoryId(null)
         }
-    }, [])
+    }, [t])
 
     return {
         activeCategories,

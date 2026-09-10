@@ -1,4 +1,5 @@
 import {Icon} from '../../../components/Icons'
+import {useTranslation} from 'react-i18next'
 import {ApiError} from '../../../shared/api/ApiError'
 import {closeAccount} from '../api/accountsApi'
 import type {Account} from '../api/accountsApi'
@@ -25,6 +26,7 @@ export function CloseAccountDialog({
                                        onClosed,
                                        restoreFocus,
                                    }: CloseAccountDialogProps) {
+    const {t} = useTranslation()
     const [isClosing, setIsClosing] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
     const cancelButtonRef = useRef<HTMLButtonElement>(null)
@@ -48,7 +50,7 @@ export function CloseAccountDialog({
             setErrorMessage(
                 error instanceof ApiError
                     ? error.message
-                    : 'We could not close this account. Please try again.',
+                    : t('accounts.closeDialog.error'),
             )
         } finally {
             setIsClosing(false)
@@ -67,11 +69,10 @@ export function CloseAccountDialog({
                 tabIndex={-1}
             >
                 <span className="account-confirm-icon"><Icon name="trash"/></span>
-                <p>Close account</p>
-                <h2 id="close-account-title">Close “{account.name}”?</h2>
+                <p>{t('accounts.closeDialog.eyebrow')}</p>
+                <h2 id="close-account-title">{t('accounts.closeDialog.title', {name: account.name})}</h2>
                 <p id="close-account-description">
-                    It will be archived and excluded from your total balance. Its history
-                    and final balance will stay available.
+                    {t('accounts.closeDialog.description')}
                 </p>
 
                 {errorMessage && (
@@ -88,7 +89,7 @@ export function CloseAccountDialog({
                         disabled={isClosing}
                         onClick={onCancel}
                     >
-                        Keep account
+                        {t('accounts.closeDialog.keep')}
                     </button>
                     <button
                         className="danger"
@@ -96,7 +97,7 @@ export function CloseAccountDialog({
                         disabled={isClosing}
                         onClick={() => void close()}
                     >
-                        {isClosing ? 'Closing…' : 'Close account'}
+                        {isClosing ? t('accounts.closeDialog.closing') : t('accounts.closeDialog.close')}
                     </button>
                 </div>
             </div>

@@ -20,6 +20,9 @@ import {
 import {
     THEME_STORAGE_KEY,
 } from './theme'
+import {
+    LANGUAGE_STORAGE_KEY,
+} from '../../i18n/language'
 
 const renderModal = (
     onClose = vi.fn(),
@@ -96,5 +99,23 @@ describe('SettingsModal', () => {
         fireEvent.keyDown(document, {key: 'Escape'})
 
         expect(onClose).toHaveBeenCalledOnce()
+    })
+
+    it('switches language immediately and persists the selection', async () => {
+        renderModal()
+
+        const russianOption = screen.getByRole(
+            'button',
+            {name: /Russian/},
+        )
+
+        fireEvent.click(russianOption)
+
+        expect(await screen.findByRole('dialog', {name: 'Настройки'}))
+            .toBeInTheDocument()
+        expect(russianOption).toHaveAttribute('aria-pressed', 'true')
+        expect(document.documentElement.lang).toBe('ru')
+        expect(window.localStorage.getItem(LANGUAGE_STORAGE_KEY))
+            .toBe('ru')
     })
 })

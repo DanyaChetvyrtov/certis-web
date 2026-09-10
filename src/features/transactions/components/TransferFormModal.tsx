@@ -5,6 +5,7 @@ import {
     useState,
 } from 'react'
 import type {FormEvent} from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import {ApiError} from '../../../shared/api/ApiError'
 import {useModalAccessibility} from '../../../shared/hooks/useModalAccessibility'
@@ -49,6 +50,7 @@ export function TransferFormModal({
     onSaved,
     restoreFocus,
 }: Props) {
+    const {t} = useTranslation()
     const activeAccounts = useMemo(
         () => accounts.filter((account) => !account.closedAt),
         [accounts],
@@ -109,18 +111,18 @@ export function TransferFormModal({
         const date = new Date(occurredAt)
 
         if (!sourceAccountId) {
-            nextErrors.sourceAccountId = 'Select the account to transfer from.'
+            nextErrors.sourceAccountId = t('transactions.transferForm.sourceRequired')
         }
         if (!destinationAccountId) {
-            nextErrors.destinationAccountId = 'Select the account to transfer to.'
+            nextErrors.destinationAccountId = t('transactions.transferForm.destinationRequired')
         } else if (destinationAccountId === sourceAccountId) {
-            nextErrors.destinationAccountId = 'Choose a different destination account.'
+            nextErrors.destinationAccountId = t('transactions.transferForm.differentDestination')
         } else if (
             sourceAccount
             && destination
             && sourceAccount.currency !== destination.currency
         ) {
-            nextErrors.destinationAccountId = 'Both accounts must use the same currency.'
+            nextErrors.destinationAccountId = t('transactions.transferForm.sameCurrency')
         }
         if (
             !amount
@@ -128,10 +130,10 @@ export function TransferFormModal({
             || normalizedAmount <= 0
             || !/^\d{1,15}(?:\.\d{1,4})?$/.test(amount)
         ) {
-            nextErrors.amount = 'Enter a positive amount with up to 4 decimal places.'
+            nextErrors.amount = t('transactions.form.amountInvalid')
         }
         if (!occurredAt || Number.isNaN(date.getTime())) {
-            nextErrors.occurredAt = 'Select a valid date and time.'
+            nextErrors.occurredAt = t('transactions.form.dateInvalid')
         }
 
         setFieldErrors(nextErrors)
@@ -166,7 +168,7 @@ export function TransferFormModal({
                 })
                 setFormError(error.message)
             } else {
-                setFormError('We could not transfer the money. Please try again.')
+                setFormError(t('transactions.transferForm.error'))
             }
         } finally {
             setSaving(false)
@@ -185,10 +187,10 @@ export function TransferFormModal({
             >
                 <header className="transaction-modal-heading">
                     <div>
-                        <h2 id="transfer-modal-title">Transfer money</h2>
-                        <p>Move money between two accounts in the same currency.</p>
+                        <h2 id="transfer-modal-title">{t('transactions.transferForm.title')}</h2>
+                        <p>{t('transactions.transferForm.description')}</p>
                     </div>
-                    <button type="button" aria-label="Close transfer form" disabled={saving} onClick={onClose}>
+                    <button type="button" aria-label={t('transactions.transferForm.close')} disabled={saving} onClick={onClose}>
                         <Icon name="close"/>
                     </button>
                 </header>
@@ -196,7 +198,7 @@ export function TransferFormModal({
                 <form onSubmit={submit} noValidate>
                     <div className="transfer-route-grid">
                         <div className="transaction-form-field">
-                            <label htmlFor="transfer-source">From account</label>
+                            <label htmlFor="transfer-source">{t('transactions.transferForm.from')}</label>
                             <div className="transaction-select-shell">
                                 <Icon name="wallet"/>
                                 <Select
@@ -206,7 +208,7 @@ export function TransferFormModal({
                                     aria-invalid={Boolean(fieldErrors.sourceAccountId)}
                                     onValueChange={(value) => changeSource(value)}
                                 >
-                                    <SelectOption value="">Select source</SelectOption>
+                                    <SelectOption value="">{t('transactions.transferForm.selectSource')}</SelectOption>
                                     {activeAccounts.map((account) => (
                                         <SelectOption value={account.id} key={account.id}>
                                             {accountLabel(account)}
@@ -220,7 +222,7 @@ export function TransferFormModal({
                         <span className="transfer-direction" aria-hidden="true"><Icon name="arrow-right"/></span>
 
                         <div className="transaction-form-field">
-                            <label htmlFor="transfer-destination">To account</label>
+                            <label htmlFor="transfer-destination">{t('transactions.transferForm.to')}</label>
                             <div className="transaction-select-shell">
                                 <Icon name="bank"/>
                                 <Select
@@ -229,7 +231,7 @@ export function TransferFormModal({
                                     aria-invalid={Boolean(fieldErrors.destinationAccountId)}
                                     onValueChange={(value) => setDestinationAccountId(value)}
                                 >
-                                    <SelectOption value="">Select destination</SelectOption>
+                                    <SelectOption value="">{t('transactions.transferForm.selectDestination')}</SelectOption>
                                     {destinationAccounts.map((account) => (
                                         <SelectOption value={account.id} key={account.id}>
                                             {accountLabel(account)}
@@ -242,7 +244,7 @@ export function TransferFormModal({
                     </div>
 
                     <div className="transaction-form-field transaction-amount-field">
-                        <label htmlFor="transfer-amount">Amount</label>
+                        <label htmlFor="transfer-amount">{t('transactions.transferForm.amount')}</label>
                         <div className={fieldErrors.amount ? 'transaction-amount-input error' : 'transaction-amount-input'}>
                             <span>{sourceAccount ? sourceAccount.currency : '—'}</span>
                             <input
@@ -253,14 +255,14 @@ export function TransferFormModal({
                                 aria-invalid={Boolean(fieldErrors.amount)}
                                 onChange={(event) => setAmount(event.target.value)}
                             />
-                            <strong>{sourceAccount?.currency ?? 'Currency'}</strong>
+                            <strong>{sourceAccount?.currency ?? t('transactions.transferForm.currency')}</strong>
                         </div>
                         {fieldErrors.amount && <small className="transaction-field-error">{fieldErrors.amount}</small>}
                     </div>
 
                     <div className="transaction-form-grid">
                         <div className="transaction-form-field">
-                            <label htmlFor="transfer-date">Date and time</label>
+                            <label htmlFor="transfer-date">{t('transactions.transferForm.dateTime')}</label>
                             <div className="transaction-date-shell">
                                 <Icon name="calendar"/>
                                 <input
@@ -274,11 +276,11 @@ export function TransferFormModal({
                             {fieldErrors.occurredAt && <small className="transaction-field-error">{fieldErrors.occurredAt}</small>}
                         </div>
                         <div className="transaction-form-field">
-                            <label htmlFor="transfer-note">Note <span>Optional</span></label>
+                            <label htmlFor="transfer-note">{t('transactions.transferForm.note')} <span>{t('transactions.transferForm.optional')}</span></label>
                             <input
                                 id="transfer-note"
                                 value={note}
-                                placeholder="e.g. Move to savings"
+                                placeholder={t('transactions.transferForm.notePlaceholder')}
                                 onChange={(event) => setNote(event.target.value)}
                             />
                         </div>
@@ -287,22 +289,22 @@ export function TransferFormModal({
                     <div className="transaction-balance-note">
                         <span><Icon name="transfer"/></span>
                         <div>
-                            <strong>One movement, two account entries</strong>
-                            <p>Certis records both sides together and excludes transfers from income and expense totals.</p>
+                            <strong>{t('transactions.transferForm.infoTitle')}</strong>
+                            <p>{t('transactions.transferForm.infoDescription')}</p>
                         </div>
                     </div>
 
                     {activeAccounts.length < 2 && (
                         <p className="transaction-form-error" role="alert">
-                            <Icon name="alert"/>You need at least two active accounts to create a transfer.
+                            <Icon name="alert"/>{t('transactions.transferForm.accountsNeeded')}
                         </p>
                     )}
                     {formError && <p className="transaction-form-error" role="alert"><Icon name="alert"/>{formError}</p>}
 
                     <div className="transaction-modal-actions">
-                        <button type="button" disabled={saving} onClick={onClose}>Cancel</button>
+                        <button type="button" disabled={saving} onClick={onClose}>{t('transactions.transferForm.cancel')}</button>
                         <button className="primary" type="submit" disabled={saving || activeAccounts.length < 2}>
-                            {saving ? 'Transferring…' : 'Transfer money'}
+                            {saving ? t('transactions.transferForm.transferring') : t('transactions.transferForm.action')}
                         </button>
                     </div>
                 </form>

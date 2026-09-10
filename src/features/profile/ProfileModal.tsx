@@ -4,6 +4,7 @@ import {
 import type {
     FormEvent,
 } from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../components/Icons'
 import {ApiError} from '../../shared/api/ApiError'
 import {
@@ -62,6 +63,7 @@ export function ProfileModal({
                                  onProfilePhotoChange,
                                  restoreFocus,
                              }: ProfileModalProps) {
+    const {t} = useTranslation()
     const [values, setValues] =
         useState<ProfileForm>(
             createProfileForm(profile),
@@ -178,7 +180,7 @@ export function ProfileModal({
                 )
             } else {
                 setNotice(
-                    'Something went wrong. Please try again.',
+                    t('profile.unexpectedError'),
                 )
             }
         } finally {
@@ -232,7 +234,7 @@ export function ProfileModal({
                 setNotice(
                     error instanceof ApiError
                         ? error.message
-                        : 'We could not save your photo. Please try again.',
+                        : t('profile.photoSaveError'),
                 )
             } finally {
                 setPhotoBusy(false)
@@ -266,7 +268,7 @@ export function ProfileModal({
                 setNotice(
                     error instanceof ApiError
                         ? error.message
-                        : 'We could not remove your photo. Please try again.',
+                        : t('profile.photoRemoveError'),
                 )
             } finally {
                 setPhotoBusy(false)
@@ -292,13 +294,11 @@ export function ProfileModal({
                 <header className="profile-editor-header">
                     <div>
                         <h2 id="profile-editor-title">
-                            Profile
+                            {t('profile.title')}
                         </h2>
 
                         <p id="profile-editor-description">
-                            Manage your personal
-                            information and profile
-                            photo.
+                            {t('profile.description')}
                         </p>
                     </div>
 
@@ -306,7 +306,7 @@ export function ProfileModal({
                         ref={closeButtonRef}
                         type="button"
                         className="profile-editor-close"
-                        aria-label="Close profile"
+                        aria-label={t('profile.close')}
                         disabled={isBusy}
                         onClick={onClose}
                     >
@@ -345,8 +345,8 @@ export function ProfileModal({
                     <footer className="profile-editor-footer">
                         <span>
                             {isDirty
-                                ? 'Unsaved changes'
-                                : 'No unsaved changes'}
+                                ? t('profile.unsaved')
+                                : t('profile.saved')}
                         </span>
 
                         <div>
@@ -356,7 +356,7 @@ export function ProfileModal({
                                 disabled={isBusy}
                                 onClick={onClose}
                             >
-                                Cancel
+                                {t('profile.cancel')}
                             </button>
 
                             <button
@@ -368,8 +368,8 @@ export function ProfileModal({
                                 }
                             >
                                 {isSaving
-                                    ? 'Saving…'
-                                    : 'Save changes'}
+                                    ? t('profile.saving')
+                                    : t('profile.save')}
                             </button>
                         </div>
                     </footer>

@@ -286,6 +286,18 @@
     var(--cream);
 }
 
+.auth-language-layer {
+  position: fixed;
+  z-index: 4;
+  top: 24px;
+  right: 28px;
+}
+
+.auth-language-switcher {
+  background: rgb(255 255 255 / 72%);
+  backdrop-filter: blur(10px);
+}
+
 .auth-panel::before {
   position: absolute;
   top: -160px;

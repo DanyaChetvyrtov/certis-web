@@ -3,6 +3,7 @@ import {
     useRef,
     useState,
 } from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import type {
     Transaction,
@@ -25,6 +26,7 @@ export function TransactionActionMenu({
     onDelete,
     onEdit,
 }: TransactionActionMenuProps) {
+    const {t} = useTranslation()
     const [isOpen, setOpen] = useState(false)
     const menuRef = useRef<HTMLDivElement>(null)
     const triggerRef = useRef<HTMLButtonElement>(null)
@@ -78,7 +80,7 @@ export function TransactionActionMenu({
     const transactionName =
         transaction.merchant?.trim()
         || transaction.note?.trim()
-        || 'transaction'
+        || t('transactions.count', {count: 1}).replace(/^1\s+/, '')
 
     return (
         <div
@@ -89,7 +91,7 @@ export function TransactionActionMenu({
                 ref={triggerRef}
                 className="transaction-action-trigger"
                 type="button"
-                aria-label={`Actions for ${transactionName}`}
+                aria-label={t('transactions.actions.label', {name: transactionName})}
                 aria-haspopup="menu"
                 aria-expanded={isOpen}
                 onClick={() => setOpen((current) => !current)}
@@ -116,7 +118,7 @@ export function TransactionActionMenu({
                         }}
                     >
                         <Icon name="edit"/>
-                        Edit
+                        {t('transactions.actions.edit')}
                     </button>
                     <button
                         className="danger"
@@ -133,7 +135,7 @@ export function TransactionActionMenu({
                         }}
                     >
                         <Icon name="trash"/>
-                        Delete
+                        {t('transactions.actions.delete')}
                     </button>
                 </div>
             )}

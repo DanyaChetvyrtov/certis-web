@@ -1,3 +1,5 @@
+import i18n from '../../i18n/i18n'
+
 export type ProfileForm = {
     name: string
     surname: string
@@ -71,33 +73,33 @@ export const validateProfile = (
 
     if (!normalized.name) {
         errors.name =
-            'Enter your first name.'
+            i18n.t('profile.validation.nameRequired')
     } else if (
         normalized.name.length > 100
     ) {
         errors.name =
-            'First name must be 100 characters or fewer.'
+            i18n.t('profile.validation.nameTooLong')
     }
 
     if (!normalized.surname) {
         errors.surname =
-            'Enter your last name.'
+            i18n.t('profile.validation.surnameRequired')
     } else if (
         normalized.surname.length > 100
     ) {
         errors.surname =
-            'Last name must be 100 characters or fewer.'
+            i18n.t('profile.validation.surnameTooLong')
     }
 
     if (!normalized.dateOfBirth) {
         errors.dateOfBirth =
-            'Choose your date of birth.'
+            i18n.t('profile.validation.birthDateRequired')
     } else if (
         normalized.dateOfBirth
         > getLatestBirthDate()
     ) {
         errors.dateOfBirth =
-            'Date of birth must be in the past.'
+            i18n.t('profile.validation.birthDateFuture')
     }
 
     return errors

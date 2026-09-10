@@ -5,7 +5,9 @@ import {
     useRef,
     useState,
 } from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
+import {useLanguage} from '../../../i18n/useLanguage'
 import {ApiError} from '../../../shared/api/ApiError'
 import {useModalAccessibility} from '../../../shared/hooks/useModalAccessibility'
 import type {Account} from '../../accounts/api/accountsApi'
@@ -21,7 +23,6 @@ import {
     formatGoalMoney,
     formatGoalMonth,
     goalIconName,
-    paceLabels,
 } from '../goalPresentation'
 import './GoalModals.css'
 
@@ -36,8 +37,8 @@ type GoalDetailsModalProps = {
     restoreFocus?: () => void
 }
 
-const displayContributionDate = (value: string): string =>
-    new Intl.DateTimeFormat('en-US', {
+const displayContributionDate = (value: string, locale: string): string =>
+    new Intl.DateTimeFormat(locale, {
         day: 'numeric',
         month: 'short',
         year: 'numeric',
@@ -58,6 +59,8 @@ export function GoalDetailsModal({
     onCancelled,
     restoreFocus,
 }: GoalDetailsModalProps) {
+    const {t} = useTranslation()
+    const {locale} = useLanguage()
     const [currentGoal, setCurrentGoal] = useState(goal)
     const [contributions, setContributions] = useState<GoalContribution[]>([])
     const [historyState, setHistoryState] = useState<'loading' | 'ready' | 'error'>('loading')
@@ -132,7 +135,7 @@ export function GoalDetailsModal({
             setCurrentGoal(updated)
             onChanged(updated)
         } catch (error) {
-            setActionError(errorMessage(error, 'We could not update this goal.'))
+            setActionError(errorMessage(error, t('goals.details.updateError')))
         } finally {
             setIsUpdatingStatus(false)
         }
@@ -146,7 +149,7 @@ export function GoalDetailsModal({
             await refreshGoal()
             loadHistory()
         } catch (error) {
-            setActionError(errorMessage(error, 'We could not return this contribution.'))
+            setActionError(errorMessage(error, t('goals.details.refundError')))
         } finally {
             setRefundingId(null)
         }
@@ -159,7 +162,7 @@ export function GoalDetailsModal({
             await cancelGoal(currentGoal.id)
             onCancelled(currentGoal.id)
         } catch (error) {
-            setActionError(errorMessage(error, 'We could not cancel this goal.'))
+            setActionError(errorMessage(error, t('goals.details.cancelError')))
             setIsCancelling(false)
         }
     }
@@ -183,9 +186,22 @@ export function GoalDetailsModal({
                     </span>
                     <div>
                         <h2 id="goal-details-title">{currentGoal.name}</h2>
-                        <p>Target · {formatGoalMonth(currentGoal.targetMonth)}</p>
+                        <p>
+                            {t('goals.details.targetDate', {
+                                date: formatGoalMonth(
+                                    currentGoal.targetMonth,
+                                    locale,
+                                    t('goals.summary.noTarget'),
+                                ),
+                            })}
+                        </p>
                     </div>
-                    <button ref={closeRef} type="button" aria-label="Close goal details" onClick={onClose}>
+                    <button
+                        ref={closeRef}
+                        type="button"
+                        aria-label={t('goals.details.close')}
+                        onClick={onClose}
+                    >
                         <Icon name="close"/>
                     </button>
                 </header>
@@ -193,35 +209,74 @@ export function GoalDetailsModal({
                 <div className="goal-details-body">
                     <section className="goal-details-overview">
                         <div className="goal-details-total">
-                            <span><small>Saved</small><strong>{formatGoalMoney(currentGoal.savedAmount, currentGoal.currency)}</strong></span>
-                            <span><small>Target</small><strong>{formatGoalMoney(currentGoal.targetAmount, currentGoal.currency)}</strong></span>
-                            <em className={`pace-${currentGoal.paceStatus.toLowerCase()}`}>{paceLabels[currentGoal.paceStatus]}</em>
+                            <span>
+                                <small>{t('goals.details.saved')}</small>
+                                <strong>{formatGoalMoney(
+                                    currentGoal.savedAmount,
+                                    currentGoal.currency,
+                                    locale,
+                                )}</strong>
+                            </span>
+                            <span>
+                                <small>{t('goals.details.target')}</small>
+                                <strong>{formatGoalMoney(
+                                    currentGoal.targetAmount,
+                                    currentGoal.currency,
+                                    locale,
+                                )}</strong>
+                            </span>
+                            <em className={`pace-${currentGoal.paceStatus.toLowerCase()}`}>
+                                {t(`goals.pace.${currentGoal.paceStatus}`)}
+                            </em>
                         </div>
                         <span className="goal-progress-track"><i style={{width: `${progress}%`, background: currentGoal.color}}/></span>
                         <div className="goal-details-plan">
-                            <span><small>Monthly plan</small><strong>{formatGoalMoney(currentGoal.contributionPlan.monthlyAmount, currentGoal.currency)}</strong></span>
-                            <span><small>Remaining</small><strong>{formatGoalMoney(currentGoal.remainingAmount, currentGoal.currency)}</strong></span>
-                            <span><small>Projected finish</small><strong>{formatGoalMonth(currentGoal.projectedCompletionMonth)}</strong></span>
+                            <span>
+                                <small>{t('goals.details.monthlyPlan')}</small>
+                                <strong>{formatGoalMoney(
+                                    currentGoal.contributionPlan.monthlyAmount,
+                                    currentGoal.currency,
+                                    locale,
+                                )}</strong>
+                            </span>
+                            <span>
+                                <small>{t('goals.details.remaining')}</small>
+                                <strong>{formatGoalMoney(
+                                    currentGoal.remainingAmount,
+                                    currentGoal.currency,
+                                    locale,
+                                )}</strong>
+                            </span>
+                            <span>
+                                <small>{t('goals.details.projectedFinish')}</small>
+                                <strong>{formatGoalMonth(
+                                    currentGoal.projectedCompletionMonth,
+                                    locale,
+                                    t('goals.summary.noTarget'),
+                                )}</strong>
+                            </span>
                         </div>
                     </section>
 
                     <div className="goal-details-actions">
                         {currentGoal.status === 'ACTIVE' && currentGoal.remainingAmount > 0 && (
                             <button className="primary" type="button" onClick={() => onAddProgress(currentGoal)}>
-                                <Icon name="plus"/> Add progress
+                                <Icon name="plus"/> {t('goals.details.addProgress')}
                             </button>
                         )}
                         {canModify && (
                             <button type="button" onClick={() => onEdit(currentGoal)}>
-                                <Icon name="edit"/> Edit
+                                <Icon name="edit"/> {t('goals.details.edit')}
                             </button>
                         )}
                         {canModify && (
                             <button type="button" disabled={isUpdatingStatus} onClick={() => void toggleStatus()}>
                                 <Icon name={currentGoal.status === 'PAUSED' ? 'check-circle' : 'repeat'}/>
                                 {isUpdatingStatus
-                                    ? 'Updating…'
-                                    : currentGoal.status === 'PAUSED' ? 'Resume' : 'Pause'}
+                                    ? t('goals.details.updating')
+                                    : currentGoal.status === 'PAUSED'
+                                        ? t('goals.details.resume')
+                                        : t('goals.details.pause')}
                             </button>
                         )}
                     </div>
@@ -230,14 +285,34 @@ export function GoalDetailsModal({
 
                     <section className="goal-history">
                         <header>
-                            <div><h3>Contribution history</h3><p>Money moved between accounts and this goal.</p></div>
-                            {historyState === 'error' && <button type="button" onClick={() => loadHistory()}>Try again</button>}
+                            <div>
+                                <h3>{t('goals.details.historyTitle')}</h3>
+                                <p>{t('goals.details.historySubtitle')}</p>
+                            </div>
+                            {historyState === 'error' && (
+                                <button type="button" onClick={() => loadHistory()}>
+                                    {t('goals.details.tryAgain')}
+                                </button>
+                            )}
                         </header>
 
-                        {historyState === 'loading' && <div className="goal-history-loading" aria-label="Loading contribution history"><span/><span/><span/></div>}
-                        {historyState === 'error' && <p className="goal-history-empty">Contribution history is unavailable.</p>}
+                        {historyState === 'loading' && (
+                            <div
+                                className="goal-history-loading"
+                                aria-label={t('goals.details.loadingHistory')}
+                            >
+                                <span/><span/><span/>
+                            </div>
+                        )}
+                        {historyState === 'error' && (
+                            <p className="goal-history-empty">
+                                {t('goals.details.historyUnavailable')}
+                            </p>
+                        )}
                         {historyState === 'ready' && contributions.length === 0 && (
-                            <p className="goal-history-empty">No contributions yet.</p>
+                            <p className="goal-history-empty">
+                                {t('goals.details.historyEmpty')}
+                            </p>
                         )}
                         {historyState === 'ready' && contributions.length > 0 && (
                             <div className="goal-history-list">
@@ -249,18 +324,41 @@ export function GoalDetailsModal({
                                                 <Icon name={item.type === 'CONTRIBUTION' ? 'arrow-down-left' : 'arrow-up-right'}/>
                                             </span>
                                             <div>
-                                                <strong>{item.type === 'CONTRIBUTION' ? 'Contribution' : 'Returned to account'}</strong>
-                                                <small>{accountNames.get(item.accountId) ?? 'Account'} · {displayContributionDate(item.contributedAt)}</small>
+                                                <strong>
+                                                    {item.type === 'CONTRIBUTION'
+                                                        ? t('goals.details.contribution')
+                                                        : t('goals.details.returnedToAccount')}
+                                                </strong>
+                                                <small>
+                                                    {accountNames.get(item.accountId)
+                                                        ?? t('goals.details.account')}
+                                                    {' · '}
+                                                    {displayContributionDate(
+                                                        item.contributedAt,
+                                                        locale,
+                                                    )}
+                                                </small>
                                                 {item.note && <p>{item.note}</p>}
                                             </div>
-                                            <b className={item.type.toLowerCase()}>{item.type === 'CONTRIBUTION' ? '+' : '−'}{formatGoalMoney(item.amount, item.currency)}</b>
+                                            <b className={item.type.toLowerCase()}>
+                                                {item.type === 'CONTRIBUTION' ? '+' : '−'}
+                                                {formatGoalMoney(
+                                                    item.amount,
+                                                    item.currency,
+                                                    locale,
+                                                )}
+                                            </b>
                                             {item.type === 'CONTRIBUTION' && (
                                                 <button
                                                     type="button"
                                                     disabled={wasReturned || refundingId === item.id}
                                                     onClick={() => void refund(item.id)}
                                                 >
-                                                    {refundingId === item.id ? 'Returning…' : wasReturned ? 'Returned' : 'Return'}
+                                                    {refundingId === item.id
+                                                        ? t('goals.details.returning')
+                                                        : wasReturned
+                                                            ? t('goals.details.returned')
+                                                            : t('goals.details.return')}
                                                 </button>
                                             )}
                                         </article>
@@ -274,20 +372,45 @@ export function GoalDetailsModal({
                         <section className="goal-cancel-section">
                             {!isConfirmingCancel ? (
                                 <>
-                                    <div><strong>Cancel goal</strong><p>{currentGoal.savedAmount > 0
-                                        ? 'Return every contribution before cancelling so the money is not left reserved.'
-                                        : 'This removes the goal from your active plans.'}</p></div>
+                                    <div>
+                                        <strong>{t('goals.details.cancelTitle')}</strong>
+                                        <p>
+                                            {currentGoal.savedAmount > 0
+                                                ? t('goals.details.cancelWithSavings')
+                                                : t('goals.details.cancelWithoutSavings')}
+                                        </p>
+                                    </div>
                                     <button
                                         type="button"
                                         disabled={currentGoal.savedAmount > 0}
                                         onClick={() => setIsConfirmingCancel(true)}
-                                    >Cancel goal</button>
+                                    >{t('goals.details.cancelTitle')}</button>
                                 </>
                             ) : (
                                 <div className="goal-cancel-confirm">
-                                    <p><strong>Cancel {currentGoal.name}?</strong><span>This cannot currently be restored.</span></p>
-                                    <button type="button" disabled={isCancelling} onClick={() => setIsConfirmingCancel(false)}>Keep goal</button>
-                                    <button className="danger" type="button" disabled={isCancelling} onClick={() => void cancel()}>{isCancelling ? 'Cancelling…' : 'Yes, cancel'}</button>
+                                    <p>
+                                        <strong>{t('goals.details.confirmTitle', {
+                                            name: currentGoal.name,
+                                        })}</strong>
+                                        <span>{t('goals.details.irreversible')}</span>
+                                    </p>
+                                    <button
+                                        type="button"
+                                        disabled={isCancelling}
+                                        onClick={() => setIsConfirmingCancel(false)}
+                                    >
+                                        {t('goals.details.keep')}
+                                    </button>
+                                    <button
+                                        className="danger"
+                                        type="button"
+                                        disabled={isCancelling}
+                                        onClick={() => void cancel()}
+                                    >
+                                        {isCancelling
+                                            ? t('goals.details.cancelling')
+                                            : t('goals.details.confirm')}
+                                    </button>
                                 </div>
                             )}
                         </section>

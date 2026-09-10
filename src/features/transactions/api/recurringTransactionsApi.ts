@@ -1,5 +1,6 @@
 import {apiRequest} from '../../../shared/api/client'
 import type {TransactionType} from './transactionsApi'
+import i18n from '../../../i18n/i18n'
 
 export const recurringFrequencies = [
     'DAILY',
@@ -67,7 +68,7 @@ export const getRecurringTransactions = (signal?: AbortSignal) =>
         RECURRING_TRANSACTIONS_PATH,
         {
             signal,
-            fallbackMessage: 'We could not load your recurring transactions. Please try again.',
+            fallbackMessage: i18n.t('transactions.api.recurringLoad'),
         },
     )
 
@@ -76,7 +77,7 @@ export const createRecurringTransaction = (
 ) => apiRequest<RecurringTransaction>(RECURRING_TRANSACTIONS_PATH, {
     method: 'POST',
     body: request,
-    fallbackMessage: 'We could not create this schedule. Please try again.',
+    fallbackMessage: i18n.t('transactions.api.recurringCreate'),
 })
 
 export const updateRecurringTransaction = (
@@ -85,11 +86,11 @@ export const updateRecurringTransaction = (
 ) => apiRequest<RecurringTransaction>(recurringTransactionPath(id), {
     method: 'PUT',
     body: request,
-    fallbackMessage: 'We could not update this schedule. Please try again.',
+    fallbackMessage: i18n.t('transactions.api.recurringUpdate'),
 })
 
 export const cancelRecurringTransaction = (id: string) =>
     apiRequest(recurringTransactionPath(id), {
         method: 'DELETE',
-        fallbackMessage: 'We could not cancel this schedule. Please try again.',
+        fallbackMessage: i18n.t('transactions.api.recurringCancel'),
     })

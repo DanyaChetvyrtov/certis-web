@@ -304,6 +304,94 @@
     height: 18px;
 }
 
+.settings-language-heading {
+    margin-top: 27px;
+    padding-top: 26px;
+    border-top: 1px solid #29425e;
+}
+
+.settings-section-heading > .settings-language-icon {
+    color: #0a8f6c;
+    background: #e8f7f2;
+    font-size: 19px;
+    font-weight: 750;
+}
+
+.settings-language-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px;
+    margin-top: 18px;
+}
+
+.settings-language-option {
+    position: relative;
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) 20px;
+    align-items: center;
+    gap: 11px;
+    min-width: 0;
+    padding: 14px 15px;
+    border: 1px solid #304a65;
+    border-radius: 15px;
+    color: #dce7f2;
+    background: #102842;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.settings-language-option:hover {
+    border-color: #a8b5c3;
+    transform: translateY(-1px);
+}
+
+.settings-language-option.selected {
+    border-color: #10b98a;
+    box-shadow: 0 0 0 3px rgb(16 185 138 / 11%);
+}
+
+.settings-language-flag {
+    font-size: 24px;
+    line-height: 1;
+}
+
+.settings-language-option strong,
+.settings-language-option small {
+    display: block;
+}
+
+.settings-language-option strong {
+    color: #dce7f2;
+    font-size: 12px;
+}
+
+.settings-language-option small {
+    margin-top: 3px;
+    color: #8a97a9;
+    font-size: 9px;
+}
+
+.settings-language-check {
+    display: grid;
+    width: 20px;
+    height: 20px;
+    place-items: center;
+    color: transparent;
+}
+
+.settings-language-option.selected .settings-language-check {
+    color: #0db483;
+}
+
+.settings-language-check svg {
+    width: 18px;
+    height: 18px;
+}
+
 .settings-storage-note {
     display: flex;
     align-items: center;
@@ -356,6 +444,11 @@
 
     .settings-modal-header {
         padding: 22px 20px 19px;
+    }
+
+    .settings-theme-options,
+    .settings-language-options {
+        grid-template-columns: 1fr;
     }
 
     .settings-modal-body {

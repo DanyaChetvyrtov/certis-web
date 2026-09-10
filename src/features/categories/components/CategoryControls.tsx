@@ -1,9 +1,9 @@
 import {Select, SelectOption} from '../../../components/Select'
 import type {RefObject} from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import {
     currencies,
-    currencyLabels,
 } from '../../../shared/currency'
 import type {Currency} from '../../../shared/currency'
 import type {
@@ -52,21 +52,20 @@ export function CategoryControls({
     onStatusChange,
     onTypeChange,
 }: CategoryControlsProps) {
+    const {t} = useTranslation()
+
     return (
         <>
             <header className="categories-card-heading">
                 <div>
-                    <h2>Your categories</h2>
-                    <p>
-                        Keep transactions consistent with a reusable set.
-                        {' '}Counts reflect the current page.
-                    </p>
+                    <h2>{t('categories.controls.title')}</h2>
+                    <p>{t('categories.controls.description')}</p>
                 </div>
 
                 <div
                     className="category-status-tabs"
                     role="group"
-                    aria-label="Category status"
+                    aria-label={t('categories.controls.status')}
                 >
                     <button
                         ref={activeStatusRef}
@@ -79,7 +78,7 @@ export function CategoryControls({
                         aria-pressed={selectedStatus === 'ACTIVE'}
                         onClick={() => onStatusChange('ACTIVE')}
                     >
-                        Active · {activeCount}
+                        {t('categories.controls.active', {count: activeCount})}
                     </button>
                     <button
                         ref={archivedStatusRef}
@@ -92,7 +91,7 @@ export function CategoryControls({
                         aria-pressed={selectedStatus === 'ARCHIVED'}
                         onClick={() => onStatusChange('ARCHIVED')}
                     >
-                        Archived · {archivedCount}
+                        {t('categories.controls.archived', {count: archivedCount})}
                     </button>
                 </div>
             </header>
@@ -101,7 +100,7 @@ export function CategoryControls({
                 <div
                     className="category-type-tabs"
                     role="tablist"
-                    aria-label="Category type"
+                    aria-label={t('categories.controls.type')}
                 >
                     <button
                         id="expense-categories-tab"
@@ -116,7 +115,7 @@ export function CategoryControls({
                         aria-controls="category-list"
                         onClick={() => onTypeChange('EXPENSE')}
                     >
-                        Expenses · {categoryCounts.EXPENSE}
+                        {t('categories.controls.expenses', {count: categoryCounts.EXPENSE})}
                     </button>
 
                     <button
@@ -132,15 +131,15 @@ export function CategoryControls({
                         aria-controls="category-list"
                         onClick={() => onTypeChange('INCOME')}
                     >
-                        Income · {categoryCounts.INCOME}
+                        {t('categories.controls.income', {count: categoryCounts.INCOME})}
                     </button>
                 </div>
 
                 <div className="category-toolbar-actions">
                     <label className="category-currency-field">
-                        <span>Currency</span>
+                        <span>{t('categories.controls.currency')}</span>
                         <Select
-                            aria-label="Statistics currency"
+                            aria-label={t('categories.controls.statisticsCurrency')}
                             value={currency}
                             onValueChange={(value) =>
                                 onCurrencyChange(
@@ -150,7 +149,7 @@ export function CategoryControls({
                         >
                             {currencies.map((item) => (
                                 <SelectOption value={item} key={item}>
-                                    {item} · {currencyLabels[item]}
+                                    {item} · {t(`currencies.${item}`)}
                                 </SelectOption>
                             ))}
                         </Select>
@@ -159,14 +158,14 @@ export function CategoryControls({
                     <label className="category-search-field">
                         <Icon name="search"/>
                         <span className="sr-only">
-                            Search categories
+                            {t('categories.controls.search')}
                         </span>
                         <input
                             type="search"
                             placeholder={
                                 selectedStatus === 'ACTIVE'
-                                    ? 'Search categories'
-                                    : 'Search archived categories'
+                                    ? t('categories.controls.search')
+                                    : t('categories.controls.searchArchived')
                             }
                             value={searchQuery}
                             onChange={(event) =>
@@ -176,9 +175,9 @@ export function CategoryControls({
                     </label>
 
                     <label className="category-sort-field">
-                        <span className="sr-only">Sort categories</span>
+                        <span className="sr-only">{t('categories.controls.sort')}</span>
                         <Select
-                            aria-label="Sort categories"
+                            aria-label={t('categories.controls.sort')}
                             value={selectedSort}
                             onValueChange={(value) =>
                                 onSortChange(
@@ -186,9 +185,9 @@ export function CategoryControls({
                                 )
                             }
                         >
-                            <SelectOption value="AMOUNT_DESC">Most spent</SelectOption>
-                            <SelectOption value="AMOUNT_ASC">Least spent</SelectOption>
-                            <SelectOption value="NAME">Name</SelectOption>
+                            <SelectOption value="AMOUNT_DESC">{t('categories.controls.mostSpent')}</SelectOption>
+                            <SelectOption value="AMOUNT_ASC">{t('categories.controls.leastSpent')}</SelectOption>
+                            <SelectOption value="NAME">{t('categories.controls.name')}</SelectOption>
                         </Select>
                     </label>
                 </div>

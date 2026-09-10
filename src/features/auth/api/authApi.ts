@@ -2,6 +2,7 @@ import {
     apiRequest,
     refreshSession,
 } from '../../../shared/api/client'
+import i18n from '../../../i18n/i18n'
 
 export type LoginRequest = {
     email: string
@@ -15,15 +16,15 @@ export type RegisterRequest = LoginRequest & {
 const getAuthFallback = (status: number): string => {
     switch (status) {
         case 400:
-            return 'Check the entered details and try again.'
+            return i18n.t('auth.errors.details')
         case 401:
-            return 'The email or password is incorrect.'
+            return i18n.t('auth.errors.credentials')
         case 409:
-            return 'An account with this email already exists.'
+            return i18n.t('auth.errors.exists')
         case 429:
-            return 'Too many attempts. Please wait and try again.'
+            return i18n.t('auth.errors.attempts')
         default:
-            return 'We could not complete your request. Please try again.'
+            return i18n.t('common.requestError')
     }
 }
 
@@ -52,7 +53,7 @@ export const logout = (): Promise<void> =>
         method: 'POST',
         retryOnUnauthorized: false,
         fallbackMessage:
-            'We could not sign you out. Please try again.',
+            i18n.t('navigation.signOutError'),
     })
 
 export {refreshSession}

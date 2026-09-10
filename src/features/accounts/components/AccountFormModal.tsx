@@ -1,10 +1,10 @@
 import {Select, SelectOption} from '../../../components/Select'
 import type {FormEvent} from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import {ApiError} from '../../../shared/api/ApiError'
 import {
     accountTypes,
-    accountTypeLabels,
     createAccount,
     currencies,
     updateAccount,
@@ -70,6 +70,7 @@ export function AccountFormModal({
                                      onSaved,
                                      restoreFocus,
                                  }: AccountFormModalProps) {
+    const {t} = useTranslation()
     const [name, setName] = useState(account?.name ?? '')
 
     const [type, setType] = useState<AccountType>(account?.type ?? 'CARD')
@@ -119,12 +120,12 @@ export function AccountFormModal({
 
         if (!normalizedName) {
             errors.name =
-                'Enter an account name.'
+                t('accounts.form.nameRequired')
         } else if (
             normalizedName.length > 100
         ) {
             errors.name =
-                'Use no more than 100 characters.'
+                t('accounts.form.nameTooLong')
         }
 
         if (
@@ -133,7 +134,7 @@ export function AccountFormModal({
             )
         ) {
             errors.openingBalance =
-                'Use up to 15 digits and 4 decimal places.'
+                t('accounts.form.balanceInvalid')
         }
 
         setFieldErrors(errors)
@@ -212,7 +213,7 @@ export function AccountFormModal({
                 }
             } else {
                 setFormError(
-                    'We could not save this account. Please try again.',
+                    t('accounts.form.saveError'),
                 )
             }
         } finally {
@@ -232,15 +233,15 @@ export function AccountFormModal({
             >
                 <div className="account-modal-heading">
                     <div>
-                        <p>Money source</p>
+                        <p>{t('accounts.form.eyebrow')}</p>
                         <h2 id="account-modal-title">
-                            {isEditing ? 'Edit account' : 'Create a new account'}
+                            {isEditing ? t('accounts.form.editTitle') : t('accounts.form.createTitle')}
                         </h2>
                     </div>
                     <button
                         className="account-modal-close"
                         type="button"
-                        aria-label="Close account form"
+                        aria-label={t('accounts.form.close')}
                         disabled={isSaving}
                         onClick={onClose}
                     >
@@ -251,7 +252,7 @@ export function AccountFormModal({
                 <form onSubmit={submit} noValidate>
                     <div className="account-form-field">
                         <label htmlFor={NAME_ID}>
-                            Account name
+                            {t('accounts.form.name')}
                         </label>
 
                         <input
@@ -275,7 +276,7 @@ export function AccountFormModal({
                                     ? NAME_ERROR_ID
                                     : undefined
                             }
-                            placeholder="For example, Main card"
+                            placeholder={t('accounts.form.namePlaceholder')}
                             maxLength={100}
                         />
 
@@ -290,7 +291,7 @@ export function AccountFormModal({
                     </div>
 
                     <fieldset className="account-type-fieldset">
-                        <legend>Account type</legend>
+                        <legend>{t('accounts.form.type')}</legend>
                         <div className="account-type-grid">
                             {accountTypes.map((accountType) => (
                                 <label
@@ -315,7 +316,7 @@ export function AccountFormModal({
                                     : 'gauge'}
                     />
                   </span>
-                                    <strong>{accountTypeLabels[accountType]}</strong>
+                                    <strong>{t(`accounts.types.${accountType}`)}</strong>
                                 </label>
                             ))}
                         </div>
@@ -324,7 +325,7 @@ export function AccountFormModal({
                     <div className="account-form-row">
                         <div className="account-form-field">
                             <label htmlFor={BALANCE_ID}>
-                                Opening balance
+                                {t('accounts.form.openingBalance')}
                             </label>
 
                             <input
@@ -367,7 +368,7 @@ export function AccountFormModal({
 
                         <div className="account-form-field">
                             <label htmlFor={CURRENCY_ID}>
-                                Currency
+                                {t('accounts.form.currency')}
                             </label>
 
                             <Select
@@ -403,7 +404,7 @@ export function AccountFormModal({
                                     id={CURRENCY_HINT_ID}
                                     className="field-hint"
                                 >
-                                    Currency cannot be changed.
+                                    {t('accounts.form.currencyLocked')}
                                 </small>
                             )}
                         </div>
@@ -418,10 +419,10 @@ export function AccountFormModal({
 
                     <div className="account-modal-actions">
                         <button type="button" disabled={isSaving} onClick={onClose}>
-                            Cancel
+                            {t('accounts.form.cancel')}
                         </button>
                         <button className="primary" type="submit" disabled={isSaving}>
-                            {isSaving ? 'Saving…' : isEditing ? 'Save changes' : 'Create account'}
+                            {isSaving ? t('accounts.form.saving') : isEditing ? t('accounts.form.saveChanges') : t('accounts.form.create')}
                         </button>
                     </div>
                 </form>

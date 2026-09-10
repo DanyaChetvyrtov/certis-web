@@ -3,6 +3,7 @@ import {
     useRef,
     useState,
 } from 'react'
+import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import type {Transfer} from '../api/transfersApi'
 
@@ -20,6 +21,7 @@ export function TransferActionMenu({
     label,
     onReverse,
 }: Props) {
+    const {t} = useTranslation()
     const [open, setOpen] = useState(false)
     const rootRef = useRef<HTMLDivElement>(null)
     const triggerRef = useRef<HTMLButtonElement>(null)
@@ -55,7 +57,7 @@ export function TransferActionMenu({
                 ref={triggerRef}
                 className="transaction-action-trigger"
                 type="button"
-                aria-label={`Actions for ${label}`}
+                aria-label={t('transactions.actions.label', {name: label})}
                 aria-haspopup="menu"
                 aria-expanded={open}
                 onClick={() => setOpen((current) => !current)}
@@ -77,7 +79,7 @@ export function TransferActionMenu({
                         }}
                     >
                         <Icon name="repeat"/>
-                        Reverse
+                        {t('transactions.actions.reverse')}
                     </button>
                 </div>
             )}

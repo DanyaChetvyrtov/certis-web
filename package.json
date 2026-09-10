@@ -13,8 +13,10 @@
   },
   "dependencies": {
     "@radix-ui/react-select": "^2.3.7",
+    "i18next": "^26.4.2",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-i18next": "^17.0.13",
     "react-router-dom": "^7.18.2",
     "recharts": "^3.10.1"
   },
