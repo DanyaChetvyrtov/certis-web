@@ -120,6 +120,56 @@ html[data-theme='dark'] .dashboard-shell {
     --dashboard-border: #29425e;
 }
 
+html[data-theme='dark'] :is(
+    .dashboard-category-header h2,
+    .category-over-time-placeholder strong,
+    .spending-category-donut-value strong,
+    .dashboard-category-breakdown strong,
+    .dashboard-category-breakdown b,
+    .category-spending-state strong
+) {
+    color: #edf4fb;
+}
+
+html[data-theme='dark'] :is(
+    .dashboard-category-header p,
+    .category-over-time-placeholder p,
+    .spending-category-donut-value small,
+    .dashboard-category-breakdown span,
+    .category-spending-state p
+) {
+    color: #94a7bc;
+}
+
+html[data-theme='dark'] .dashboard-category-header > span {
+    border-color: #304a65;
+    color: #a8b8c8;
+    background: #122a45;
+}
+
+html[data-theme='dark'] .dashboard-category-header a {
+    color: #a8b8c8;
+}
+
+html[data-theme='dark'] .dashboard-category-header a:hover {
+    color: #35d2a3;
+}
+
+html[data-theme='dark'] .category-over-time-placeholder > span {
+    color: #b69ae4;
+    background: #292747;
+}
+
+html[data-theme='dark'] .dashboard-category-breakdown li {
+    border-color: #29425e;
+}
+
+html[data-theme='dark'] .category-spending-state.error button {
+    border-color: #7e4a51;
+    color: #f1aaa6;
+    background: #41262e;
+}
+
 /* Shared workspace surfaces */
 html[data-theme='dark'] :is(
     .summary-card,

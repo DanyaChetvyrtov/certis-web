@@ -89,6 +89,20 @@ const currentMonth = (): string => {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 }
 
+const emptyCategoryAnalytics = (currency = 'EUR') => ({
+    month: currentMonth(),
+    currency,
+    type: 'EXPENSE',
+    totalTransactionCount: 0,
+    categorizedTransactionCount: 0,
+    uncategorizedTransactionCount: 0,
+    totalSum: 0,
+    categorizedSum: 0,
+    uncategorizedSum: 0,
+    coveragePercentage: null,
+    topExpenseCategories: [],
+})
+
 const renderPage = () => render(
     <MemoryRouter>
         <DashboardPage/>
@@ -107,6 +121,9 @@ describe('DashboardPage', () => {
             http.get('/api/v1/transactions/analytics/cash-flow', () => HttpResponse.json({
                 granularity: 'MONTH', totals: {income: 0, expenses: 0, netCashFlow: 0}, points: [],
             })),
+            http.get('/api/v1/categories/analytics', () =>
+                HttpResponse.json(emptyCategoryAnalytics()),
+            ),
             http.get('/api/v1/transactions', () => HttpResponse.json({
                 items: [],
                 page: 0,
@@ -488,6 +505,150 @@ describe('DashboardPage', () => {
         expect(await screen.findByText('₽100,000')).toBeInTheDocument()
         expect(await screen.findByText('₽40,000')).toBeInTheDocument()
         expect(requestedCurrencies).toEqual(['EUR', 'RUB'])
+    })
+
+    it('shows the category placeholder and expense breakdown from analytics', async () => {
+        let analyticsQuery: Record<string, string> | undefined
+
+        server.use(
+            http.get('/api/v1/categories/analytics', ({request}) => {
+                analyticsQuery = Object.fromEntries(
+                    new URL(request.url).searchParams,
+                )
+
+                return HttpResponse.json({
+                    month: currentMonth(),
+                    currency: 'EUR',
+                    type: 'EXPENSE',
+                    totalTransactionCount: 5,
+                    categorizedTransactionCount: 4,
+                    uncategorizedTransactionCount: 1,
+                    totalSum: 1000,
+                    categorizedSum: 950,
+                    uncategorizedSum: 50,
+                    coveragePercentage: 95,
+                    topExpenseCategories: [
+                        {
+                            categoryId: 'housing',
+                            name: 'Housing',
+                            color: '#9a72d8',
+                            amount: 600,
+                            sharePercentage: 60,
+                        },
+                        {
+                            categoryId: 'food',
+                            name: 'Food',
+                            color: '#d4a95e',
+                            amount: 250,
+                            sharePercentage: 25,
+                        },
+                    ],
+                })
+            }),
+        )
+
+        renderPage()
+
+        const historyPanel = screen
+            .getByText('Category spending over time', {selector: 'h2'})
+            .closest('article')
+        expect(historyPanel).not.toBeNull()
+        expect(within(historyPanel as HTMLElement).getByText('Coming soon'))
+            .toBeInTheDocument()
+        expect(within(historyPanel as HTMLElement).getByText('Category history is on the way'))
+            .toBeInTheDocument()
+
+        const spendingPanel = screen
+            .getByText('Spending by category', {selector: 'h2'})
+            .closest('article')
+        expect(spendingPanel).not.toBeNull()
+        const breakdown = within(spendingPanel as HTMLElement)
+
+        expect(await breakdown.findByText('€1,000')).toBeInTheDocument()
+        expect(breakdown.getByLabelText('Housing: €600, 60%')).toBeInTheDocument()
+        expect(breakdown.getByLabelText('Food: €250, 25%')).toBeInTheDocument()
+        expect(breakdown.getByLabelText('Other: €150, 15%')).toBeInTheDocument()
+        expect(breakdown.getByRole('link', {name: /View all/}))
+            .toHaveAttribute('href', '/categories')
+        expect(analyticsQuery).toEqual({
+            month: currentMonth(),
+            currency: 'EUR',
+            type: 'EXPENSE',
+            topLimit: '4',
+        })
+    })
+
+    it('reloads category spending for the selected dashboard currency', async () => {
+        const requestedCurrencies: string[] = []
+
+        server.use(
+            http.get('/api/v1/categories/analytics', ({request}) => {
+                const currency = new URL(request.url).searchParams.get('currency') ?? ''
+                requestedCurrencies.push(currency)
+                const total = currency === 'EUR' ? 1000 : 5000
+
+                return HttpResponse.json({
+                    ...emptyCategoryAnalytics(currency),
+                    totalTransactionCount: 1,
+                    categorizedTransactionCount: 1,
+                    totalSum: total,
+                    categorizedSum: total,
+                    coveragePercentage: 100,
+                    topExpenseCategories: [{
+                        categoryId: `${currency}-category`,
+                        name: currency === 'EUR' ? 'Housing' : 'Transport',
+                        color: '#5d8fc5',
+                        amount: total,
+                        sharePercentage: 100,
+                    }],
+                })
+            }),
+        )
+
+        renderPage()
+        const panel = within(
+            screen.getByText('Spending by category', {selector: 'h2'}).closest('article')!,
+        )
+
+        expect(await panel.findByRole('img', {
+            name: '€1,000 spent across categories this month',
+        })).toBeInTheDocument()
+        await selectOption(screen.getByLabelText('Dashboard currency'), 'RUB')
+
+        expect(await panel.findByRole('img', {
+            name: '₽5,000 spent across categories this month',
+        })).toBeInTheDocument()
+        expect(panel.getByText('Transport')).toBeInTheDocument()
+        expect(requestedCurrencies).toEqual(['EUR', 'RUB'])
+    })
+
+    it('allows retry when category spending cannot be loaded', async () => {
+        let shouldFail = true
+
+        server.use(
+            http.get('/api/v1/categories/analytics', () => {
+                if (shouldFail) {
+                    return HttpResponse.json(
+                        {message: 'Category analytics unavailable'},
+                        {status: 500},
+                    )
+                }
+
+                return HttpResponse.json(emptyCategoryAnalytics())
+            }),
+        )
+
+        renderPage()
+        const panel = within(
+            screen.getByText('Spending by category', {selector: 'h2'}).closest('article')!,
+        )
+
+        expect(await panel.findByText('We could not load spending by category.'))
+            .toBeInTheDocument()
+        shouldFail = false
+        fireEvent.click(panel.getByRole('button', {name: 'Try again'}))
+
+        expect(await panel.findByText('No spending this month')).toBeInTheDocument()
     })
 
     it('shows an unavailable state when monthly analytics cannot be loaded', async () => {
