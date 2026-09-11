@@ -83,20 +83,22 @@ const useLoadHandlers = (
     server.use(
         http.get(
             '/api/v1/categories/options',
-            () => HttpResponse.json(categoryOptions),
+            () => HttpResponse.json({categoryOptions}),
         ),
         http.get(
             '/api/v1/accounts',
-            () => HttpResponse.json([{
-                id: 'account-id',
-                name: 'Tinkoff Black',
-                type: 'CARD',
-                openingBalance: 0,
-                balance: 5000,
-                currency: 'RUB',
-                createdAt: '2026-01-01T00:00:00Z',
-                closedAt: null,
-            }]),
+            () => HttpResponse.json({
+                accounts: [{
+                    id: 'account-id',
+                    name: 'Tinkoff Black',
+                    type: 'CARD',
+                    openingBalance: 0,
+                    balance: 5000,
+                    currency: 'RUB',
+                    createdAt: '2026-01-01T00:00:00Z',
+                    closedAt: null,
+                }],
+            }),
         ),
         http.get(
             '/api/v1/transactions/uncategorized',

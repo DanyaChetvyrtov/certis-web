@@ -22,7 +22,9 @@ const account = {
 describe('accountsApi', () => {
   it('loads all accounts for the authenticated user', async () => {
     server.use(
-      http.get('/api/v1/accounts', () => HttpResponse.json([account])),
+      http.get('/api/v1/accounts', () => HttpResponse.json({
+        accounts: [account],
+      })),
     )
 
     await expect(getAccounts()).resolves.toEqual([account])

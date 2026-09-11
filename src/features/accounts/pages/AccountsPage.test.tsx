@@ -32,26 +32,28 @@ const renderPage = () =>
 describe('AccountsPage', () => {
     it('renders real accounts without mixing currencies in the total', async () => {
         server.use(
-            http.get('/api/v1/accounts', () => HttpResponse.json([
-                {
-                    id: 'rub-account',
-                    name: 'Main card',
-                    type: 'CARD',
-                    openingBalance: 100,
-                    balance: 125.5,
-                    currency: 'RUB',
-                    createdAt: '2026-08-01T10:00:00Z',
-                },
-                {
-                    id: 'eur-account',
-                    name: 'Travel cash',
-                    type: 'CASH',
-                    openingBalance: 900,
-                    balance: 900,
-                    currency: 'EUR',
-                    createdAt: '2026-07-31T10:00:00Z',
-                },
-            ])),
+            http.get('/api/v1/accounts', () => HttpResponse.json({
+                accounts: [
+                    {
+                        id: 'rub-account',
+                        name: 'Main card',
+                        type: 'CARD',
+                        openingBalance: 100,
+                        balance: 125.5,
+                        currency: 'RUB',
+                        createdAt: '2026-08-01T10:00:00Z',
+                    },
+                    {
+                        id: 'eur-account',
+                        name: 'Travel cash',
+                        type: 'CASH',
+                        openingBalance: 900,
+                        balance: 900,
+                        currency: 'EUR',
+                        createdAt: '2026-07-31T10:00:00Z',
+                    },
+                ],
+            })),
         )
 
         renderPage()
@@ -75,27 +77,29 @@ describe('AccountsPage', () => {
 
     it('does not offer lifecycle actions for a closed account', async () => {
         server.use(
-            http.get('/api/v1/accounts', () => HttpResponse.json([
-                {
-                    id: 'active-account',
-                    name: 'Main card',
-                    type: 'CARD',
-                    openingBalance: 100,
-                    balance: 125.5,
-                    currency: 'RUB',
-                    createdAt: '2026-08-01T10:00:00Z',
-                },
-                {
-                    id: 'closed-account',
-                    name: 'Archived cash',
-                    type: 'CASH',
-                    openingBalance: 900,
-                    balance: 900,
-                    currency: 'RUB',
-                    createdAt: '2026-07-01T10:00:00Z',
-                    closedAt: '2026-08-01T11:00:00Z',
-                },
-            ])),
+            http.get('/api/v1/accounts', () => HttpResponse.json({
+                accounts: [
+                    {
+                        id: 'active-account',
+                        name: 'Main card',
+                        type: 'CARD',
+                        openingBalance: 100,
+                        balance: 125.5,
+                        currency: 'RUB',
+                        createdAt: '2026-08-01T10:00:00Z',
+                    },
+                    {
+                        id: 'closed-account',
+                        name: 'Archived cash',
+                        type: 'CASH',
+                        openingBalance: 900,
+                        balance: 900,
+                        currency: 'RUB',
+                        createdAt: '2026-07-01T10:00:00Z',
+                        closedAt: '2026-08-01T11:00:00Z',
+                    },
+                ],
+            })),
         )
 
         renderPage()
@@ -111,7 +115,7 @@ describe('AccountsPage', () => {
         server.use(
             http.get(
                 '/api/v1/accounts',
-                () => HttpResponse.json([]),
+                () => HttpResponse.json({accounts: []}),
             ),
             http.post(
                 '/api/v1/accounts',
@@ -229,9 +233,9 @@ describe('AccountsPage', () => {
             http.get(
                 '/api/v1/accounts',
                 () =>
-                    HttpResponse.json([
-                        originalAccount,
-                    ]),
+                    HttpResponse.json({
+                        accounts: [originalAccount],
+                    }),
             ),
             http.put(
                 '/api/v1/accounts/:accountId',
@@ -352,15 +356,17 @@ describe('AccountsPage', () => {
             http.get(
                 '/api/v1/accounts',
                 () =>
-                    HttpResponse.json([
-                        isClosed
-                            ? {
-                                ...activeAccount,
-                                closedAt:
-                                    '2026-08-08T17:00:00Z',
-                            }
-                            : activeAccount,
-                    ]),
+                    HttpResponse.json({
+                        accounts: [
+                            isClosed
+                                ? {
+                                    ...activeAccount,
+                                    closedAt:
+                                        '2026-08-08T17:00:00Z',
+                                }
+                                : activeAccount,
+                        ],
+                    }),
             ),
             http.delete(
                 '/api/v1/accounts/:accountId',

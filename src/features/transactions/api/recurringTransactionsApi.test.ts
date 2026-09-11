@@ -46,7 +46,9 @@ describe('recurringTransactionsApi', () => {
     it('loads recurring transaction templates', async () => {
         server.use(http.get(
             '/api/v1/recurring-transactions',
-            () => HttpResponse.json([recurringTransaction]),
+            () => HttpResponse.json({
+                recurringTransactions: [recurringTransaction],
+            }),
         ))
 
         await expect(getRecurringTransactions())

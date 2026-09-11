@@ -49,10 +49,14 @@ const recurring = {
 
 const useHandlers = (items: unknown[] = [recurring]) => {
     server.use(
-        http.get('/api/v1/accounts', () => HttpResponse.json([account])),
+        http.get('/api/v1/accounts', () => HttpResponse.json({
+            accounts: [account],
+        })),
         http.get('/api/v1/categories', () => HttpResponse.json([category])),
         http.get('/api/v1/transactions', () => HttpResponse.json({items: [], page: 0, size: 100, totalElements: 0, totalPages: 0})),
-        http.get('/api/v1/recurring-transactions', () => HttpResponse.json(items)),
+        http.get('/api/v1/recurring-transactions', () => HttpResponse.json({
+            recurringTransactions: items,
+        })),
     )
 }
 

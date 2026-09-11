@@ -249,16 +249,18 @@ describe('CategoriesPage', () => {
             ),
             http.get(
                 '/api/v1/categories/options',
-                () => HttpResponse.json([{
-                    id: 'groceries',
-                    name: 'Groceries',
-                    icon: 'shopping-cart',
-                    color: '#E6655A',
-                }]),
+                () => HttpResponse.json({
+                    categoryOptions: [{
+                        id: 'groceries',
+                        name: 'Groceries',
+                        icon: 'shopping-cart',
+                        color: '#E6655A',
+                    }],
+                }),
             ),
             http.get(
                 '/api/v1/accounts',
-                () => HttpResponse.json([]),
+                () => HttpResponse.json({accounts: []}),
             ),
             http.get(
                 '/api/v1/transactions/uncategorized',

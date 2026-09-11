@@ -21,6 +21,10 @@ export type Account = {
   closedAt?: string | null
 }
 
+type AccountsResponse = {
+  accounts: Account[]
+}
+
 export type CreateAccountRequest = {
   name: string
   type: AccountType
@@ -39,10 +43,13 @@ export const accountTypeLabels: Record<AccountType, string> = {
 
 const accountPath = (accountId: string) => `/api/v1/accounts/${accountId}`
 
-export const getAccounts = () =>
-  apiRequest<Account[]>('/api/v1/accounts', {
+export const getAccounts = async (): Promise<Account[]> => {
+  const response = await apiRequest<AccountsResponse>('/api/v1/accounts', {
     fallbackMessage: i18n.t('accounts.loadError'),
   })
+
+  return response.accounts
+}
 
 export const getAccount = (accountId: string) =>
   apiRequest<Account>(accountPath(accountId), {

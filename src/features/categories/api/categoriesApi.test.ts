@@ -196,7 +196,7 @@ describe('categoriesApi', () => {
                     ),
                 ).toEqual({type: 'EXPENSE'})
 
-                return HttpResponse.json(options)
+                return HttpResponse.json({categoryOptions: options})
             }),
         )
 

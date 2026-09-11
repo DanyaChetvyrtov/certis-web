@@ -112,7 +112,7 @@ const renderPage = () => render(
 describe('DashboardPage', () => {
     beforeEach(() => {
         server.use(
-            http.get('/api/v1/accounts', () => HttpResponse.json(accounts)),
+            http.get('/api/v1/accounts', () => HttpResponse.json({accounts})),
             http.get('/api/v1/transactions/analytics/monthly', () => HttpResponse.json({
                 month: currentMonth(), currency: 'EUR',
                 income: {transactionCount: 0, amount: 0},
@@ -247,18 +247,22 @@ describe('DashboardPage', () => {
         const categoryTypes: string[] = []
         const cashFlowRanges: string[] = []
         server.use(
-            http.get('/api/v1/accounts', () => HttpResponse.json([
-                accounts[0],
-                {...accounts[1], balance: 700 + (saved ? (type === 'INCOME' ? 12.5 : -12.5) : 0)},
-                {...accounts[0], id: 'closed', name: 'Closed account', closedAt: '2026-08-02T00:00:00Z'},
-            ])),
+            http.get('/api/v1/accounts', () => HttpResponse.json({
+                accounts: [
+                    accounts[0],
+                    {...accounts[1], balance: 700 + (saved ? (type === 'INCOME' ? 12.5 : -12.5) : 0)},
+                    {...accounts[0], id: 'closed', name: 'Closed account', closedAt: '2026-08-02T00:00:00Z'},
+                ],
+            })),
             http.get('/api/v1/categories/options', ({request}) => {
                 const categoryType = new URL(request.url).searchParams.get('type') ?? ''
                 categoryTypes.push(categoryType)
-                return HttpResponse.json([{
-                    id: categoryType, name: categoryType === 'INCOME' ? 'Salary' : 'Groceries',
-                    icon: 'gift', color: '#10b981',
-                }])
+                return HttpResponse.json({
+                    categoryOptions: [{
+                        id: categoryType, name: categoryType === 'INCOME' ? 'Salary' : 'Groceries',
+                        icon: 'gift', color: '#10b981',
+                    }],
+                })
             }),
             http.post('/api/v1/transactions', async ({request}) => {
                 const body = await request.json() as TransactionRequest
@@ -324,7 +328,9 @@ describe('DashboardPage', () => {
     it('keeps the form and values on save failure and restores focus on cancel', async () => {
         let attempts = 0
         server.use(
-            http.get('/api/v1/categories/options', () => HttpResponse.json([])),
+            http.get('/api/v1/categories/options', () => HttpResponse.json({
+                categoryOptions: [],
+            })),
             http.post('/api/v1/transactions', () => {
                 attempts++
                 return HttpResponse.json({message: 'Could not save transaction'}, {status: 500})
@@ -396,7 +402,7 @@ describe('DashboardPage', () => {
         let failed = true
         server.use(http.get('/api/v1/categories/options', () => failed
             ? HttpResponse.json({message: 'Categories unavailable'}, {status: 500})
-            : HttpResponse.json([])))
+            : HttpResponse.json({categoryOptions: []})))
         renderPage()
         fireEvent.click(screen.getByRole('button', {name: 'Add transaction'}))
         await screen.findByText('Categories unavailable')
@@ -408,10 +414,14 @@ describe('DashboardPage', () => {
 
     it('offers a link to accounts when there are no active accounts', async () => {
         server.use(
-            http.get('/api/v1/accounts', () => HttpResponse.json([
-                {...accounts[0], closedAt: '2026-09-01T00:00:00Z'},
-            ])),
-            http.get('/api/v1/categories/options', () => HttpResponse.json([])),
+            http.get('/api/v1/accounts', () => HttpResponse.json({
+                accounts: [
+                    {...accounts[0], closedAt: '2026-09-01T00:00:00Z'},
+                ],
+            })),
+            http.get('/api/v1/categories/options', () => HttpResponse.json({
+                categoryOptions: [],
+            })),
         )
         renderPage()
         fireEvent.click(screen.getByRole('button', {name: 'Add transaction'}))
@@ -423,7 +433,7 @@ describe('DashboardPage', () => {
         let analyticsQuery: Record<string, string> | undefined
 
         server.use(
-            http.get('/api/v1/accounts', () => HttpResponse.json(accounts)),
+            http.get('/api/v1/accounts', () => HttpResponse.json({accounts})),
             http.get('/api/v1/transactions/analytics/monthly', ({request}) => {
                 const query = new URL(request.url).searchParams
 
@@ -470,7 +480,7 @@ describe('DashboardPage', () => {
         const requestedCurrencies: string[] = []
 
         server.use(
-            http.get('/api/v1/accounts', () => HttpResponse.json(accounts)),
+            http.get('/api/v1/accounts', () => HttpResponse.json({accounts})),
             http.get('/api/v1/transactions/analytics/monthly', ({request}) => {
                 const currency = new URL(request.url).searchParams.get('currency') ?? ''
                 requestedCurrencies.push(currency)
@@ -653,7 +663,7 @@ describe('DashboardPage', () => {
 
     it('shows an unavailable state when monthly analytics cannot be loaded', async () => {
         server.use(
-            http.get('/api/v1/accounts', () => HttpResponse.json(accounts)),
+            http.get('/api/v1/accounts', () => HttpResponse.json({accounts})),
             http.get(
                 '/api/v1/transactions/analytics/monthly',
                 () => HttpResponse.json(
@@ -674,7 +684,7 @@ describe('DashboardPage', () => {
         let transactionQuery: Record<string, string> | undefined
 
         server.use(
-            http.get('/api/v1/accounts', () => HttpResponse.json(accounts)),
+            http.get('/api/v1/accounts', () => HttpResponse.json({accounts})),
             http.get('/api/v1/transactions/analytics/monthly', () =>
                 HttpResponse.json({
                     month: currentMonth(),
@@ -750,7 +760,7 @@ describe('DashboardPage', () => {
 
     it('shows an empty recent-transactions state', async () => {
         server.use(
-            http.get('/api/v1/accounts', () => HttpResponse.json(accounts)),
+            http.get('/api/v1/accounts', () => HttpResponse.json({accounts})),
             http.get('/api/v1/transactions/analytics/monthly', () =>
                 HttpResponse.json({
                     month: currentMonth(),
