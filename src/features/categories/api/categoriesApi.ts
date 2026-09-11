@@ -95,6 +95,10 @@ export type CategoryOption = {
     color: string
 }
 
+type CategoryOptionsResponse = {
+    categoryOptions: CategoryOption[]
+}
+
 export type CreateCategoryRequest = {
     name: string
     type: CategoryType
@@ -193,16 +197,16 @@ export const getCategoryAnalytics = (
 export const getCategoryOptions = (
     type: CategoryType,
     signal?: AbortSignal,
-) => {
+): Promise<CategoryOption[]> => {
     const searchParams = new URLSearchParams({type})
 
-    return apiRequest<CategoryOption[]>(
+    return apiRequest<CategoryOptionsResponse>(
         `/api/v1/categories/options?${searchParams}`,
         {
             signal,
             fallbackMessage: i18n.t('categories.uncategorized.optionsError'),
         },
-    )
+    ).then((response) => response.categoryOptions)
 }
 
 export const getCategory = (categoryId: string) =>

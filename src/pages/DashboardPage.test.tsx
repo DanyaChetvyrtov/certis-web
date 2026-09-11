@@ -89,6 +89,20 @@ const currentMonth = (): string => {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 }
 
+const emptyCategoryAnalytics = (currency = 'EUR') => ({
+    month: currentMonth(),
+    currency,
+    type: 'EXPENSE',
+    totalTransactionCount: 0,
+    categorizedTransactionCount: 0,
+    uncategorizedTransactionCount: 0,
+    totalSum: 0,
+    categorizedSum: 0,
+    uncategorizedSum: 0,
+    coveragePercentage: null,
+    topExpenseCategories: [],
+})
+
 const renderPage = () => render(
     <MemoryRouter>
         <DashboardPage/>
@@ -98,7 +112,7 @@ const renderPage = () => render(
 describe('DashboardPage', () => {
     beforeEach(() => {
         server.use(
-            http.get('/api/v1/accounts', () => HttpResponse.json(accounts)),
+            http.get('/api/v1/accounts', () => HttpResponse.json({accounts})),
             http.get('/api/v1/transactions/analytics/monthly', () => HttpResponse.json({
                 month: currentMonth(), currency: 'EUR',
                 income: {transactionCount: 0, amount: 0},
@@ -107,6 +121,9 @@ describe('DashboardPage', () => {
             http.get('/api/v1/transactions/analytics/cash-flow', () => HttpResponse.json({
                 granularity: 'MONTH', totals: {income: 0, expenses: 0, netCashFlow: 0}, points: [],
             })),
+            http.get('/api/v1/categories/analytics', () =>
+                HttpResponse.json(emptyCategoryAnalytics()),
+            ),
             http.get('/api/v1/transactions', () => HttpResponse.json({
                 items: [],
                 page: 0,
@@ -230,18 +247,22 @@ describe('DashboardPage', () => {
         const categoryTypes: string[] = []
         const cashFlowRanges: string[] = []
         server.use(
-            http.get('/api/v1/accounts', () => HttpResponse.json([
-                accounts[0],
-                {...accounts[1], balance: 700 + (saved ? (type === 'INCOME' ? 12.5 : -12.5) : 0)},
-                {...accounts[0], id: 'closed', name: 'Closed account', closedAt: '2026-08-02T00:00:00Z'},
-            ])),
+            http.get('/api/v1/accounts', () => HttpResponse.json({
+                accounts: [
+                    accounts[0],
+                    {...accounts[1], balance: 700 + (saved ? (type === 'INCOME' ? 12.5 : -12.5) : 0)},
+                    {...accounts[0], id: 'closed', name: 'Closed account', closedAt: '2026-08-02T00:00:00Z'},
+                ],
+            })),
             http.get('/api/v1/categories/options', ({request}) => {
                 const categoryType = new URL(request.url).searchParams.get('type') ?? ''
                 categoryTypes.push(categoryType)
-                return HttpResponse.json([{
-                    id: categoryType, name: categoryType === 'INCOME' ? 'Salary' : 'Groceries',
-                    icon: 'gift', color: '#10b981',
-                }])
+                return HttpResponse.json({
+                    categoryOptions: [{
+                        id: categoryType, name: categoryType === 'INCOME' ? 'Salary' : 'Groceries',
+                        icon: 'gift', color: '#10b981',
+                    }],
+                })
             }),
             http.post('/api/v1/transactions', async ({request}) => {
                 const body = await request.json() as TransactionRequest
@@ -307,7 +328,9 @@ describe('DashboardPage', () => {
     it('keeps the form and values on save failure and restores focus on cancel', async () => {
         let attempts = 0
         server.use(
-            http.get('/api/v1/categories/options', () => HttpResponse.json([])),
+            http.get('/api/v1/categories/options', () => HttpResponse.json({
+                categoryOptions: [],
+            })),
             http.post('/api/v1/transactions', () => {
                 attempts++
                 return HttpResponse.json({message: 'Could not save transaction'}, {status: 500})
@@ -379,7 +402,7 @@ describe('DashboardPage', () => {
         let failed = true
         server.use(http.get('/api/v1/categories/options', () => failed
             ? HttpResponse.json({message: 'Categories unavailable'}, {status: 500})
-            : HttpResponse.json([])))
+            : HttpResponse.json({categoryOptions: []})))
         renderPage()
         fireEvent.click(screen.getByRole('button', {name: 'Add transaction'}))
         await screen.findByText('Categories unavailable')
@@ -391,10 +414,14 @@ describe('DashboardPage', () => {
 
     it('offers a link to accounts when there are no active accounts', async () => {
         server.use(
-            http.get('/api/v1/accounts', () => HttpResponse.json([
-                {...accounts[0], closedAt: '2026-09-01T00:00:00Z'},
-            ])),
-            http.get('/api/v1/categories/options', () => HttpResponse.json([])),
+            http.get('/api/v1/accounts', () => HttpResponse.json({
+                accounts: [
+                    {...accounts[0], closedAt: '2026-09-01T00:00:00Z'},
+                ],
+            })),
+            http.get('/api/v1/categories/options', () => HttpResponse.json({
+                categoryOptions: [],
+            })),
         )
         renderPage()
         fireEvent.click(screen.getByRole('button', {name: 'Add transaction'}))
@@ -406,7 +433,7 @@ describe('DashboardPage', () => {
         let analyticsQuery: Record<string, string> | undefined
 
         server.use(
-            http.get('/api/v1/accounts', () => HttpResponse.json(accounts)),
+            http.get('/api/v1/accounts', () => HttpResponse.json({accounts})),
             http.get('/api/v1/transactions/analytics/monthly', ({request}) => {
                 const query = new URL(request.url).searchParams
 
@@ -453,7 +480,7 @@ describe('DashboardPage', () => {
         const requestedCurrencies: string[] = []
 
         server.use(
-            http.get('/api/v1/accounts', () => HttpResponse.json(accounts)),
+            http.get('/api/v1/accounts', () => HttpResponse.json({accounts})),
             http.get('/api/v1/transactions/analytics/monthly', ({request}) => {
                 const currency = new URL(request.url).searchParams.get('currency') ?? ''
                 requestedCurrencies.push(currency)
@@ -490,9 +517,153 @@ describe('DashboardPage', () => {
         expect(requestedCurrencies).toEqual(['EUR', 'RUB'])
     })
 
+    it('shows the category placeholder and expense breakdown from analytics', async () => {
+        let analyticsQuery: Record<string, string> | undefined
+
+        server.use(
+            http.get('/api/v1/categories/analytics', ({request}) => {
+                analyticsQuery = Object.fromEntries(
+                    new URL(request.url).searchParams,
+                )
+
+                return HttpResponse.json({
+                    month: currentMonth(),
+                    currency: 'EUR',
+                    type: 'EXPENSE',
+                    totalTransactionCount: 5,
+                    categorizedTransactionCount: 4,
+                    uncategorizedTransactionCount: 1,
+                    totalSum: 1000,
+                    categorizedSum: 950,
+                    uncategorizedSum: 50,
+                    coveragePercentage: 95,
+                    topExpenseCategories: [
+                        {
+                            categoryId: 'housing',
+                            name: 'Housing',
+                            color: '#9a72d8',
+                            amount: 600,
+                            sharePercentage: 60,
+                        },
+                        {
+                            categoryId: 'food',
+                            name: 'Food',
+                            color: '#d4a95e',
+                            amount: 250,
+                            sharePercentage: 25,
+                        },
+                    ],
+                })
+            }),
+        )
+
+        renderPage()
+
+        const historyPanel = screen
+            .getByText('Category spending over time', {selector: 'h2'})
+            .closest('article')
+        expect(historyPanel).not.toBeNull()
+        expect(within(historyPanel as HTMLElement).getByText('Coming soon'))
+            .toBeInTheDocument()
+        expect(within(historyPanel as HTMLElement).getByText('Category history is on the way'))
+            .toBeInTheDocument()
+
+        const spendingPanel = screen
+            .getByText('Spending by category', {selector: 'h2'})
+            .closest('article')
+        expect(spendingPanel).not.toBeNull()
+        const breakdown = within(spendingPanel as HTMLElement)
+
+        expect(await breakdown.findByText('€1,000')).toBeInTheDocument()
+        expect(breakdown.getByLabelText('Housing: €600, 60%')).toBeInTheDocument()
+        expect(breakdown.getByLabelText('Food: €250, 25%')).toBeInTheDocument()
+        expect(breakdown.getByLabelText('Other: €150, 15%')).toBeInTheDocument()
+        expect(breakdown.getByRole('link', {name: /View all/}))
+            .toHaveAttribute('href', '/categories')
+        expect(analyticsQuery).toEqual({
+            month: currentMonth(),
+            currency: 'EUR',
+            type: 'EXPENSE',
+            topLimit: '4',
+        })
+    })
+
+    it('reloads category spending for the selected dashboard currency', async () => {
+        const requestedCurrencies: string[] = []
+
+        server.use(
+            http.get('/api/v1/categories/analytics', ({request}) => {
+                const currency = new URL(request.url).searchParams.get('currency') ?? ''
+                requestedCurrencies.push(currency)
+                const total = currency === 'EUR' ? 1000 : 5000
+
+                return HttpResponse.json({
+                    ...emptyCategoryAnalytics(currency),
+                    totalTransactionCount: 1,
+                    categorizedTransactionCount: 1,
+                    totalSum: total,
+                    categorizedSum: total,
+                    coveragePercentage: 100,
+                    topExpenseCategories: [{
+                        categoryId: `${currency}-category`,
+                        name: currency === 'EUR' ? 'Housing' : 'Transport',
+                        color: '#5d8fc5',
+                        amount: total,
+                        sharePercentage: 100,
+                    }],
+                })
+            }),
+        )
+
+        renderPage()
+        const panel = within(
+            screen.getByText('Spending by category', {selector: 'h2'}).closest('article')!,
+        )
+
+        expect(await panel.findByRole('img', {
+            name: '€1,000 spent across categories this month',
+        })).toBeInTheDocument()
+        await selectOption(screen.getByLabelText('Dashboard currency'), 'RUB')
+
+        expect(await panel.findByRole('img', {
+            name: '₽5,000 spent across categories this month',
+        })).toBeInTheDocument()
+        expect(panel.getByText('Transport')).toBeInTheDocument()
+        expect(requestedCurrencies).toEqual(['EUR', 'RUB'])
+    })
+
+    it('allows retry when category spending cannot be loaded', async () => {
+        let shouldFail = true
+
+        server.use(
+            http.get('/api/v1/categories/analytics', () => {
+                if (shouldFail) {
+                    return HttpResponse.json(
+                        {message: 'Category analytics unavailable'},
+                        {status: 500},
+                    )
+                }
+
+                return HttpResponse.json(emptyCategoryAnalytics())
+            }),
+        )
+
+        renderPage()
+        const panel = within(
+            screen.getByText('Spending by category', {selector: 'h2'}).closest('article')!,
+        )
+
+        expect(await panel.findByText('We could not load spending by category.'))
+            .toBeInTheDocument()
+        shouldFail = false
+        fireEvent.click(panel.getByRole('button', {name: 'Try again'}))
+
+        expect(await panel.findByText('No spending this month')).toBeInTheDocument()
+    })
+
     it('shows an unavailable state when monthly analytics cannot be loaded', async () => {
         server.use(
-            http.get('/api/v1/accounts', () => HttpResponse.json(accounts)),
+            http.get('/api/v1/accounts', () => HttpResponse.json({accounts})),
             http.get(
                 '/api/v1/transactions/analytics/monthly',
                 () => HttpResponse.json(
@@ -513,7 +684,7 @@ describe('DashboardPage', () => {
         let transactionQuery: Record<string, string> | undefined
 
         server.use(
-            http.get('/api/v1/accounts', () => HttpResponse.json(accounts)),
+            http.get('/api/v1/accounts', () => HttpResponse.json({accounts})),
             http.get('/api/v1/transactions/analytics/monthly', () =>
                 HttpResponse.json({
                     month: currentMonth(),
@@ -589,7 +760,7 @@ describe('DashboardPage', () => {
 
     it('shows an empty recent-transactions state', async () => {
         server.use(
-            http.get('/api/v1/accounts', () => HttpResponse.json(accounts)),
+            http.get('/api/v1/accounts', () => HttpResponse.json({accounts})),
             http.get('/api/v1/transactions/analytics/monthly', () =>
                 HttpResponse.json({
                     month: currentMonth(),

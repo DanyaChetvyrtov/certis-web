@@ -20,9 +20,13 @@ import {getCategoryOptions} from '../features/categories/api/categoriesApi'
 import type {Category} from '../features/categories/api/categoriesApi'
 import {BudgetRing} from '../features/dashboard/components/BudgetRing'
 import {CashFlowPanel} from '../features/dashboard/components/CashFlowPanel'
+import {CategorySpendingPanels} from '../features/dashboard/components/CategorySpendingPanels'
 import {
     useMonthlyTransactionAnalytics,
 } from '../features/dashboard/hooks/useMonthlyTransactionAnalytics'
+import {
+    useDashboardCategoryAnalytics,
+} from '../features/dashboard/hooks/useDashboardCategoryAnalytics'
 import {useDashboardGoals} from '../features/dashboard/hooks/useDashboardGoals'
 import {
     useRecentTransactions,
@@ -392,6 +396,16 @@ export function DashboardPage() {
         loadState: dashboardGoalsState,
         reload: reloadDashboardGoals,
     } = useDashboardGoals(selectedCurrency, !isProfileSetupOpen)
+    const {
+        analytics: categoryAnalytics,
+        loadState: categoryAnalyticsState,
+        reload: reloadCategoryAnalytics,
+    } = useDashboardCategoryAnalytics(
+        currentMonth,
+        selectedCurrency,
+        !isProfileSetupOpen,
+        dashboardRevision,
+    )
 
     const handleTransactionSaved = () => {
         setIsTransactionOpen(false)
@@ -900,6 +914,13 @@ export function DashboardPage() {
                         </button>
                     </article>
                 </section>
+
+                <CategorySpendingPanels
+                    analytics={categoryAnalytics}
+                    currency={selectedCurrency}
+                    loadState={categoryAnalyticsState}
+                    onRetry={reloadCategoryAnalytics}
+                />
             </main>
 
             {isProfileSetupOpen && (
