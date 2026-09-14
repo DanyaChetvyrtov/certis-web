@@ -14,6 +14,10 @@ export type Transfer = {
     createdAt: string
 }
 
+type TransfersResponse = {
+    transfers: Transfer[]
+}
+
 export type CreateTransferRequest = {
     sourceAccountId: string
     destinationAccountId: string
@@ -33,10 +37,10 @@ const transferPath = (transferId: string): string =>
     `${TRANSFERS_PATH}/${transferId}`
 
 export const getTransfers = (signal?: AbortSignal) =>
-    apiRequest<Transfer[]>(TRANSFERS_PATH, {
+    apiRequest<TransfersResponse>(TRANSFERS_PATH, {
         signal,
         fallbackMessage: i18n.t('transactions.api.transfersLoad'),
-    })
+    }).then((response) => response.transfers)
 
 export const getTransfer = (
     transferId: string,

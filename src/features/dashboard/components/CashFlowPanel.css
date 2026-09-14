@@ -1,0 +1,195 @@
+.cash-flow-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cash-flow-panel .cash-flow-comparison-toggle {
+    display: inline-flex;
+    min-height: 32px;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 8px 5px 10px;
+    border: 1px solid #dbe1e7;
+    border-radius: 8px;
+    color: #6b7b90;
+    background: #f8fafc;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 650;
+}
+
+.cash-flow-panel .cash-flow-comparison-toggle:hover {
+    border-color: #c8d2dc;
+    color: #3f536b;
+}
+
+.cash-flow-panel .cash-flow-comparison-toggle:focus-visible {
+    outline: 2px solid var(--dashboard-green);
+    outline-offset: 2px;
+}
+
+.cash-flow-panel .cash-flow-comparison-toggle[aria-checked='true'] {
+    border-color: #a8e4d3;
+    color: #087657;
+    background: #edfaf6;
+}
+
+.cash-flow-switch {
+    position: relative;
+    display: inline-block;
+    width: 30px;
+    height: 17px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: #cbd4dd;
+    transition: background-color 180ms ease;
+}
+
+.cash-flow-switch > span {
+    position: absolute;
+    width: 13px;
+    height: 13px;
+    top: 2px;
+    left: 2px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 4px rgb(22 38 56 / 20%);
+    transform: translateX(0);
+    transition: transform 180ms ease;
+}
+
+.cash-flow-comparison-toggle[aria-checked='true'] .cash-flow-switch {
+    background: var(--dashboard-green);
+}
+
+.cash-flow-comparison-toggle[aria-checked='true'] .cash-flow-switch > span {
+    transform: translateX(13px);
+}
+
+.chart-legend .cash-flow-previous-key {
+    color: #76869b;
+}
+
+.chart-legend .cash-flow-previous-key > i {
+    width: 18px;
+    height: 0;
+    border-top: 2px dashed #7d8da1;
+    border-radius: 0;
+    margin-right: 7px;
+    background: transparent;
+}
+
+.cash-flow-comparison-status {
+    margin: -2px 0 4px;
+    color: #8b98ab;
+    font-size: 9px;
+    text-align: center;
+}
+
+.cash-flow-comparison-status.error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #a54646;
+}
+
+.cash-flow-comparison-status.error button {
+    padding: 3px 7px;
+    border: 1px solid #efcccc;
+    border-radius: 6px;
+    color: #9c3f3f;
+    background: #fff6f6;
+    cursor: pointer;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.cash-flow-comparison-status.error button:focus-visible {
+    outline: 2px solid #c95c57;
+    outline-offset: 2px;
+}
+
+html[data-theme='dark'] .cash-flow-panel .cash-flow-comparison-toggle {
+    border-color: #304a65;
+    color: #a8b8c8;
+    background: #122a45;
+}
+
+html[data-theme='dark'] .cash-flow-panel .cash-flow-comparison-toggle:hover {
+    border-color: #48627b;
+    color: #d6e2ed;
+}
+
+html[data-theme='dark'] .cash-flow-panel .cash-flow-comparison-toggle[aria-checked='true'] {
+    border-color: #247d68;
+    color: #9ae9d1;
+    background: #103b38;
+}
+
+html[data-theme='dark'] .cash-flow-switch {
+    background: #50677f;
+}
+
+html[data-theme='dark'] .chart-legend .cash-flow-previous-key {
+    color: #94a7bc;
+}
+
+html[data-theme='dark'] .chart-legend .cash-flow-previous-key > i {
+    border-color: #8094a8;
+}
+
+html[data-theme='dark'] .cash-flow-comparison-status {
+    color: #94a7bc;
+}
+
+html[data-theme='dark'] .cash-flow-comparison-status.error {
+    color: #f1aaa6;
+}
+
+html[data-theme='dark'] .cash-flow-comparison-status.error button {
+    border-color: #7e4a51;
+    color: #f1aaa6;
+    background: #41262e;
+}
+
+@media (max-width: 700px) {
+    .cash-flow-panel .dashboard-panel-header {
+        align-items: flex-start;
+    }
+
+    .cash-flow-controls {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 520px) {
+    .cash-flow-panel .dashboard-panel-header {
+        flex-direction: column;
+    }
+
+    .cash-flow-controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .cash-flow-panel .cash-flow-comparison-toggle > span:first-child {
+        max-width: 130px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .chart-legend {
+        flex-wrap: wrap;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cash-flow-switch,
+    .cash-flow-switch > span {
+        transition-duration: 1ms;
+    }
+}

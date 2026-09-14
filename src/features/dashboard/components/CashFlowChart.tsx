@@ -1,7 +1,8 @@
 import {
   Area,
-  AreaChart,
   CartesianGrid,
+  ComposedChart,
+  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -18,10 +19,13 @@ export type CashFlowPoint = {
   expenses: number
 }
 
+type CashFlowComparisonPoint = Pick<CashFlowPoint, 'income' | 'expenses'>
+
 type CashFlowChartProps = {
   description?: string
   currency: AccountCurrency
   data: CashFlowPoint[]
+  comparisonData?: CashFlowComparisonPoint[]
 }
 
 const formatMoney = (value: number, currency: AccountCurrency, locale: string) =>
@@ -33,13 +37,18 @@ const formatMoney = (value: number, currency: AccountCurrency, locale: string) =
     maximumFractionDigits: 2,
   }).format(value)
 
-export function CashFlowChart({ currency, data, description }: CashFlowChartProps) {
+export function CashFlowChart({ currency, data, comparisonData, description }: CashFlowChartProps) {
   const { t } = useTranslation()
   const { locale } = useLanguage()
   const compactFormatter = new Intl.NumberFormat(locale, {
     notation: 'compact',
     maximumFractionDigits: 1,
   })
+  const chartData = data.map((point, index) => ({
+    ...point,
+    previousIncome: comparisonData?.[index]?.income,
+    previousExpenses: comparisonData?.[index]?.expenses,
+  }))
 
   return (
     <div
@@ -48,8 +57,8 @@ export function CashFlowChart({ currency, data, description }: CashFlowChartProp
       aria-label={description ?? t('dashboard.cashFlow.chartDescription')}
     >
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart
-          data={data}
+        <ComposedChart
+          data={chartData}
           margin={{ top: 18, right: 12, bottom: 0, left: -18 }}
           accessibilityLayer
         >
@@ -70,7 +79,7 @@ export function CashFlowChart({ currency, data, description }: CashFlowChartProp
           />
           <XAxis
             dataKey={data[0]?.bucketStart ? 'bucketStart' : 'label'}
-            tickFormatter={(value: string) => data.find(point => point.bucketStart === value)?.label ?? value}
+            tickFormatter={(value: string) => chartData.find(point => point.bucketStart === value)?.label ?? value}
             axisLine={false}
             tickLine={false}
             tick={{ fill: 'var(--chart-axis-text)', fontSize: 11 }}
@@ -84,7 +93,7 @@ export function CashFlowChart({ currency, data, description }: CashFlowChartProp
             width={52}
           />
           <Tooltip
-            labelFormatter={(value) => data.find(point => point.bucketStart === value)?.label ?? value}
+            labelFormatter={(value) => chartData.find(point => point.bucketStart === value)?.label ?? value}
             cursor={{
               stroke: 'var(--chart-tooltip-cursor)',
               strokeDasharray: '4 4',
@@ -99,12 +108,13 @@ export function CashFlowChart({ currency, data, description }: CashFlowChartProp
             }}
             formatter={(value, name) => [
               formatMoney(Number(value), currency, locale),
-              name === 'income' ? t('dashboard.income') : t('dashboard.expenses'),
+              name,
             ]}
           />
           <Area
             type="monotone"
             dataKey="income"
+            name={t('dashboard.income')}
             stroke="#10b981"
             strokeWidth={3}
             fill="url(#income-gradient)"
@@ -117,6 +127,7 @@ export function CashFlowChart({ currency, data, description }: CashFlowChartProp
           <Area
             type="monotone"
             dataKey="expenses"
+            name={t('dashboard.expenses')}
             stroke="#ef6a62"
             strokeWidth={2.4}
             fill="url(#expenses-gradient)"
@@ -126,7 +137,33 @@ export function CashFlowChart({ currency, data, description }: CashFlowChartProp
               strokeWidth: 2,
             }}
           />
-        </AreaChart>
+          {comparisonData && (
+            <Line
+              type="monotone"
+              dataKey="previousIncome"
+              name={t('dashboard.cashFlow.previousIncome')}
+              stroke="#10b981"
+              strokeWidth={1.8}
+              strokeOpacity={0.62}
+              strokeDasharray="7 6"
+              dot={false}
+              activeDot={{r: 3}}
+            />
+          )}
+          {comparisonData && (
+            <Line
+              type="monotone"
+              dataKey="previousExpenses"
+              name={t('dashboard.cashFlow.previousExpenses')}
+              stroke="#ef6a62"
+              strokeWidth={1.8}
+              strokeOpacity={0.62}
+              strokeDasharray="7 6"
+              dot={false}
+              activeDot={{r: 3}}
+            />
+          )}
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   )

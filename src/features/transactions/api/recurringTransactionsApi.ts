@@ -38,6 +38,10 @@ export type RecurringTransaction = {
     updatedAt: string
 }
 
+type RecurringTransactionsResponse = {
+    recurringTransactions: RecurringTransaction[]
+}
+
 export type RecurringTransactionRequest = {
     accountId: string
     categoryId: string | null
@@ -64,13 +68,13 @@ const recurringTransactionPath = (id: string) =>
     `${RECURRING_TRANSACTIONS_PATH}/${id}`
 
 export const getRecurringTransactions = (signal?: AbortSignal) =>
-    apiRequest<RecurringTransaction[]>(
+    apiRequest<RecurringTransactionsResponse>(
         RECURRING_TRANSACTIONS_PATH,
         {
             signal,
             fallbackMessage: i18n.t('transactions.api.recurringLoad'),
         },
-    )
+    ).then((response) => response.recurringTransactions)
 
 export const createRecurringTransaction = (
     request: RecurringTransactionRequest,
