@@ -4,7 +4,7 @@
 
 Certis brings accounts, transactions, budgets, categories, recurring payments, savings goals, and financial analytics into one place. Instead of maintaining several spreadsheets or trying to reconstruct the month from separate bank accounts, you get one consistent view of your finances and the tools to plan ahead.
 
-![Certis dashboard](docs/dashboard_main.png)
+![Certis landing](docs/landing.png)
 
 ## Why Certis?
 
@@ -81,9 +81,9 @@ Certis treats savings goals as part of the same financial system as accounts and
 
 Create a target, set the amount and desired completion period, track contributions, and follow progress over time. Certis can also calculate a recommended monthly contribution so a large target becomes a concrete monthly plan.
 
-![Savings goals](docs/goal_main.png)
-
 ![Create savings goal](docs/goal_modal.png)
+
+![Savings goals](docs/goal_main.png)
 
 ## Manage multiple accounts without losing context
 
@@ -98,8 +98,8 @@ Creating an account takes only the information needed to make it useful in the r
 Certis supports both **light and dark themes** and can switch between **English and Russian** without changing the underlying financial data.
 
 <p align="center">
-  <img src="docs/settings_light_rus.png" alt="Certis light theme in Russian" width="49%" />
   <img src="docs/settings_dark_eng.png" alt="Certis dark theme in English" width="49%" />
+  <img src="docs/settings_light_rus.png" alt="Certis light theme in Russian" width="49%" />
 </p>
 
 Profile settings keep personal preferences such as the default currency close to the rest of the application.
@@ -128,10 +128,6 @@ The product is centered around three ideas:
 1. **Visibility** — the current financial picture should be understandable at a glance.
 2. **Consistency** — accounts, transactions, categories, budgets, and goals should use the same financial context instead of living in isolated tools.
 3. **Planning** — the application should help with the next month and the next goal, not only summarize the past.
-
-The public landing and authentication experience are part of the same product rather than separate prototypes.
-
-![Certis landing page](docs/landing.png)
 
 ![Authentication](docs/auth_page.png)
 
