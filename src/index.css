@@ -79,6 +79,81 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Native number steppers clash with Certis' custom monetary controls. */
+input[type='number'] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* Keep native date/time controls visually consistent with the application. */
+input[type='date'],
+input[type='datetime-local'],
+input[type='time'] {
+  color-scheme: light;
+}
+
+html[data-theme='dark'] input[type='date'],
+html[data-theme='dark'] input[type='datetime-local'],
+html[data-theme='dark'] input[type='time'] {
+  color-scheme: dark;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator,
+input[type='datetime-local']::-webkit-calendar-picker-indicator,
+input[type='time']::-webkit-calendar-picker-indicator {
+  width: 18px;
+  height: 18px;
+  margin-left: 8px;
+  border-radius: 8px;
+  padding: 5px;
+  cursor: pointer;
+  opacity: .62;
+  transition:
+    opacity 160ms ease,
+    background-color 160ms ease;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator:hover,
+input[type='datetime-local']::-webkit-calendar-picker-indicator:hover,
+input[type='time']::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  background-color: rgb(16 185 129 / 10%);
+}
+
+html[data-theme='dark'] input[type='date']::-webkit-calendar-picker-indicator,
+html[data-theme='dark'] input[type='datetime-local']::-webkit-calendar-picker-indicator,
+html[data-theme='dark'] input[type='time']::-webkit-calendar-picker-indicator {
+  opacity: .78;
+}
+
+input[type='date']::-webkit-datetime-edit,
+input[type='datetime-local']::-webkit-datetime-edit,
+input[type='time']::-webkit-datetime-edit {
+  padding-block: 1px;
+}
+
+input[type='date']::-webkit-datetime-edit-fields-wrapper,
+input[type='datetime-local']::-webkit-datetime-edit-fields-wrapper,
+input[type='time']::-webkit-datetime-edit-fields-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+input[type='date']::-webkit-datetime-edit-text,
+input[type='datetime-local']::-webkit-datetime-edit-text,
+input[type='time']::-webkit-datetime-edit-text {
+  padding-inline: 2px;
+  color: var(--muted);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   :where(
     .account-filter-tabs,

@@ -1,3 +1,4 @@
+import {StrictMode} from 'react'
 import {selectOption} from '../../../test/selectOption'
 import {fireEvent, render, screen, within} from '@testing-library/react'
 import {http, HttpResponse} from 'msw'
@@ -61,11 +62,13 @@ const useHandlers = (items: unknown[] = [recurring]) => {
 }
 
 const renderPage = () => render(
-    <RecurringTransactionsView
-        accounts={[account]}
-        categories={[category]}
-        onHistory={vi.fn()}
-    />,
+    <StrictMode>
+        <RecurringTransactionsView
+            accounts={[account]}
+            categories={[category]}
+            onHistory={vi.fn()}
+        />
+    </StrictMode>,
 )
 
 describe('RecurringTransactionsView', () => {
@@ -85,6 +88,22 @@ describe('RecurringTransactionsView', () => {
 
         expect(await screen.findByText('Schedule paused.')).toBeInTheDocument()
         expect(updateBody).toMatchObject({status: 'PAUSED', frequency: 'MONTHLY', intervalCount: 1})
+    })
+
+    it('shows a confirmation dialog before cancelling a schedule', async () => {
+        useHandlers()
+
+        renderPage()
+        await screen.findAllByText('Apartment rent')
+
+        fireEvent.click(screen.getByRole('button', {name: 'Cancel Apartment rent'}))
+
+        const dialog = screen.getByRole('alertdialog', {name: 'Cancel “Apartment rent”?'})
+        expect(dialog).toBeInTheDocument()
+        expect(within(dialog).getByText('Past transactions will stay unchanged.')).toBeInTheDocument()
+
+        fireEvent.click(within(dialog).getByRole('button', {name: 'Cancel'}))
+        expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
     })
 
     it('creates a schedule using the current API contract', async () => {

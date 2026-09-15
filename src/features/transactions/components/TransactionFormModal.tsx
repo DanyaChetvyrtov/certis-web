@@ -1,3 +1,4 @@
+import {DateTimeField} from '../../../components/DateTimeField'
 import {Select, SelectOption} from '../../../components/Select'
 import {
     useMemo,
@@ -551,25 +552,21 @@ export function TransactionFormModal({
                             <label htmlFor="transaction-date">
                                 {t('transactions.form.dateTime')}
                             </label>
-                            <div className="transaction-date-shell">
-                                <Icon name="calendar"/>
-                                <input
-                                    id="transaction-date"
-                                    name="date"
-                                    type="datetime-local"
-                                    value={date}
-                                    aria-invalid={Boolean(fieldErrors.date)}
-                                    aria-describedby={
-                                        fieldErrors.date
-                                            ? 'transaction-date-error'
-                                            : undefined
-                                    }
-                                    onChange={(event) => {
-                                        setDate(event.target.value)
-                                        clearFieldError('date')
-                                    }}
-                                />
-                            </div>
+                            <DateTimeField
+                                id="transaction-date"
+                                mode="datetime"
+                                value={date}
+                                invalid={Boolean(fieldErrors.date)}
+                                describedBy={
+                                    fieldErrors.date
+                                        ? 'transaction-date-error'
+                                        : undefined
+                                }
+                                onChange={(value) => {
+                                    setDate(value)
+                                    clearFieldError('date')
+                                }}
+                            />
                             {fieldErrors.date && (
                                 <small
                                     id="transaction-date-error"

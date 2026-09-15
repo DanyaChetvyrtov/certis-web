@@ -9,6 +9,7 @@ import type {
     FormEvent,
 } from 'react'
 import {useTranslation} from 'react-i18next'
+import {DateTimeField} from '../../../components/DateTimeField'
 import {Icon} from '../../../components/Icons'
 import {Select, SelectOption} from '../../../components/Select'
 import {useLanguage} from '../../../i18n/useLanguage'
@@ -396,13 +397,19 @@ export function GoalFormModal({
                                     <label htmlFor="goal-target-month">
                                         {t('goals.form.targetMonth')}
                                     </label>
-                                    <input
+                                    <DateTimeField
                                         id="goal-target-month"
-                                        type="month"
+                                        mode="month"
                                         min={currentMonth()}
                                         value={targetMonth}
-                                        aria-invalid={Boolean(fieldErrors.targetMonth)}
-                                        onChange={(event) => setTargetMonth(event.target.value)}
+                                        invalid={Boolean(fieldErrors.targetMonth)}
+                                        onChange={(value) => {
+                                            setTargetMonth(value)
+                                            setFieldErrors((current) => ({
+                                                ...current,
+                                                targetMonth: '',
+                                            }))
+                                        }}
                                     />
                                     {fieldErrors.targetMonth && <small>{fieldErrors.targetMonth}</small>}
                                 </div>
