@@ -1,3 +1,4 @@
+import {DateTimeField} from '../../../components/DateTimeField'
 import {Select, SelectOption} from '../../../components/Select'
 import {
     useEffect,
@@ -8,6 +9,7 @@ import {
 import type {
     CSSProperties,
 } from 'react'
+import {useSearchParams} from 'react-router-dom'
 import {useTranslation} from 'react-i18next'
 import type {TFunction} from 'i18next'
 import {
@@ -74,6 +76,7 @@ import './TransactionsPage.css'
 
 type LoadState = 'loading' | 'ready' | 'error'
 type ActivityType = 'ALL' | TransactionType | 'TRANSFER'
+type TransactionView = 'HISTORY' | 'RECURRING'
 type PeriodPreset =
     | 'THIS_MONTH'
     | 'LAST_30_DAYS'
@@ -420,7 +423,22 @@ export function TransactionsPage() {
     const {t} = useTranslation()
     const {locale} = useLanguage()
     const {profile} = useSession()
+    const [searchParams, setSearchParams] = useSearchParams()
     const preferredCurrency = profile?.preferredCurrency ?? 'RUB'
+    const activeView: TransactionView = searchParams.get('view') === 'recurring'
+        ? 'RECURRING'
+        : 'HISTORY'
+    const setActiveView = (view: TransactionView) => {
+        const nextParams = new URLSearchParams(searchParams)
+
+        if (view === 'RECURRING') {
+            nextParams.set('view', 'recurring')
+        } else {
+            nextParams.delete('view')
+        }
+
+        setSearchParams(nextParams)
+    }
     const [transactions, setTransactions] =
         useState<Transaction[]>([])
     const [transfers, setTransfers] = useState<Transfer[]>([])
@@ -441,8 +459,6 @@ export function TransactionsPage() {
     const [activityType, setActivityType] =
         useState<ActivityType>('ALL')
     const [searchQuery, setSearchQuery] = useState('')
-    const [activeView, setActiveView] =
-        useState<'HISTORY' | 'RECURRING'>('HISTORY')
     const [formState, setFormState] =
         useState<FormState | null>(null)
     const [deleteState, setDeleteState] =
@@ -1690,31 +1706,33 @@ export function TransactionsPage() {
                                         }
                                     }}
                                 >
-                                    <label>
+                                    <label htmlFor="transaction-custom-from">
                                         <span>{t('transactions.from')}</span>
-                                        <input
-                                            type="date"
+                                        <DateTimeField
+                                            id="transaction-custom-from"
                                             value={customPeriodDraft.from}
+                                            mode="date"
                                             max={customPeriodDraft.to || undefined}
-                                            onChange={(event) =>
+                                            onChange={(value) =>
                                                 setCustomPeriodDraft((current) => ({
                                                     ...current,
-                                                    from: event.target.value,
+                                                    from: value,
                                                 }))
                                             }
                                         />
                                     </label>
 
-                                    <label>
+                                    <label htmlFor="transaction-custom-to">
                                         <span>{t('transactions.to')}</span>
-                                        <input
-                                            type="date"
+                                        <DateTimeField
+                                            id="transaction-custom-to"
                                             value={customPeriodDraft.to}
+                                            mode="date"
                                             min={customPeriodDraft.from || undefined}
-                                            onChange={(event) =>
+                                            onChange={(value) =>
                                                 setCustomPeriodDraft((current) => ({
                                                     ...current,
-                                                    to: event.target.value,
+                                                    to: value,
                                                 }))
                                             }
                                         />

@@ -9,7 +9,6 @@ import type {Account, Currency} from '../../accounts/api/accountsApi'
 import type {Category} from '../../categories/api/categoriesApi'
 import {isCategoryIcon} from '../../categories/api/categoriesApi'
 import {
-    cancelRecurringTransaction,
     getRecurringTransactions,
     updateRecurringTransaction,
 } from '../api/recurringTransactionsApi'
@@ -19,6 +18,7 @@ import type {
     RecurringTransaction,
     UpdateRecurringTransactionRequest,
 } from '../api/recurringTransactionsApi'
+import {CancelRecurringTransactionDialog} from './CancelRecurringTransactionDialog'
 import {RecurringTransactionFormModal} from './RecurringTransactionFormModal'
 import './RecurringTransactionsView.css'
 import {useLanguage} from '../../../i18n/useLanguage'
@@ -33,6 +33,7 @@ type Props = {
 type LoadState = 'loading' | 'ready' | 'error'
 type StatusFilter = 'ALL' | RecurringStatus
 type FormState = {transaction?: RecurringTransaction; restoreFocus: () => void}
+type CancelState = {transaction: RecurringTransaction; restoreFocus: () => void}
 type Notice = {kind: 'success' | 'error'; message: string}
 type Occurrence = {date: string; template: RecurringTransaction}
 
@@ -136,6 +137,7 @@ export function RecurringTransactionsView({accounts, categories, onHistory}: Pro
     const [query, setQuery] = useState('')
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL')
     const [formState, setFormState] = useState<FormState | null>(null)
+    const [cancelState, setCancelState] = useState<CancelState | null>(null)
     const [notice, setNotice] = useState<Notice | null>(null)
     const [busyId, setBusyId] = useState('')
     const [anchorDate] = useState(() => new Date())
@@ -186,6 +188,31 @@ export function RecurringTransactionsView({accounts, categories, onHistory}: Pro
         return {income, expenses, net}
     }, [accountMap, monthOccurrences])
 
+    const scheduledFlow = useMemo(() => {
+        const currencies = new Set([...metrics.income.keys(), ...metrics.expenses.keys()])
+
+        if (currencies.size === 1) {
+            const [currency] = Array.from(currencies)
+            const income = metrics.income.get(currency) ?? 0
+            const expenses = metrics.expenses.get(currency) ?? 0
+            const total = income + expenses
+
+            return {
+                incomeShare: total > 0 ? income / total * 100 : 0,
+                expenseShare: total > 0 ? expenses / total * 100 : 0,
+            }
+        }
+
+        const incomeCount = monthOccurrences.filter(({template}) => template.type === 'INCOME').length
+        const expenseCount = monthOccurrences.filter(({template}) => template.type === 'EXPENSE').length
+        const totalCount = incomeCount + expenseCount
+
+        return {
+            incomeShare: totalCount > 0 ? incomeCount / totalCount * 100 : 0,
+            expenseShare: totalCount > 0 ? expenseCount / totalCount * 100 : 0,
+        }
+    }, [metrics, monthOccurrences])
+
     const visible = useMemo(() => {
         const normalized = query.trim().toLowerCase()
         return templates.filter((item) => statusFilter === 'ALL' || item.status === statusFilter).filter((item) => {
@@ -214,16 +241,10 @@ export function RecurringTransactionsView({accounts, categories, onHistory}: Pro
         } finally { setBusyId('') }
     }
 
-    const cancel = async (transaction: RecurringTransaction) => {
-        if (!window.confirm(t('transactions.recurringView.cancelConfirm', {name: transaction.name}))) return
-        setBusyId(transaction.id)
-        try {
-            await cancelRecurringTransaction(transaction.id)
-            setTemplates((current) => current.map((item) => item.id === transaction.id ? {...item, status: 'CANCELLED', nextRunDate: null} : item))
-            setNotice({kind: 'success', message: t('transactions.recurringView.cancelled')})
-        } catch (error) {
-            setNotice({kind: 'error', message: error instanceof ApiError ? error.message : t('transactions.recurringView.cancelError')})
-        } finally { setBusyId('') }
+    const cancelled = (transaction: RecurringTransaction) => {
+        setTemplates((current) => current.map((item) => item.id === transaction.id ? {...item, status: 'CANCELLED', nextRunDate: null} : item))
+        setCancelState(null)
+        setNotice({kind: 'success', message: t('transactions.recurringView.cancelled')})
     }
 
     const next = upcoming[0]
@@ -265,25 +286,27 @@ export function RecurringTransactionsView({accounts, categories, onHistory}: Pro
                     const icon: IconName = category && isCategoryIcon(category.icon) ? category.icon : transaction.type === 'INCOME' ? 'cash' : 'repeat'
                     const color = category?.color ?? (transaction.type === 'INCOME' ? '#10b981' : '#df655e')
                     const active = transaction.status === 'ACTIVE' || transaction.status === 'PAUSED'
+                    const amountClass = transaction.type === 'INCOME' ? 'recurring-income' : 'recurring-expense'
                     return <article className="recurring-row" style={{'--recurring-color': color} as CSSProperties} key={transaction.id}>
                         <div className="recurring-rule"><span><Icon name={icon}/></span><div><strong>{transaction.name}</strong><small>{category?.name ?? t('transactions.uncategorized')} · {account?.name ?? t('transactions.unknownAccount')}</small></div></div>
                         <div><strong>{repeatLabel(transaction, t)}</strong><small>{t('transactions.recurringView.repeatsAutomatically')}</small></div>
                         <div><strong>{transaction.nextRunDate ? parseDate(transaction.nextRunDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'}) : '—'}</strong><small>{transaction.status === 'PAUSED' ? t('transactions.recurringView.statuses.PAUSED') : t('transactions.recurringView.nextRun')}</small></div>
-                        <strong className={transaction.type === 'INCOME' ? 'recurring-income' : undefined}>{account ? money(transaction.type === 'INCOME' ? transaction.amount : -transaction.amount, account.currency, locale, transaction.type === 'INCOME') : transaction.amount}</strong>
+                        <strong className={amountClass}>{account ? money(transaction.type === 'INCOME' ? transaction.amount : -transaction.amount, account.currency, locale, transaction.type === 'INCOME') : transaction.amount}</strong>
                         <span className={`recurring-status ${transaction.status.toLowerCase()}`}>{t(`transactions.recurringView.statuses.${transaction.status}`)}</span>
-                        <div className="recurring-row-actions"><button type="button" aria-label={t('transactions.recurringView.editLabel', {name: transaction.name})} disabled={!active || busyId === transaction.id} onClick={(event) => openForm(transaction, event.currentTarget)}><Icon name="edit"/></button>{active && <button type="button" aria-label={t(transaction.status === 'ACTIVE' ? 'transactions.recurringView.pauseLabel' : 'transactions.recurringView.resumeLabel', {name: transaction.name})} disabled={busyId === transaction.id} onClick={() => void changeStatus(transaction, transaction.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE')}><Icon name={transaction.status === 'ACTIVE' ? 'close' : 'repeat'}/></button>}{active && <button className="danger" type="button" aria-label={t('transactions.recurringView.cancelLabel', {name: transaction.name})} disabled={busyId === transaction.id} onClick={() => void cancel(transaction)}><Icon name="trash"/></button>}</div>
+                        <div className="recurring-row-actions"><button type="button" aria-label={t('transactions.recurringView.editLabel', {name: transaction.name})} disabled={!active || busyId === transaction.id} onClick={(event) => openForm(transaction, event.currentTarget)}><Icon name="edit"/></button>{active && <button type="button" aria-label={t(transaction.status === 'ACTIVE' ? 'transactions.recurringView.pauseLabel' : 'transactions.recurringView.resumeLabel', {name: transaction.name})} disabled={busyId === transaction.id} onClick={() => void changeStatus(transaction, transaction.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE')}><Icon name={transaction.status === 'ACTIVE' ? 'close' : 'repeat'}/></button>}{active && <button className="danger" type="button" aria-label={t('transactions.recurringView.cancelLabel', {name: transaction.name})} disabled={busyId === transaction.id} onClick={(event) => {const target = event.currentTarget; setCancelState({transaction, restoreFocus: () => target.focus()})}}><Icon name="trash"/></button>}</div>
                     </article>
                 })}
                 <footer>{t('transactions.recurringView.rules', {count: visible.length})}</footer>
             </section>
 
             <aside className="recurring-side-column">
-                <section className="upcoming-card"><header><div><h2>{t('transactions.recurringView.upcoming')}</h2><p>{t('transactions.recurringView.nextDays')}</p></div></header>{upcoming.length === 0 ? <p className="recurring-side-empty">{t('transactions.recurringView.noneDue')}</p> : upcoming.slice(0, 6).map((item) => {const account=accountMap.get(item.template.accountId);const category=item.template.categoryId?categoryMap.get(item.template.categoryId):undefined;const date=parseDate(item.date);return <article key={`${item.template.id}-${item.date}`}><time><strong>{String(date.getDate()).padStart(2,'0')}</strong><small>{date.toLocaleDateString(locale,{month:'short'}).toUpperCase()}</small></time><div><strong>{item.template.name}</strong><small>{account?.name ?? t('transactions.unknownAccount')} · {category?.name ?? t('transactions.uncategorized')}</small></div><strong className={item.template.type === 'INCOME' ? 'recurring-income' : undefined}>{account ? money(item.template.type === 'INCOME' ? item.template.amount : -item.template.amount, account.currency, locale, item.template.type === 'INCOME') : item.template.amount}</strong></article>})}</section>
-                <section className="scheduled-flow-card"><header><div><h2>{t('transactions.recurringView.scheduledFlow')}</h2><p>{t('transactions.recurringView.thisMonth')}</p></div><strong>{moneyMap(metrics.net, locale,true)}</strong></header><div className="scheduled-flow-bar"><i/><i/></div><p><span><i/>{t('transactions.income')}</span><strong>{moneyMap(metrics.income, locale)}</strong></p><p><span><i/>{t('transactions.expenses')}</span><strong>{moneyMap(metrics.expenses, locale)}</strong></p></section>
+                <section className="upcoming-card"><header><div><h2>{t('transactions.recurringView.upcoming')}</h2><p>{t('transactions.recurringView.nextDays')}</p></div></header>{upcoming.length === 0 ? <p className="recurring-side-empty">{t('transactions.recurringView.noneDue')}</p> : upcoming.slice(0, 6).map((item) => {const account=accountMap.get(item.template.accountId);const category=item.template.categoryId?categoryMap.get(item.template.categoryId):undefined;const date=parseDate(item.date);const amountClass=item.template.type === 'INCOME' ? 'recurring-income' : 'recurring-expense';return <article key={`${item.template.id}-${item.date}`}><time><strong>{String(date.getDate()).padStart(2,'0')}</strong><small>{date.toLocaleDateString(locale,{month:'short'}).toUpperCase()}</small></time><div><strong>{item.template.name}</strong><small>{account?.name ?? t('transactions.unknownAccount')} · {category?.name ?? t('transactions.uncategorized')}</small></div><strong className={amountClass}>{account ? money(item.template.type === 'INCOME' ? item.template.amount : -item.template.amount, account.currency, locale, item.template.type === 'INCOME') : item.template.amount}</strong></article>})}</section>
+                <section className="scheduled-flow-card"><header><div><h2>{t('transactions.recurringView.scheduledFlow')}</h2><p>{t('transactions.recurringView.thisMonth')}</p></div><strong>{moneyMap(metrics.net, locale,true)}</strong></header><div className="scheduled-flow-bar" aria-hidden="true">{scheduledFlow.incomeShare > 0 && <i className="income" style={{width: `${scheduledFlow.incomeShare}%`}}/>}{scheduledFlow.expenseShare > 0 && <i className="expense" style={{width: `${scheduledFlow.expenseShare}%`}}/>}</div><p><span><i/>{t('transactions.income')}</span><strong>{moneyMap(metrics.income, locale)}</strong></p><p><span><i/>{t('transactions.expenses')}</span><strong>{moneyMap(metrics.expenses, locale)}</strong></p></section>
                 <section className="recurring-info-card"><Icon name="repeat"/><div><strong>{t('transactions.recurringView.howTitle')}</strong><p>{t('transactions.recurringView.howDescription')}</p></div></section>
             </aside>
         </div>
 
-        {formState && <RecurringTransactionFormModal accounts={accounts} categories={categories} transaction={formState.transaction} onClose={() => setFormState(null)} onSaved={saved} restoreFocus={formState.restoreFocus}/>}
+        {formState && <RecurringTransactionFormModal accounts={accounts} categories={categories} transaction={formState.transaction} onClose={() => setFormState(null)} onSaved={saved} restoreFocus={formState.restoreFocus}/>} 
+        {cancelState && <CancelRecurringTransactionDialog transaction={cancelState.transaction} onCancel={() => setCancelState(null)} onCancelled={cancelled} restoreFocus={cancelState.restoreFocus}/>} 
     </>
 }

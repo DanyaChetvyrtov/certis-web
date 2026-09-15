@@ -1,4 +1,5 @@
 import {Select, SelectOption} from '../../../components/Select'
+import {DateTimeField} from '../../../components/DateTimeField'
 import {useMemo, useRef, useState} from 'react'
 import type {FormEvent} from 'react'
 import {useTranslation} from 'react-i18next'
@@ -278,12 +279,23 @@ export function RecurringTransactionFormModal({
                     <div className="recurring-fields-grid">
                         <div className="recurring-field">
                             <label htmlFor="recurring-start">{t('transactions.recurringForm.first')}</label>
-                            <input id="recurring-start" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)}/>
+                            <DateTimeField
+                                id="recurring-start"
+                                value={startDate}
+                                invalid={Boolean(errors.startDate)}
+                                onChange={setStartDate}
+                            />
                             {errors.startDate && <small>{errors.startDate}</small>}
                         </div>
                         <div className="recurring-field">
                             <label htmlFor="recurring-end">{t('transactions.recurringForm.end')} <span>{t('transactions.recurringForm.optional')}</span></label>
-                            <input id="recurring-end" type="date" min={startDate} value={endDate} onChange={(event) => setEndDate(event.target.value)}/>
+                            <DateTimeField
+                                id="recurring-end"
+                                value={endDate}
+                                min={startDate}
+                                invalid={Boolean(errors.endDate)}
+                                onChange={setEndDate}
+                            />
                             {errors.endDate && <small>{errors.endDate}</small>}
                         </div>
                     </div>

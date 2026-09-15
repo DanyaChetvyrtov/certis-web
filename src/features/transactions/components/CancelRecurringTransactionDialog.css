@@ -1,0 +1,149 @@
+.recurring-cancel-layer {
+    position: fixed;
+    z-index: 1000;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    overflow-y: auto;
+    padding: 24px;
+    background: rgb(4 17 35 / 68%);
+    backdrop-filter: blur(7px);
+}
+
+.recurring-cancel-dialog {
+    width: min(100%, 460px);
+    border: 1px solid #e4ded3;
+    border-radius: 25px;
+    padding: 32px;
+    color: #0a1c34;
+    background: #fffefa;
+    box-shadow: 0 28px 90px rgb(5 20 40 / 32%);
+    text-align: center;
+}
+
+.recurring-cancel-icon {
+    display: grid;
+    width: 52px;
+    height: 52px;
+    place-items: center;
+    margin: 0 auto;
+    border-radius: 16px;
+    color: #d95e58;
+    background: #fbe9e7;
+}
+
+.recurring-cancel-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.recurring-cancel-dialog h2 {
+    margin: 19px 0 0;
+    color: #0a1c34;
+    font-size: 22px;
+    letter-spacing: -.02em;
+}
+
+.recurring-cancel-dialog > p:not(.recurring-cancel-error) {
+    margin: 11px 0 0;
+    color: #7d8aa0;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.recurring-cancel-error {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 9px;
+    margin: 18px 0 0;
+    color: #a83f3f;
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.5;
+}
+
+.recurring-cancel-error svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 auto;
+}
+
+.recurring-cancel-actions {
+    display: grid;
+    grid-template-columns: 1fr 1.25fr;
+    gap: 11px;
+    margin-top: 26px;
+}
+
+.recurring-cancel-actions button {
+    min-height: 46px;
+    border: 1px solid #ddd6cb;
+    border-radius: 13px;
+    padding: 0 15px;
+    color: #536278;
+    background: #fff;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.recurring-cancel-actions button.danger {
+    border-color: #d95e58;
+    color: #fff;
+    background: #d95e58;
+}
+
+.recurring-cancel-actions button:disabled {
+    cursor: wait;
+    opacity: .62;
+}
+
+.recurring-cancel-actions button:focus-visible {
+    outline: 2px solid #10b981;
+    outline-offset: 2px;
+}
+
+html[data-theme='dark'] .recurring-cancel-dialog {
+    border-color: #304a65;
+    color: #dce7f2;
+    background: #0d233b;
+}
+
+html[data-theme='dark'] .recurring-cancel-dialog h2 {
+    color: #edf4fb;
+}
+
+html[data-theme='dark'] .recurring-cancel-dialog > p:not(.recurring-cancel-error) {
+    color: #94a7bb;
+}
+
+html[data-theme='dark'] .recurring-cancel-actions button {
+    border-color: #36516d;
+    color: #cbd8e4;
+    background: #102842;
+}
+
+html[data-theme='dark'] .recurring-cancel-actions button.danger {
+    border-color: #d95e58;
+    color: #fff;
+    background: #d95e58;
+}
+
+html[data-theme='dark'] .recurring-cancel-icon {
+    color: #f08b84;
+    background: #412a31;
+}
+
+@media (max-width: 520px) {
+    .recurring-cancel-layer {
+        align-items: end;
+        padding: 0;
+    }
+
+    .recurring-cancel-dialog {
+        width: 100%;
+        border-radius: 24px 24px 0 0;
+        padding: 28px 20px calc(24px + env(safe-area-inset-bottom));
+    }
+}
