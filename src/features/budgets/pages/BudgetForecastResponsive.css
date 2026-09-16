@@ -1,0 +1,228 @@
+/* Forecast lives beside the application sidebar. React to the actual workspace
+   width rather than the viewport: desktop-sized windows can still have a narrow
+   content area. The operation list also responds to its own column width. */
+.budgets-main.forecast-page {
+    container: forecast-workspace / inline-size;
+}
+
+.forecast-layout > *,
+.forecast-insights > section,
+.forecast-summary > article,
+.forecast-operations-card,
+.forecast-operation-list article > * {
+    min-width: 0;
+}
+
+.forecast-primary {
+    container: forecast-primary / inline-size;
+}
+
+.forecast-operation-name strong,
+.forecast-source span {
+    min-width: 0;
+}
+
+.forecast-amount input {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.forecast-summary strong {
+    overflow-wrap: anywhere;
+}
+
+.forecast-filter-tabs {
+    flex-wrap: wrap;
+}
+
+@container forecast-workspace (max-width: 1180px) {
+    .forecast-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .forecast-insights {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        align-items: start;
+    }
+}
+
+@container forecast-workspace (max-width: 1080px) {
+    .forecast-header {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 18px;
+    }
+
+    .forecast-steps {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        min-width: 0;
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 4px;
+    }
+}
+
+@container forecast-workspace (max-width: 850px) {
+    .forecast-insights {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@container forecast-primary (max-width: 880px) {
+    .forecast-table-head {
+        display: none;
+    }
+
+    .forecast-operation-list article {
+        grid-template-columns: minmax(0, 1fr) minmax(105px, auto) 42px;
+        grid-template-rows: auto auto;
+        column-gap: 12px;
+        row-gap: 8px;
+    }
+
+    .forecast-operation-name {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .forecast-source {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .forecast-operation-list time {
+        grid-column: 2;
+        grid-row: 1;
+        white-space: nowrap;
+        text-align: right;
+    }
+
+    .forecast-amount {
+        grid-column: 2;
+        grid-row: 2;
+        justify-content: flex-end;
+    }
+
+    .forecast-amount input {
+        width: 98px;
+    }
+
+    .forecast-toggle {
+        grid-column: 3;
+        grid-row: 1;
+        justify-self: end;
+    }
+
+    .forecast-more {
+        grid-column: 3;
+        grid-row: 2;
+        justify-self: end;
+    }
+}
+
+@container forecast-primary (max-width: 750px) {
+    .forecast-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .forecast-summary article:last-child {
+        grid-column: 1 / -1;
+    }
+}
+
+@container forecast-workspace (max-width: 580px) {
+    .forecast-header {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .forecast-steps {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    .forecast-month {
+        grid-column: 1;
+        width: fit-content;
+        max-width: 100%;
+    }
+
+    .forecast-insights {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@container forecast-primary (max-width: 580px) {
+    .forecast-summary {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .forecast-summary article:last-child {
+        grid-column: auto;
+    }
+
+    .forecast-operations-card > header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .forecast-operation-list article {
+        grid-template-columns: minmax(0, 1fr) 42px;
+        grid-template-rows: repeat(4, auto);
+        column-gap: 10px;
+    }
+
+    .forecast-operation-name {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .forecast-source {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .forecast-operation-list time {
+        grid-column: 1;
+        grid-row: 3;
+        text-align: left;
+    }
+
+    .forecast-amount {
+        grid-column: 1;
+        grid-row: 4;
+        justify-content: flex-start;
+    }
+
+    .forecast-toggle {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .forecast-more {
+        grid-column: 2;
+        grid-row: 4;
+    }
+
+    .forecast-basis-card {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .forecast-chart-placeholder {
+        width: 100%;
+    }
+
+    .forecast-footer {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .forecast-footer > div {
+        display: none;
+    }
+
+    .forecast-footer small {
+        grid-column: 1;
+    }
+}

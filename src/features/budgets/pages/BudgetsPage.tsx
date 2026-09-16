@@ -1,144 +1,231 @@
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
+import {useCallback, useEffect, useMemo, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
 import {LoadingIndicator} from '../../../components/LoadingIndicator'
 import type {IconName} from '../../../components/Icons'
 import {WorkspaceSidebar} from '../../../layouts/WorkspaceSidebar'
 import {useSession} from '../../auth/session/SessionContext'
-import {getAllCategoryCards, isCategoryIcon} from '../../categories/api/categoriesApi'
-import type {Category} from '../../categories/api/categoriesApi'
-import type {Budget, BudgetAllocation, BudgetCategoryType, BudgetOptimization} from '../api/budgetsApi'
-import {applyOptimization, dismissOptimization, generateOptimization, getBudget, getLatestOptimization} from '../api/budgetsApi'
-import {BudgetFormModal} from '../components/BudgetFormModal'
+import type {CategoryOption} from '../../categories/api/categoriesApi'
 import {useLanguage} from '../../../i18n/useLanguage'
+import type {Currency} from '../../../shared/currency'
+import {confirmBudgetForecast, createBudgetPlan, getBudgetForecastPreview, getCurrentBudgetPlan} from '../api/budgetPlanningApi'
+import {getBudgetPlan} from '../api/budgetOptimizationApi'
+import type {BudgetConstraintSet, BudgetForecastItem, BudgetForecastManualAdjustmentRequest, BudgetForecastOperationType, BudgetForecastPreview, BudgetPlan} from '../api/budgetPlanningApi'
+import {BudgetConstraintsStep} from '../components/BudgetConstraintsStep'
+import {BudgetOptimizeStep} from '../components/BudgetOptimizeStep'
+import {BudgetPlanActions} from '../components/BudgetPlanActions'
+import {BudgetReviewStep} from '../components/BudgetReviewStep'
+import {ManualAdjustmentModal} from '../components/ManualAdjustmentModal'
 import './BudgetsPage.css'
 
-type Filter = 'ALL' | BudgetCategoryType
-const todayMonth = () => new Date().toISOString().slice(0, 7)
-const formatMoney = (value: number, currency: string, locale: string) =>
-    new Intl.NumberFormat(locale, {style: 'currency', currency, currencyDisplay: 'narrowSymbol', maximumFractionDigits: 0}).format(value)
-const formatMonth = (month: string, locale: string) =>
-    new Intl.DateTimeFormat(locale, {month: 'long', year: 'numeric'}).format(new Date(`${month}-01T00:00:00`))
-const formatMonthName = (month: string, locale: string) =>
-    new Intl.DateTimeFormat(locale, {month: 'long'}).format(new Date(`${month}-01T00:00:00`))
-const iconName = (icon: string): IconName => isCategoryIcon(icon) ? icon : 'categories'
+type OperationFilter = 'ALL' | BudgetForecastOperationType
+type DraftItem = BudgetForecastItem & {pendingManual?: boolean}
+type VisibleStep = 'FORECAST' | 'CONSTRAINTS' | 'OPTIMIZE' | 'REVIEW'
 
-function AllocationRow({item, currency}: {item: BudgetAllocation; currency: string}) {
-    const {t} = useTranslation()
-    const {locale} = useLanguage()
-    const remaining = item.limit - item.spent
-    const progress = item.limit ? Math.min(item.spent / item.limit * 100, 100) : item.spent ? 100 : 0
-    const status = item.status === 'OVERSPENT' ? 'over' : item.status === 'NEAR_LIMIT' ? 'near' : 'safe'
-    return <article className={`budget-allocation-row ${status}`}>
-        <div className="budget-category-cell"><span className="budget-category-icon" style={{color: item.categoryColor, background: `${item.categoryColor}18`}}><Icon name={iconName(item.categoryIcon)}/></span><div className="budget-category-copy"><strong>{item.categoryName}</strong><small>{item.status === 'OVERSPENT' ? t('budgets.overBudget') : item.status === 'NEAR_LIMIT' ? t('budgets.nearLimit') : t('budgets.onTrack')}</small><span><i style={{width: `${progress}%`, background: status === 'over' ? '#d8665b' : item.categoryColor}}/></span></div></div>
-        <span className={`budget-type ${item.type.toLowerCase()}`}>{item.type === 'FIXED' ? t('budgets.fixed') : t('budgets.variable')}</span>
-        <strong>{formatMoney(item.spent, currency, locale)}</strong><span>{formatMoney(item.limit, currency, locale)}</span>
-        <strong className="budget-remaining">{remaining < 0 ? '−' : ''}{formatMoney(Math.abs(remaining), currency, locale)}</strong><span/>
-    </article>
+const nextMonth = () => {
+    const date = new Date()
+    date.setMonth(date.getMonth() + 1, 1)
+    return date.toISOString().slice(0, 7)
 }
+const formatMoney = (value: number, currency: string, locale: string) => new Intl.NumberFormat(locale, {style: 'currency', currency, currencyDisplay: 'narrowSymbol', maximumFractionDigits: 0}).format(value)
+const formatMonth = (month: string, locale: string) => new Intl.DateTimeFormat(locale, {month: 'long', year: 'numeric'}).format(new Date(`${month}-01T00:00:00`))
+const formatDate = (date: string | null, locale: string, fallback: string) => date ? new Intl.DateTimeFormat(locale, {month: 'short', day: 'numeric'}).format(new Date(`${date}T00:00:00`)) : fallback
+const categoryIcon = (icon?: string | null): IconName => {
+    const supported: IconName[] = ['briefcase', 'cash', 'card', 'home', 'shopping-cart', 'transport', 'utensils', 'gift', 'heart', 'repeat', 'wallet', 'categories']
+    return icon && supported.includes(icon as IconName) ? icon as IconName : 'wallet'
+}
+const stepForPlan = (plan: BudgetPlan): VisibleStep => plan.forecast.status === 'MISSING' ? 'FORECAST' : plan.currentStep === 'REVIEW' || plan.currentStep === 'APPLIED' ? 'REVIEW' : plan.currentStep === 'OPTIMIZE' ? 'OPTIMIZE' : 'CONSTRAINTS'
 
 export function BudgetsPage() {
     const {t} = useTranslation()
     const {locale} = useLanguage()
     const {profile} = useSession()
-    const preferredCurrency = profile?.preferredCurrency ?? 'RUB'
-    const [month, setMonth] = useState(todayMonth)
-    const [budget, setBudget] = useState<Budget | null>(null)
-    const [categories, setCategories] = useState<Category[]>([])
-    const [optimization, setOptimization] = useState<BudgetOptimization | null>(null)
+    const currency = (profile?.preferredCurrency ?? 'RUB') as Currency
+    const [month, setMonth] = useState(nextMonth)
+    const [plan, setPlan] = useState<BudgetPlan | null>(null)
+    const [preview, setPreview] = useState<BudgetForecastPreview | null>(null)
+    const [items, setItems] = useState<DraftItem[]>([])
+    const [filter, setFilter] = useState<OperationFilter>('ALL')
     const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
-    const [action, setAction] = useState<'generate' | 'apply' | 'dismiss' | null>(null)
+    const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
-    const [filter, setFilter] = useState<Filter>('ALL')
-    const [isModalOpen, setModalOpen] = useState(false)
-    const editButtonRef = useRef<HTMLButtonElement>(null)
+    const [manualOpen, setManualOpen] = useState(false)
+    const [visibleStep, setVisibleStep] = useState<VisibleStep>('FORECAST')
+    const [reviewOptimizationId, setReviewOptimizationId] = useState<string | null>(null)
+
+    const applyLoadedPlan = useCallback((current: BudgetPlan, loadedPreview: BudgetForecastPreview) => {
+        setPlan(current)
+        setPreview(loadedPreview)
+        setItems(loadedPreview.items)
+        setReviewOptimizationId(current.currentOptimization?.id ?? null)
+        setVisibleStep(stepForPlan(current))
+        setError('')
+        setStatus('ready')
+    }, [])
+
+    const fetchCurrentPlan = useCallback(async (signal?: AbortSignal) => {
+        let current = await getCurrentBudgetPlan(month, currency, signal)
+        if (signal?.aborted) return null
+        if (!current) current = await createBudgetPlan(month, currency, crypto.randomUUID())
+        if (signal?.aborted) return null
+        const loadedPreview = await getBudgetForecastPreview(current.id, signal)
+        if (signal?.aborted) return null
+        return {current, loadedPreview}
+    }, [currency, month])
 
     const load = useCallback(async (signal?: AbortSignal) => {
         try {
-            const [loadedBudget, loadedCategories] = await Promise.all([
-                getBudget(month, signal),
-                getAllCategoryCards({
-                    month,
-                    currency: preferredCurrency,
-                    sort: 'NAME',
-                }, signal),
-            ])
-            setBudget(loadedBudget)
-            setCategories(loadedCategories)
-            setOptimization(loadedBudget ? await getLatestOptimization(month, signal) : null)
-            setStatus('ready')
+            const loaded = await fetchCurrentPlan(signal)
+            if (loaded) applyLoadedPlan(loaded.current, loaded.loadedPreview)
         } catch (caught) {
-            if (caught instanceof Error && caught.name === 'AbortError') return
-            setError(caught instanceof Error ? caught.message : t('budgets.loadError'))
+            if (signal?.aborted || (caught instanceof Error && caught.name === 'AbortError')) return
+            setError(caught instanceof Error ? caught.message : t('budgets.planning.loadError'))
             setStatus('error')
         }
-    }, [month, preferredCurrency, t])
-
+    }, [applyLoadedPlan, fetchCurrentPlan, t])
     useEffect(() => {
         const controller = new AbortController()
-        queueMicrotask(() => void load(controller.signal))
+        void fetchCurrentPlan(controller.signal).then((loaded) => {
+            if (loaded) applyLoadedPlan(loaded.current, loaded.loadedPreview)
+        }).catch((caught: unknown) => {
+            if (controller.signal.aborted || (caught instanceof Error && caught.name === 'AbortError')) return
+            setError(caught instanceof Error ? caught.message : t('budgets.planning.loadError'))
+            setStatus('error')
+        })
         return () => controller.abort()
-    }, [load])
+    }, [applyLoadedPlan, fetchCurrentPlan, t])
 
-    const totals = useMemo(() => {
-        const allocations = budget?.allocations ?? []
-        return {
-            allocated: allocations.reduce((sum, item) => sum + item.limit, 0),
-            spent: allocations.reduce((sum, item) => sum + item.spent, 0),
+    const baseItems = useMemo(() => new Map(preview?.items.map((item) => [item.sourceKey, item]) ?? []), [preview])
+    const visibleItems = items.filter((item) => filter === 'ALL' || item.operationType === filter)
+    const incomeCount = items.filter((item) => item.operationType === 'INCOME').length
+    const expenseCount = items.filter((item) => item.operationType === 'EXPENSE').length
+    const recurringCount = items.filter((item) => item.sourceType === 'RECURRING').length
+    const recurringExpenseCount = items.filter((item) => item.included && item.sourceType === 'RECURRING' && item.operationType === 'EXPENSE').length
+    const manualCount = items.filter((item) => item.sourceType === 'MANUAL').length
+    const liveSummary = useMemo(() => {
+        const included = items.filter((item) => item.included)
+        const income = included.filter((item) => item.operationType === 'INCOME').reduce((sum, item) => sum + item.effectiveAmount, 0)
+        const expenses = included.filter((item) => item.operationType === 'EXPENSE').reduce((sum, item) => sum + item.effectiveAmount, 0)
+        const recurringExpenses = included.filter((item) => item.operationType === 'EXPENSE' && item.sourceType === 'RECURRING').reduce((sum, item) => sum + item.effectiveAmount, 0)
+        return {forecastIncome: income, recurringExpenses, flexibleEstimate: Math.max(0, expenses - recurringExpenses)}
+    }, [items])
+    const updateItem = (sourceKey: string, update: Partial<Pick<DraftItem, 'included' | 'effectiveAmount'>>) => setItems((current) => current.map((item) => item.sourceKey === sourceKey ? {...item, ...update} : item))
+    const addManual = (adjustment: BudgetForecastManualAdjustmentRequest, category: CategoryOption | null) => {
+        const item: DraftItem = {sourceKey: `MANUAL:${adjustment.clientId}`, sourceType: 'MANUAL', operationType: adjustment.operationType, title: adjustment.title, category, expectedDate: adjustment.expectedDate, originalAmount: adjustment.amount, effectiveAmount: adjustment.amount, included: true, defaultConstraintRole: adjustment.operationType === 'EXPENSE' ? 'FLEXIBLE' : null, confidence: 'HIGH', recurring: null, history: null, pendingManual: true}
+        setItems((current) => [...current, item])
+        setManualOpen(false)
+    }
+    const saveForecast = async (advance: boolean) => {
+        if (!plan || !preview || saving) return false
+        setSaving(true)
+        setError('')
+        try {
+            const overrides = items.filter((item) => !item.pendingManual).filter((item) => {
+                const base = baseItems.get(item.sourceKey)
+                return base && (base.included !== item.included || base.effectiveAmount !== item.effectiveAmount)
+            }).map((item) => ({sourceKey: item.sourceKey, included: item.included, amount: item.effectiveAmount}))
+            const manualAdjustments = items.filter((item) => item.pendingManual).map((item) => ({clientId: item.sourceKey.replace('MANUAL:', ''), operationType: item.operationType, title: item.title, categoryId: item.category?.id ?? null, expectedDate: item.expectedDate, amount: item.effectiveAmount}))
+            const saved = await confirmBudgetForecast(plan.id, {expectedVersion: plan.version, sourceFingerprint: preview.sourceFingerprint, overrides, manualAdjustments})
+            setPlan((current) => current ? {...current, version: saved.planVersion, currentStep: 'CONSTRAINTS', forecast: {...current.forecast, revision: saved.revision, status: saved.status, summary: saved.summary}, currentOptimization: null} : current)
+            setReviewOptimizationId(null)
+            const refreshed = await getBudgetForecastPreview(plan.id)
+            setPreview(refreshed)
+            setItems(refreshed.items)
+            if (advance) setVisibleStep('CONSTRAINTS')
+            return true
+        } catch (caught) {
+            setError(caught instanceof Error ? caught.message : t('budgets.planning.saveError'))
+            return false
+        } finally {
+            setSaving(false)
         }
-    }, [budget])
-    const visible = budget?.allocations.filter((item) => filter === 'ALL' || item.type === filter) ?? []
-    const risks = budget?.allocations.filter(({status: allocationStatus}) => allocationStatus !== 'ON_TRACK') ?? []
-
-    const runOptimization = async () => {
-        setAction('generate'); setError('')
-        try { setOptimization(await generateOptimization(month)) }
-        catch (caught) { setError(caught instanceof Error ? caught.message : t('budgets.generateError')) }
-        finally { setAction(null) }
     }
-    const acceptOptimization = async () => {
-        if (!optimization) return
-        setAction('apply'); setError('')
-        try { setBudget(await applyOptimization(month, optimization.id)); setOptimization(null) }
-        catch (caught) { setError(caught instanceof Error ? caught.message : t('budgets.applyError')) }
-        finally { setAction(null) }
+    const sourceLabel = (item: DraftItem) => {
+        if (item.sourceType === 'RECURRING') return t('budgets.planning.sourceRecurring', {frequency: item.recurring?.frequency?.toLowerCase() ?? ''})
+        if (item.sourceType === 'HISTORICAL_CATEGORY') return t('budgets.planning.sourceHistory', {count: item.history?.monthsUsed ?? preview?.historyWindow.monthsUsed ?? 0})
+        if (item.sourceType === 'CURRENT_LIMIT') return t('budgets.planning.sourceCurrentLimit')
+        if (item.sourceType === 'ACTUAL') return t('budgets.planning.sourceActual')
+        return t('budgets.planning.sourceManual')
     }
-    const rejectOptimization = async () => {
-        if (!optimization) return
-        setAction('dismiss'); setError('')
-        try { await dismissOptimization(month, optimization.id); setOptimization(null) }
-        catch (caught) { setError(caught instanceof Error ? caught.message : t('budgets.dismissError')) }
-        finally { setAction(null) }
+    const onConstraintsSaved = (constraints: BudgetConstraintSet) => setPlan((current) => current ? {...current, version: constraints.planVersion, currentStep: constraints.status === 'CONFIRMED' && constraints.feasibility.status === 'FEASIBLE' ? 'OPTIMIZE' : 'CONSTRAINTS', constraints: {revision: constraints.revision, status: constraints.status, feasibility: constraints.feasibility}, currentOptimization: null} : current)
+    const editFromReview = async (step: 'FORECAST' | 'CONSTRAINTS') => {
+        if (!plan) return
+        try {
+            const fresh = await getBudgetPlan(plan.id)
+            setPlan(fresh)
+            if (step === 'FORECAST') {
+                const nextPreview = await getBudgetForecastPreview(plan.id)
+                setPreview(nextPreview)
+                setItems(nextPreview.items)
+            }
+            setVisibleStep(step)
+        } catch (caught) {
+            setError(caught instanceof Error ? caught.message : t('budgets.planning.loadError'))
+        }
     }
-
-    return <div className="budgets-workspace"><WorkspaceSidebar activePage="budgets"/><main className="budgets-main">
-        <header className="budgets-header"><div><h1>{t('budgets.title')}</h1><p>{t('budgets.subtitle')}</p></div><div className="budgets-header-actions"><label className="budget-month"><Icon name="calendar"/><span>{formatMonth(month, locale)}</span><input aria-label={t('budgets.monthLabel')} type="month" value={month} onChange={(event) => {setStatus('loading'); setError(''); setMonth(event.target.value)}}/></label><button ref={editButtonRef} type="button" className="edit-budget" onClick={() => setModalOpen(true)} disabled={status !== 'ready'}><Icon name={budget ? 'edit' : 'plus'}/>{budget ? t('budgets.edit') : t('budgets.create')}</button></div></header>
-        {status === 'loading' && (
-            <div className="budget-state budget-loading-state">
-                <LoadingIndicator
-                    label={t('budgets.loading')}
-                    layout="panel"
-                    showLabel
-                    size="medium"
-                />
-            </div>
-        )}
+    const activatePlan = async (created: BudgetPlan) => {
+        setStatus('loading')
+        setError('')
+        try {
+            const loadedPreview = await getBudgetForecastPreview(created.id)
+            applyLoadedPlan(created, loadedPreview)
+        } catch (caught) {
+            setError(caught instanceof Error ? caught.message : t('budgets.planning.loadError'))
+            setStatus('error')
+            throw caught
+        }
+    }
+    const markPlanCancelled = (cancelled: BudgetPlan) => {
+        setPlan(cancelled)
+        setReviewOptimizationId(null)
+        setManualOpen(false)
+        setError('')
+        setStatus('ready')
+    }
+    const activeStepIndex = visibleStep === 'FORECAST' ? 0 : visibleStep === 'CONSTRAINTS' ? 1 : visibleStep === 'OPTIMIZE' ? 2 : 3
+    return <div className="budgets-workspace"><WorkspaceSidebar activePage="budgets"/><main className="budgets-main forecast-page">
+        <header className="forecast-header">
+            <div className="forecast-title"><h1>{t('budgets.title')}</h1><p>{visibleStep === 'FORECAST' ? t('budgets.planning.subtitle') : visibleStep === 'CONSTRAINTS' ? t('budgets.constraints.subtitle') : visibleStep === 'REVIEW' ? locale.startsWith('ru') ? 'Проверьте расчёт перед применением бюджета.' : 'Review your allocation before applying your budget.' : locale.startsWith('ru') ? 'Подготовьте цель накоплений и изучите варианты распределения.' : 'Prepare your savings target and explore allocation options.'}</p></div>
+            <nav className="forecast-steps" aria-label={t('budgets.planning.stepsLabel')}>{['Forecast', 'Constraints', 'Optimize', 'Review'].map((label, index) => <div key={label} className={index === activeStepIndex ? 'active' : index < activeStepIndex ? 'completed' : ''}><span>{index < activeStepIndex ? <Icon name="check-circle"/> : index + 1}</span><b>{t(`budgets.planning.steps.${label.toLowerCase()}`)}</b>{index < 3 && <i/>}</div>)}</nav>
+            <label className="forecast-month"><Icon name="calendar"/><span>{formatMonth(month, locale)}</span><Icon name="chevron-down"/><input aria-label={t('budgets.monthLabel')} type="month" value={month} onChange={(event) => {setStatus('loading'); setError(''); setMonth(event.target.value)}}/></label>
+        </header>
+        {status === 'ready' && plan && <BudgetPlanActions plan={plan} month={month} currency={currency} locale={locale} onPlanCreated={activatePlan} onPlanCancelled={markPlanCancelled}/>}
+        {status === 'loading' && <div className="budget-state"><LoadingIndicator label={t('budgets.planning.loading')} layout="panel" showLabel size="medium"/></div>}
         {status === 'error' && <div className="budget-state error" role="alert">{error}<button type="button" onClick={() => {setStatus('loading'); setError(''); void load()}}>{t('budgets.tryAgain')}</button></div>}
-        {status === 'ready' && !budget && <div className="budget-state budget-empty"><Icon name="gauge"/><h2>{t('budgets.noBudget', {month: formatMonth(month, locale)})}</h2><p>{t('budgets.emptyDescription')}</p><button type="button" onClick={() => setModalOpen(true)}>{t('budgets.create')}</button></div>}
-        {budget && <>
-            {error && <div className="budget-action-error" role="alert">{error}</div>}
-            <section className="budget-summary" aria-label={t('budgets.summaryLabel')}>
-                <article><span className="green"><Icon name="cash"/></span><p>{t('budgets.monthlyIncome')}</p><strong>{formatMoney(budget.monthlyIncome, budget.currency, locale)}</strong><small>{t('budgets.availableIncome')}</small></article>
-                <article><span className="navy"><Icon name="gauge"/></span><p>{t('budgets.allocated')}</p><strong>{formatMoney(totals.allocated, budget.currency, locale)}</strong><small>{t('budgets.percentIncome', {value: budget.monthlyIncome ? (totals.allocated / budget.monthlyIncome * 100).toFixed(1) : 0})}</small></article>
-                <article><span className="red"><Icon name="wallet"/></span><p>{t('budgets.spent')}</p><strong>{formatMoney(totals.spent, budget.currency, locale)}</strong><div className="summary-progress"><i style={{width: `${totals.allocated ? Math.min(totals.spent / totals.allocated * 100, 100) : 0}%`}}/></div><small>{t('budgets.percentAllocation', {value: totals.allocated ? Math.round(totals.spent / totals.allocated * 100) : 0})}</small></article>
-                <article><span className="gold"><Icon name="piggy-bank"/></span><p>{t('budgets.plannedSavings')}</p><strong>{formatMoney(budget.savingsTarget, budget.currency, locale)}</strong><small>{t('budgets.savingsRate', {value: budget.monthlyIncome ? (budget.savingsTarget / budget.monthlyIncome * 100).toFixed(1) : 0})}</small></article>
-            </section>
-            <div className="budget-content"><section className="budget-allocation-card"><header><div><h2>{t('budgets.allocation')}</h2><p>{t('budgets.limitsCompared', {month: formatMonthName(month, locale)})}</p></div><button type="button" onClick={() => setModalOpen(true)}><Icon name="plus"/>{t('budgets.addAllocation')}</button></header><div className="budget-filters" role="group" aria-label={t('budgets.allocationType')}>{(['ALL','FIXED','VARIABLE'] as const).map((value) => <button key={value} className={filter === value ? 'active' : ''} type="button" onClick={() => setFilter(value)}>{value === 'ALL' ? t('budgets.all') : value === 'FIXED' ? t('budgets.fixed') : t('budgets.variable')}</button>)}<span>{t('budgets.categoryCount', {count: visible.length})}</span></div><div className="budget-table-head"><span>{t('budgets.category')}</span><span>{t('budgets.type')}</span><span>{t('budgets.spent')}</span><span>{t('budgets.limit')}</span><span>{t('budgets.remaining')}</span><span/></div><div className="budget-allocation-list">{visible.map((item) => <AllocationRow key={item.id} item={item} currency={budget.currency}/>)}{visible.length === 0 && <p className="budget-list-empty">{t('budgets.noAllocations')}</p>}</div></section>
-                <aside className="budget-insights"><section className="savings-card"><span><Icon name="piggy-bank"/></span><p>{t('budgets.savingsGoal')}</p><strong>{formatMoney(budget.savingsTarget, budget.currency, locale)}</strong><small>{t('budgets.plannedFor', {month: formatMonth(month, locale)})}</small><div><i style={{width: `${budget.monthlyIncome ? Math.min(budget.savingsTarget / budget.monthlyIncome * 100, 100) : 0}%`}}/></div><b>{t('budgets.percentOfIncome', {value: budget.monthlyIncome ? (budget.savingsTarget / budget.monthlyIncome * 100).toFixed(1) : 0})}</b></section>
-                    <section className="optimization-card"><span><Icon name="trend-up"/></span><h2>{t('budgets.optimization')}</h2>{optimization?.status === 'PROPOSED' ? <><p>{t('budgets.optimizationProposed', {amount: formatMoney(optimization.additionalSavings, budget.currency, locale), count: optimization.allocations.filter(({change}) => change !== 0).length})}</p><div className="optimization-actions"><button type="button" onClick={() => void acceptOptimization()} disabled={action !== null}>{action === 'apply' ? t('budgets.applying') : t('budgets.apply')}</button><button type="button" onClick={() => void rejectOptimization()} disabled={action !== null}>{t('budgets.dismiss')}</button></div></> : <><p>{t('budgets.optimizationDescription')}</p><button type="button" onClick={() => void runOptimization()} disabled={action !== null}>{action === 'generate' ? t('budgets.generating') : t('budgets.generate')}<Icon name="arrow-right"/></button></>}</section>
-                    <section className="risk-card"><header><span><Icon name="alert"/></span><div><h3>{t('budgets.risks')}</h3><p>{risks.length ? t('budgets.risksCount', {count: risks.length}) : t('budgets.everythingOnTrack')}</p></div></header>{risks.slice(0, 3).map((item) => <div key={item.id}><strong>{item.categoryName}</strong><span>{t('budgets.percentUsed', {value: item.limit ? Math.round(item.spent / item.limit * 100) : 100})}</span></div>)}</section>
-                </aside>
-            </div>
+        {status === 'ready' && error && <div className="budget-action-error" role="alert">{error}</div>}
+        {status === 'ready' && plan?.status === 'CANCELLED' && <div className="budget-state budget-terminal-state"><Icon name="alert"/><h2>{t('budgets.planning.lifecycle.cancelledTitle')}</h2><p>{t('budgets.planning.lifecycle.cancelledDescription')}</p></div>}
+        {status === 'ready' && preview && plan?.status !== 'CANCELLED' && plan?.status !== 'SUPERSEDED' && plan && visibleStep === 'FORECAST' && <>
+            <div className="forecast-layout"><div className="forecast-primary">
+                <section className="forecast-summary">
+                    <article><span className="green"><Icon name="cash"/></span><p>{t('budgets.planning.forecastIncome')}</p><strong>{formatMoney(liveSummary.forecastIncome, currency, locale)}</strong><small>{t('budgets.planning.recurringSalary')}</small></article>
+                    <article><span className="blue"><Icon name="card"/></span><p>{t('budgets.planning.recurringExpenses')}</p><strong>{formatMoney(liveSummary.recurringExpenses, currency, locale)}</strong><small>{t('budgets.planning.requiredPayments', {count: recurringExpenseCount})}</small></article>
+                    <article><span className="gold"><Icon name="trend-up"/></span><p>{t('budgets.planning.flexibleEstimate')}</p><strong>{formatMoney(liveSummary.flexibleEstimate, currency, locale)}</strong><small>{t('budgets.planning.historyBasis', {count: preview.historyWindow.monthsUsed})}</small></article>
+                </section>
+                <section className="forecast-operations-card"><header><div><h2>{t('budgets.planning.operations')}</h2><p>{t('budgets.planning.operationsDescription')}</p></div><button type="button" onClick={() => setManualOpen(true)}><Icon name="plus"/>{t('budgets.planning.addManual')}</button></header>
+                    <div className="forecast-filter-tabs">{(['ALL', 'INCOME', 'EXPENSE'] as const).map((value) => {
+                        const count = value === 'ALL' ? items.length : value === 'INCOME' ? incomeCount : expenseCount
+                        return <button type="button" key={value} className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{value === 'ALL' ? t('budgets.planning.all') : value === 'INCOME' ? t('budgets.planning.income') : t('budgets.planning.expenses')} <span>{count}</span></button>
+                    })}</div>
+                    <div className="forecast-table-head"><span>{t('budgets.planning.operation')}</span><span>{t('budgets.planning.source')}</span><span>{t('budgets.planning.expectedDate')}</span><span>{t('budgets.planning.amount')}</span><span>{t('budgets.planning.included')}</span><span/></div>
+                    <div className="forecast-operation-list">{visibleItems.map((item) => <article className={!item.included ? 'excluded' : ''} key={item.sourceKey}>
+                        <div className="forecast-operation-name"><span style={{color: item.category?.color}}><Icon name={categoryIcon(item.category?.icon)}/></span><strong>{item.title}</strong></div>
+                        <div className="forecast-source"><Icon name={item.sourceType === 'RECURRING' ? 'repeat' : item.sourceType === 'MANUAL' ? 'edit' : 'trend-up'}/><span>{sourceLabel(item)}</span></div>
+                        <time>{formatDate(item.expectedDate, locale, t('budgets.planning.throughoutMonth'))}</time>
+                        <label className={`forecast-amount ${item.operationType.toLowerCase()}`}><span>{item.operationType === 'INCOME' ? '+' : '−'}</span><input aria-label={t('budgets.planning.amount')} type="number" min="0" step="0.01" value={item.effectiveAmount} onChange={(event) => updateItem(item.sourceKey, {effectiveAmount: Math.max(0, Number(event.target.value) || 0)})}/></label>
+                        <button type="button" role="switch" aria-checked={item.included} className={`forecast-toggle ${item.included ? 'on' : ''}`} onClick={() => updateItem(item.sourceKey, {included: !item.included})}><i/></button>
+                        <button type="button" className="forecast-more" aria-label={t('budgets.planning.more')}><Icon name="more"/></button>
+                    </article>)}</div>
+                </section>
+                <section className="forecast-basis-card coming-soon-card"><div><span className="coming-soon-badge">{t('budgets.planning.comingSoon')}</span><h2>{t('budgets.planning.forecastBasis')}</h2><p>{t('budgets.planning.forecastBasisDescription', {count: preview.historyWindow.monthsUsed})}</p></div><div className="forecast-chart-placeholder"><span/><span/><span/><span/><span/><span/><i/></div></section>
+            </div><aside className="forecast-insights">
+                <section className="forecast-sources-card"><h2>{t('budgets.planning.sources')}</h2><div><strong>{recurringCount}</strong><span>{t('budgets.planning.recurringOperations')}</span></div><div><strong>{preview.historyWindow.monthsUsed}</strong><span>{t('budgets.planning.monthsHistory')}</span></div><div><strong>{manualCount}</strong><span>{t('budgets.planning.manualAdjustments')}</span></div><a href="/transactions">{t('budgets.planning.reviewRecurring')} <Icon name="arrow-right"/></a></section>
+                <section className="forecast-checks-card coming-soon-card"><span className="coming-soon-badge">{t('budgets.planning.comingSoon')}</span><header><Icon name="check-circle"/><h2>{t('budgets.planning.checks')}</h2></header><p>{t('budgets.planning.checksDescription')}</p><ul><li><Icon name="check-circle"/>{t('budgets.planning.checkIncome')}</li><li><Icon name="check-circle"/>{t('budgets.planning.checkRecurring')}</li><li><Icon name="check-circle"/>{t('budgets.planning.checkDuplicates')}</li></ul></section>
+                <section className="forecast-change-card coming-soon-card"><span className="coming-soon-badge">{t('budgets.planning.comingSoon')}</span><header><Icon name="alert"/><h2>{t('budgets.planning.amountChanged')}</h2></header><p>{t('budgets.planning.amountChangedDescription')}</p></section>
+            </aside></div>
+            <footer className="forecast-footer"><div/><button type="button" className="secondary" disabled={saving} onClick={() => void saveForecast(false)}>{saving ? t('budgets.planning.saving') : t('budgets.planning.saveDraft')}</button><button type="button" className="primary" disabled={saving} onClick={() => void saveForecast(true)}>{t('budgets.planning.continue')}<Icon name="arrow-right"/></button><small>{t('budgets.planning.adjustLater')}</small></footer>
         </>}
-    </main>{isModalOpen && <BudgetFormModal month={month} budget={budget} categories={categories} onClose={() => setModalOpen(false)} onSaved={(saved) => {setBudget(saved); setOptimization(null); setModalOpen(false)}} restoreFocus={() => editButtonRef.current?.focus()}/>}</div>
+        {status === 'ready' && plan?.status === 'DRAFT' && visibleStep === 'CONSTRAINTS' && <BudgetConstraintsStep plan={plan} currency={currency} onBack={() => setVisibleStep('FORECAST')} onSaved={onConstraintsSaved} onContinue={() => setVisibleStep('OPTIMIZE')}/>}
+        {status === 'ready' && plan?.status === 'DRAFT' && visibleStep === 'OPTIMIZE' && <BudgetOptimizeStep plan={plan} currency={currency} onBack={() => setVisibleStep('CONSTRAINTS')} onReview={(optimizationId) => {setReviewOptimizationId(optimizationId); setVisibleStep('REVIEW')}}/>}
+        {status === 'ready' && plan && (plan.status === 'DRAFT' || plan.status === 'APPLIED') && visibleStep === 'REVIEW' && <BudgetReviewStep plan={plan} currency={currency} optimizationId={reviewOptimizationId} onBack={() => setVisibleStep('OPTIMIZE')} onEditForecast={() => void editFromReview('FORECAST')} onEditConstraints={() => void editFromReview('CONSTRAINTS')} onDismissed={(planVersion) => {setPlan((current) => current ? {...current, version: planVersion, currentStep: 'OPTIMIZE', currentOptimization: current.currentOptimization ? {...current.currentOptimization, status: 'DISMISSED'} : null} : current); setReviewOptimizationId(null); setVisibleStep('OPTIMIZE')}} onApplied={() => {void getBudgetPlan(plan.id).then(setPlan).catch(() => {})}}/>}
+    </main>{manualOpen && <ManualAdjustmentModal onClose={() => setManualOpen(false)} onAdd={addManual}/>}</div>
 }
