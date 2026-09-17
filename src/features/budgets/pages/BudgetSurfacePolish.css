@@ -1,0 +1,280 @@
+/* Budget-only dialog and select surfaces. Radix menus render in a portal, so
+   :has() scopes their appearance to the open Budgets workspace. */
+.budgets-workspace {
+    --budget-dialog-surface: #fffefa;
+    --budget-dialog-elevated: #ffffff;
+    --budget-dialog-muted: #f7f4ee;
+    --budget-dialog-border: #ded8cf;
+    --budget-dialog-text: #20334d;
+    --budget-dialog-subtle: #63748a;
+    --budget-dialog-accent: #0b9973;
+    --budget-dialog-focus: #10b981;
+}
+
+.budgets-workspace .forecast-modal-backdrop,
+.budgets-workspace .review-dialog-backdrop,
+.budgets-workspace .budget-modal-backdrop {
+    z-index: 220;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: clamp(12px, 3vw, 28px);
+    background: rgb(3 14 29 / 68%);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+.budgets-workspace .forecast-modal,
+.budgets-workspace .review-dialog,
+.budgets-workspace .budget-modal {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    max-height: calc(100dvh - 32px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 1px solid var(--budget-dialog-border);
+    border-radius: 20px;
+    color: var(--budget-dialog-text);
+    background: var(--budget-dialog-surface);
+    box-shadow: 0 30px 100px rgb(3 14 29 / 30%), 0 6px 20px rgb(3 14 29 / 10%);
+    scrollbar-gutter: stable;
+}
+
+.budgets-workspace .forecast-modal {width: min(100%, 500px); padding: 24px;}
+.budgets-workspace .forecast-modal.add-constraint-modal {width: min(100%, 600px);}
+.budgets-workspace .forecast-modal.recurring-constraint-modal {width: min(100%, 720px);}
+.budgets-workspace .forecast-modal.budget-history-modal {width: min(100%, 620px);}
+.budgets-workspace .forecast-modal.budget-cancel-modal {width: min(100%, 460px);}
+.budgets-workspace .review-dialog {width: min(100%, 470px); padding: 26px;}
+.budgets-workspace .budget-modal {width: min(100%, 760px);}
+
+.budgets-workspace .forecast-modal > header,
+.budgets-workspace .review-dialog > header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    min-width: 0;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--budget-dialog-border);
+}
+.budgets-workspace .forecast-modal > header > div {min-width: 0;}
+.budgets-workspace .forecast-modal > header span {
+    color: var(--budget-dialog-accent);
+    font-size: 10px;
+    letter-spacing: .11em;
+}
+.budgets-workspace .forecast-modal h2,
+.budgets-workspace .review-dialog h2 {
+    margin: 5px 0 0;
+    color: var(--budget-dialog-text);
+    font-size: clamp(19px, 2vw, 23px);
+    line-height: 1.3;
+    letter-spacing: -.025em;
+    overflow-wrap: anywhere;
+}
+.budgets-workspace .forecast-modal > header > button,
+.budgets-workspace .budget-modal > header > button {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--budget-dialog-border);
+    border-radius: 11px;
+    color: var(--budget-dialog-subtle);
+    background: var(--budget-dialog-muted);
+    cursor: pointer;
+    transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+}
+.budgets-workspace .forecast-modal > header > button:hover:not(:disabled),
+.budgets-workspace .budget-modal > header > button:hover:not(:disabled) {
+    border-color: #72cbb0;
+    color: var(--budget-dialog-accent);
+    background: #e9f8f1;
+}
+.budgets-workspace .forecast-modal > header > button svg,
+.budgets-workspace .budget-modal > header > button svg {width: 19px; height: 19px;}
+
+.budgets-workspace .forecast-modal > p,
+.budgets-workspace .review-dialog > p,
+.budgets-workspace .budget-modal > p {
+    color: var(--budget-dialog-subtle);
+    line-height: 1.6;
+}
+.budgets-workspace .forecast-modal label {min-width: 0; color: var(--budget-dialog-subtle); font-size: 12px;}
+.budgets-workspace .forecast-modal :is(input:not([type='checkbox']), select, .certis-select),
+.budgets-workspace .budget-modal .certis-select {
+    width: 100%;
+    min-width: 0;
+    min-height: 43px;
+    border: 1px solid var(--budget-dialog-border);
+    border-radius: 11px;
+    color: var(--budget-dialog-text);
+    background-color: var(--budget-dialog-elevated);
+    font-size: 13px;
+    font-weight: 600;
+    transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+.budgets-workspace .forecast-modal :is(input:not([type='checkbox']), select, .certis-select):hover:not(:disabled),
+.budgets-workspace .budget-modal .certis-select:hover:not(:disabled) {border-color: #96b6aa;}
+.budgets-workspace .forecast-modal :is(input:not([type='checkbox']), select, .certis-select):focus-visible,
+.budgets-workspace .budget-modal .certis-select:focus-visible,
+.budgets-workspace .budget-modal input:focus-visible {
+    outline: 2px solid var(--budget-dialog-focus);
+    outline-offset: 2px;
+    border-color: var(--budget-dialog-focus);
+}
+.budgets-workspace .forecast-modal input::placeholder {color: #91a0ae; font-weight: 400;}
+.budgets-workspace .forecast-modal :is(input, select):disabled {cursor: not-allowed; opacity: .6;}
+.budgets-workspace .forecast-modal select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 0 39px 0 12px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2363748a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    cursor: pointer;
+}
+.budgets-workspace .forecast-modal select option {color: var(--budget-dialog-text); background: var(--budget-dialog-elevated);}
+.budgets-workspace .forecast-modal input[type='date'] {color-scheme: light;}
+.budgets-workspace .forecast-modal .forecast-manual-type button {min-height: 38px; border-radius: 10px; font-weight: 700; cursor: pointer;}
+.budgets-workspace .forecast-modal .forecast-manual-type button.active {border-color: #0b9973; color: #fff; background: #0b9973;}
+
+.budgets-workspace .forecast-modal > footer,
+.budgets-workspace .review-dialog-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 18px;
+    border-top: 1px solid var(--budget-dialog-border);
+}
+.budgets-workspace .forecast-modal > footer > button,
+.budgets-workspace .review-dialog-actions > button,
+.budgets-workspace .budget-modal footer > button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0 17px;
+    border: 1px solid var(--budget-dialog-border);
+    border-radius: 11px;
+    color: var(--budget-dialog-text);
+    background: var(--budget-dialog-elevated);
+    font-size: 12px;
+    font-weight: 750;
+    cursor: pointer;
+    transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+.budgets-workspace :is(.forecast-modal > footer, .review-dialog-actions) > button:is(.primary, .review-dismiss, .danger),
+.budgets-workspace .budget-modal footer > button[type='submit'] {border-color: #0b9973; color: #fff; background: #0b9973;}
+.budgets-workspace :is(.forecast-modal > footer, .review-dialog-actions) > button:is(.review-dismiss, .danger) {border-color: #c36c5c; background: #b64e45;}
+.budgets-workspace :is(.forecast-modal > footer, .review-dialog-actions) > button:hover:not(:disabled),
+.budgets-workspace .budget-modal footer > button:hover:not(:disabled) {border-color: #0b9973; box-shadow: 0 3px 10px rgb(10 25 47 / 8%);}
+.budgets-workspace :is(.forecast-modal > footer, .review-dialog-actions) > button.primary:hover:not(:disabled),
+.budgets-workspace .budget-modal footer > button[type='submit']:hover:not(:disabled) {background: #087d60;}
+.budgets-workspace :is(.forecast-modal > footer, .review-dialog-actions) > button:focus-visible,
+.budgets-workspace .budget-modal button:focus-visible {outline: 2px solid var(--budget-dialog-focus); outline-offset: 3px;}
+.budgets-workspace :is(.forecast-modal, .review-dialog, .budget-modal) button:disabled {cursor: not-allowed; opacity: .55;}
+
+.budgets-workspace :is(.recurring-constraint-summary > div, .add-constraint-levels span, .budget-history-list li) {
+    border-color: var(--budget-dialog-border);
+    background: var(--budget-dialog-muted);
+}
+.budgets-workspace .recurring-constraint-list > label {border-color: var(--budget-dialog-border); border-radius: 12px; background: var(--budget-dialog-elevated);}
+.budgets-workspace .recurring-constraint-list > label:hover:not(.excluded) {border-color: #86cbb4;}
+.budgets-workspace .recurring-constraint-list > label:has(input:checked) {border-color: #70c8ab; background: #ebf8f1;}
+.budgets-workspace .recurring-constraint-note {border: 1px solid #c8e7da;}
+.budgets-workspace .budget-history-list {max-height: min(48dvh, 460px);}
+.budgets-workspace .budget-history-list li.current {border-color: #70c8ab; background: #ebf8f1;}
+.budgets-workspace .review-dialog > header {justify-content: flex-start; align-items: center;}
+.budgets-workspace .review-dialog > header > svg {width: 25px; height: 25px; flex: 0 0 auto; color: var(--budget-dialog-accent);}
+.budgets-workspace .review-dialog-actions {margin-top: 20px;}
+.budgets-workspace .budget-modal > header {border-color: var(--budget-dialog-border); background: var(--budget-dialog-surface);}
+.budgets-workspace .budget-modal form {background: var(--budget-dialog-surface);}
+.budgets-workspace .budget-modal-fields label > span,
+.budgets-workspace .budget-limit-input {border-color: var(--budget-dialog-border); background: var(--budget-dialog-elevated);}
+.budgets-workspace .budget-modal input {color: var(--budget-dialog-text);}
+
+/* The select menu is portalled to body, outside .budgets-workspace. */
+html:has(.budgets-workspace) .certis-select-content {
+    z-index: 310;
+    border-color: #ded8cf;
+    border-radius: 13px;
+    color: #20334d;
+    background: #fffefa;
+    box-shadow: 0 16px 44px rgb(3 14 29 / 22%), 0 3px 10px rgb(3 14 29 / 8%);
+}
+html:has(.budgets-workspace) .certis-select-option[data-highlighted] {color: #193c36; background: #e9f7f0; box-shadow: inset 0 0 0 1px #addbc9;}
+html:has(.budgets-workspace) .certis-select-option[data-state='checked'] {color: #08674f; background: #e4f6ed;}
+html:has(.budgets-workspace) .certis-select-option[data-state='checked'][data-highlighted] {background: #d8f0e5;}
+html:has(.budgets-workspace) .certis-select-scroll-button {color: #63748a; background: #fffefa;}
+
+html[data-theme='dark'] .budgets-workspace {
+    --budget-dialog-surface: #10243a;
+    --budget-dialog-elevated: #152e49;
+    --budget-dialog-muted: #19344f;
+    --budget-dialog-border: #34516e;
+    --budget-dialog-text: #e1edf7;
+    --budget-dialog-subtle: #a1b5c9;
+    --budget-dialog-accent: #65d9b2;
+    --budget-dialog-focus: #49d1a4;
+}
+html[data-theme='dark'] .budgets-workspace :is(.forecast-modal, .review-dialog, .budget-modal) {
+    border-color: var(--budget-dialog-border);
+    color: var(--budget-dialog-text);
+    background: var(--budget-dialog-surface);
+    box-shadow: 0 30px 100px rgb(0 4 13 / 60%);
+}
+html[data-theme='dark'] .budgets-workspace .forecast-modal :is(input:not([type='checkbox']), select, .certis-select),
+html[data-theme='dark'] .budgets-workspace .budget-modal .certis-select {
+    border-color: var(--budget-dialog-border);
+    color: var(--budget-dialog-text);
+    background-color: var(--budget-dialog-elevated);
+}
+html[data-theme='dark'] .budgets-workspace .forecast-modal select {
+    color-scheme: dark;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a1b5c9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+html[data-theme='dark'] .budgets-workspace .forecast-modal input[type='date'] {color-scheme: dark;}
+html[data-theme='dark'] .budgets-workspace .forecast-modal select option {color: #e1edf7; background: #152e49;}
+html[data-theme='dark'] .budgets-workspace .forecast-modal > header > button,
+html[data-theme='dark'] .budgets-workspace .budget-modal > header > button {border-color: #34516e; color: #bcd0e2; background: #19344f;}
+html[data-theme='dark'] .budgets-workspace :is(.forecast-modal > footer, .review-dialog-actions) > button:not(.primary, .danger, .review-dismiss),
+html[data-theme='dark'] .budgets-workspace .budget-modal footer > button:not([type='submit']) {border-color: #34516e; color: #d5e3ef; background: #19344f;}
+html[data-theme='dark'] .budgets-workspace :is(.forecast-modal > footer, .review-dialog-actions) > button:is(.primary, .danger, .review-dismiss),
+html[data-theme='dark'] .budgets-workspace .budget-modal footer > button[type='submit'] {color: #fff;}
+html[data-theme='dark'] .budgets-workspace .recurring-constraint-list > label:has(input:checked),
+html[data-theme='dark'] .budgets-workspace .budget-history-list li.current {border-color: #287e68; background: #123d34;}
+html[data-theme='dark'] .budgets-workspace .recurring-constraint-note {border-color: #275b50; background: #103832;}
+html[data-theme='dark'] .budgets-workspace .add-constraint-levels strong,
+html[data-theme='dark'] .budgets-workspace .forecast-modal h2,
+html[data-theme='dark'] .budgets-workspace .review-dialog h2 {color: var(--budget-dialog-text);}
+html[data-theme='dark']:has(.budgets-workspace) .certis-select-content {border-color: #34516e; color: #e1edf7; background: #152e49; box-shadow: 0 16px 48px rgb(0 4 13 / 56%);}
+html[data-theme='dark']:has(.budgets-workspace) .certis-select-option[data-highlighted] {color: #e1edf7; background: #244b56; box-shadow: inset 0 0 0 1px #367e71;}
+html[data-theme='dark']:has(.budgets-workspace) .certis-select-option[data-state='checked'] {color: #8ae5c5; background: #174539;}
+html[data-theme='dark']:has(.budgets-workspace) .certis-select-option[data-state='checked'][data-highlighted] {background: #225b4b;}
+html[data-theme='dark']:has(.budgets-workspace) .certis-select-check {color: #65d9b2;}
+html[data-theme='dark']:has(.budgets-workspace) .certis-select-scroll-button {color: #a1b5c9; background: #152e49;}
+
+@media (max-width: 620px) {
+    .budgets-workspace .forecast-modal-backdrop,
+    .budgets-workspace .review-dialog-backdrop,
+    .budgets-workspace .budget-modal-backdrop {align-items: center; padding: 12px;}
+    .budgets-workspace :is(.forecast-modal, .review-dialog, .budget-modal) {width: 100%; height: auto; max-height: calc(100dvh - 24px); border-radius: 16px; scrollbar-gutter: auto;}
+    .budgets-workspace .forecast-modal, .budgets-workspace .review-dialog {padding: 18px;}
+    .budgets-workspace .forecast-modal > footer > button,
+    .budgets-workspace .review-dialog-actions > button {flex: 1 1 120px;}
+    .budgets-workspace .recurring-constraint-summary {grid-template-columns: minmax(0, 1fr);}
+    .budgets-workspace .recurring-constraint-list > label {grid-template-columns: 22px minmax(0, 1fr);}
+    .budgets-workspace .recurring-constraint-amount {grid-column: 2; text-align: left;}
+    .budgets-workspace .budget-modal > header, .budgets-workspace .budget-modal form {padding: 18px;}
+}
+@media (prefers-reduced-motion: reduce) {
+    .budgets-workspace :is(.forecast-modal, .review-dialog, .budget-modal) button,
+    .budgets-workspace :is(.forecast-modal, .review-dialog, .budget-modal) input {transition: none;}
+}

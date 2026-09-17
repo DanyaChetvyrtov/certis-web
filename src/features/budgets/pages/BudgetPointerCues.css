@@ -1,0 +1,17 @@
+/* A button should signal interactivity regardless of which planning step owns it.
+   The Forecast overflow icon currently has no action and must not imply one. */
+.budgets-workspace button:not(:disabled, .forecast-more),
+.budgets-workspace [role='button']:not([aria-disabled='true']),
+.budgets-workspace [role='combobox']:not([aria-disabled='true']),
+.budgets-workspace a[href],
+.budgets-workspace label:has(> input[type='month']) {
+    cursor: pointer;
+}
+
+.budgets-workspace button:disabled,
+.budgets-workspace [role='button'][aria-disabled='true'],
+.budgets-workspace [role='combobox'][aria-disabled='true'] {
+    cursor: not-allowed;
+}
+
+.budgets-workspace .forecast-more {cursor: default;}

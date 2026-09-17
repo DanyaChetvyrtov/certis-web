@@ -1,6 +1,7 @@
 import {fireEvent, render, screen, waitFor} from '@testing-library/react'
 import {beforeEach, describe, expect, it, vi} from 'vitest'
 import {getCategoryOptions} from '../../categories/api/categoriesApi'
+import {selectOption} from '../../../test/selectOption'
 import {ManualAdjustmentModal} from './ManualAdjustmentModal'
 
 vi.mock('../../categories/api/categoriesApi', () => ({
@@ -21,7 +22,7 @@ describe('ManualAdjustmentModal', () => {
 
         await waitFor(() => expect(getCategoryOptions).toHaveBeenCalledWith('EXPENSE', expect.any(AbortSignal)))
         fireEvent.change(screen.getByLabelText('Name'), {target: {value: 'Car maintenance'}})
-        fireEvent.change(screen.getByLabelText('Category'), {target: {value: expenseCategory.id}})
+        await selectOption(screen.getByRole('combobox', {name: 'Category'}), 'Food')
         fireEvent.change(screen.getByLabelText('Amount'), {target: {value: '1250'}})
         fireEvent.click(screen.getByRole('button', {name: 'Add adjustment'}))
 
@@ -36,7 +37,7 @@ describe('ManualAdjustmentModal', () => {
     it('requires a category for manual expenses before saving', async () => {
         const onAdd = vi.fn()
         render(<ManualAdjustmentModal onClose={vi.fn()} onAdd={onAdd}/>)
-        await screen.findByRole('option', {name: 'Food'})
+        await waitFor(() => expect(getCategoryOptions).toHaveBeenCalledWith('EXPENSE', expect.any(AbortSignal)))
         fireEvent.change(screen.getByLabelText('Name'), {target: {value: 'Car maintenance'}})
         fireEvent.change(screen.getByLabelText('Amount'), {target: {value: '1250'}})
 
@@ -49,11 +50,12 @@ describe('ManualAdjustmentModal', () => {
     it('reloads options for the selected operation type', async () => {
         vi.mocked(getCategoryOptions).mockImplementation(async (type) => type === 'EXPENSE' ? [expenseCategory] : [{id: 'salary-id', name: 'Salary', icon: 'cash', color: '#2563eb'}])
         render(<ManualAdjustmentModal onClose={vi.fn()} onAdd={vi.fn()}/>)
-        await screen.findByRole('option', {name: 'Food'})
+        await waitFor(() => expect(getCategoryOptions).toHaveBeenCalledWith('EXPENSE', expect.any(AbortSignal)))
 
         fireEvent.click(screen.getByRole('button', {name: 'Income'}))
 
         await waitFor(() => expect(getCategoryOptions).toHaveBeenLastCalledWith('INCOME', expect.any(AbortSignal)))
-        expect(await screen.findByRole('option', {name: 'Salary'})).toBeInTheDocument()
+        await selectOption(screen.getByRole('combobox', {name: 'Category'}), 'Salary')
+        expect(screen.getByRole('combobox', {name: 'Category'})).toHaveTextContent('Salary')
     })
 })
