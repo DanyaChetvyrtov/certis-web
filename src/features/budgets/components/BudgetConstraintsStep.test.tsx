@@ -1,13 +1,19 @@
-import {fireEvent, render, screen, waitFor} from '@testing-library/react'
+import {fireEvent, render, screen, waitFor, within} from '@testing-library/react'
 import {beforeEach, describe, expect, it, vi} from 'vitest'
-import {getBudgetConstraints, saveBudgetConstraints} from '../api/budgetPlanningApi'
-import type {BudgetConstraintSet, BudgetPlan} from '../api/budgetPlanningApi'
+import {getCategoryOptions} from '../../categories/api/categoriesApi'
+import {getBudgetConstraints, getConfirmedBudgetForecast, saveBudgetConstraints} from '../api/budgetPlanningApi'
+import type {BudgetConstraintSet, BudgetForecast, BudgetPlan} from '../api/budgetPlanningApi'
 import {selectOption} from '../../../test/selectOption'
 import {BudgetConstraintsStep} from './BudgetConstraintsStep'
 
 vi.mock('../api/budgetPlanningApi', () => ({
     getBudgetConstraints: vi.fn(),
+    getConfirmedBudgetForecast: vi.fn(),
     saveBudgetConstraints: vi.fn(),
+}))
+
+vi.mock('../../categories/api/categoriesApi', () => ({
+    getCategoryOptions: vi.fn(),
 }))
 
 const plan: BudgetPlan = {
@@ -81,6 +87,68 @@ const foodConstraints: BudgetConstraintSet = {
     },
 }
 
+const forecast: BudgetForecast = {
+    planId: plan.id,
+    revision: 1,
+    status: 'CURRENT',
+    sourceFingerprint: 'source-fingerprint',
+    inputFingerprint: 'input-fingerprint',
+    summary: {
+        forecastIncome: 36000,
+        recurringExpenses: 1700,
+        flexibleEstimate: 0,
+        forecastExpenses: 1700,
+        forecastSavings: 34300,
+        includedItemCount: 3,
+        excludedItemCount: 0,
+    },
+    items: [{
+        sourceKey: 'RECURRING:groceries:2026-10-05',
+        sourceType: 'RECURRING',
+        operationType: 'EXPENSE',
+        title: 'Weekly groceries',
+        category: {id: 'food-id', name: 'Food', icon: 'utensils', color: '#f59e0b'},
+        expectedDate: '2026-10-05',
+        originalAmount: 1000,
+        effectiveAmount: 1000,
+        included: true,
+        defaultConstraintRole: 'FLEXIBLE',
+        confidence: 'HIGH',
+        recurring: {templateId: 'groceries', frequency: 'WEEKLY'},
+        history: null,
+    }, {
+        sourceKey: 'RECURRING:groceries:2026-10-12',
+        sourceType: 'RECURRING',
+        operationType: 'EXPENSE',
+        title: 'Weekly groceries',
+        category: {id: 'food-id', name: 'Food', icon: 'utensils', color: '#f59e0b'},
+        expectedDate: '2026-10-12',
+        originalAmount: 1000,
+        effectiveAmount: 1000,
+        included: true,
+        defaultConstraintRole: 'FLEXIBLE',
+        confidence: 'HIGH',
+        recurring: {templateId: 'groceries', frequency: 'WEEKLY'},
+        history: null,
+    }, {
+        sourceKey: 'RECURRING:rent:2026-10-01',
+        sourceType: 'RECURRING',
+        operationType: 'EXPENSE',
+        title: 'Rent',
+        category: {id: 'housing-id', name: 'Housing', icon: 'home', color: '#8b5cf6'},
+        expectedDate: '2026-10-01',
+        originalAmount: 12000,
+        effectiveAmount: 12000,
+        included: true,
+        defaultConstraintRole: 'REQUIRED',
+        confidence: 'HIGH',
+        recurring: {templateId: 'rent', frequency: 'MONTHLY'},
+        history: null,
+    }],
+    planVersion: 1,
+    confirmedAt: '2026-09-17T08:00:00Z',
+}
+
 const renderStep = (onContinue = vi.fn()) => {
     render(<BudgetConstraintsStep plan={plan} currency="RUB" onBack={vi.fn()} onSaved={vi.fn()} onContinue={onContinue}/>)
     return {onContinue}
@@ -89,6 +157,11 @@ const renderStep = (onContinue = vi.fn()) => {
 beforeEach(() => {
     vi.resetAllMocks()
     vi.mocked(getBudgetConstraints).mockResolvedValue(constraints)
+    vi.mocked(getConfirmedBudgetForecast).mockResolvedValue(forecast)
+    vi.mocked(getCategoryOptions).mockResolvedValue([
+        {id: 'food-id', name: 'Food', icon: 'utensils', color: '#f59e0b'},
+        {id: 'travel-id', name: 'Travel', icon: 'transport', color: '#2563eb'},
+    ])
 })
 
 describe('BudgetConstraintsStep', () => {
@@ -162,6 +235,73 @@ describe('BudgetConstraintsStep', () => {
                 constraintRole: 'REQUIRED',
                 requiredAmount: 7000,
             })],
+        })))
+    })
+
+    it('builds a protected category minimum from recurring forecast occurrences', async () => {
+        vi.mocked(getBudgetConstraints).mockResolvedValue(foodConstraints)
+        vi.mocked(saveBudgetConstraints).mockResolvedValue(foodConstraints)
+        renderStep()
+
+        fireEvent.click(await screen.findByRole('button', {name: 'Review Food recurring payments'}))
+
+        expect(screen.getByRole('dialog', {name: 'Food recurring payments'})).toBeInTheDocument()
+        const payments = screen.getAllByRole('checkbox', {name: /Weekly groceries/})
+        expect(payments).toHaveLength(2)
+        fireEvent.click(payments[0])
+        fireEvent.click(payments[1])
+        expect(screen.getByText(/2,000/)).toBeInTheDocument()
+
+        fireEvent.click(screen.getByRole('button', {name: 'Apply protected minimum'}))
+
+        expect(screen.queryByRole('dialog', {name: 'Food recurring payments'})).not.toBeInTheDocument()
+        expect(screen.getByLabelText('Food: Protected amount')).toHaveValue(2000)
+        expect(screen.getByRole('combobox', {name: 'Food: Classification'})).toHaveTextContent('Required')
+
+        fireEvent.click(screen.getByRole('button', {name: 'Save draft'}))
+        await waitFor(() => expect(saveBudgetConstraints).toHaveBeenCalledWith(plan.id, expect.objectContaining({
+            categories: [expect.objectContaining({
+                categoryId: 'food-id',
+                constraintRole: 'REQUIRED',
+                requiredAmount: 2000,
+            })],
+        })))
+    })
+
+    it('adds an expense category outside the forecast with generated funding levels', async () => {
+        vi.mocked(getBudgetConstraints).mockResolvedValue(foodConstraints)
+        vi.mocked(saveBudgetConstraints).mockResolvedValue(foodConstraints)
+        renderStep()
+
+        fireEvent.click(await screen.findByRole('button', {name: 'Add category constraint'}))
+        const dialog = await screen.findByRole('dialog', {name: 'Add category constraint'})
+        const categorySelect = await within(dialog).findByRole('combobox', {name: 'Category'})
+        await selectOption(categorySelect, 'Travel')
+        expect(categorySelect).toHaveTextContent('Travel')
+        fireEvent.change(within(dialog).getByLabelText('Minimum amount'), {target: {value: '6000'}})
+        fireEvent.change(within(dialog).getByLabelText('Comfortable amount'), {target: {value: '10000'}})
+        await selectOption(within(dialog).getByRole('combobox', {name: 'Priority'}), 'High')
+        fireEvent.click(within(dialog).getByRole('button', {name: 'Add constraint'}))
+
+        expect(screen.queryByRole('dialog', {name: 'Add category constraint'})).not.toBeInTheDocument()
+        expect(screen.getByText('Travel')).toBeInTheDocument()
+        expect(screen.getByText('Manually added category')).toBeInTheDocument()
+        expect(screen.getByRole('button', {name: 'Remove Travel constraint'})).toBeInTheDocument()
+
+        fireEvent.click(screen.getByRole('button', {name: 'Save draft'}))
+        await waitFor(() => expect(saveBudgetConstraints).toHaveBeenCalledWith(plan.id, expect.objectContaining({
+            categories: expect.arrayContaining([expect.objectContaining({
+                categoryId: 'travel-id',
+                allocationType: 'VARIABLE',
+                constraintRole: 'FLEXIBLE',
+                requiredAmount: 0,
+                priority: 'HIGH',
+                fundingLevels: [
+                    {level: 'MINIMUM', amount: 6000},
+                    {level: 'BALANCED', amount: 8500},
+                    {level: 'COMFORTABLE', amount: 10000},
+                ],
+            })]),
         })))
     })
 

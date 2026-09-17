@@ -6,8 +6,10 @@ import {Select, SelectOption} from '../../../components/Select'
 import type {IconName} from '../../../components/Icons'
 import {useLanguage} from '../../../i18n/useLanguage'
 import type {Currency} from '../../../shared/currency'
-import {getBudgetConstraints, saveBudgetConstraints} from '../api/budgetPlanningApi'
-import type {BudgetCategoryConstraint, BudgetConstraintSet, BudgetFundingLevel, BudgetPlan, BudgetPriority} from '../api/budgetPlanningApi'
+import {getBudgetConstraints, getConfirmedBudgetForecast, saveBudgetConstraints} from '../api/budgetPlanningApi'
+import type {BudgetCategoryConstraint, BudgetConstraintSet, BudgetForecastItem, BudgetFundingLevel, BudgetPlan, BudgetPriority} from '../api/budgetPlanningApi'
+import {AddConstraintModal} from './AddConstraintModal'
+import {RecurringConstraintModal} from './RecurringConstraintModal'
 import './BudgetConstraintsStep.css'
 import './BudgetConstraintsSelect.css'
 
@@ -38,6 +40,12 @@ export function BudgetConstraintsStep({plan, currency, onBack, onSaved, onContin
     const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
+    const [forecastItems, setForecastItems] = useState<BudgetForecastItem[]>([])
+    const [forecastStatus, setForecastStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+    const [forecastPlanId, setForecastPlanId] = useState<string | null>(null)
+    const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
+    const [recurringSelections, setRecurringSelections] = useState<Record<string, string[]>>({})
+    const [addCategoryOpen, setAddCategoryOpen] = useState(false)
 
     const load = useCallback(async (signal?: AbortSignal) => {
         try {
@@ -72,12 +80,41 @@ export function BudgetConstraintsStep({plan, currency, onBack, onSaved, onContin
         return () => controller.abort()
     }, [plan.id, t])
 
+    useEffect(() => {
+        const controller = new AbortController()
+        getConfirmedBudgetForecast(plan.id, controller.signal).then((forecast) => {
+            if (controller.signal.aborted) return
+            setForecastItems(forecast?.items ?? [])
+            setForecastPlanId(plan.id)
+            setForecastStatus('ready')
+        }).catch((caught: unknown) => {
+            if (controller.signal.aborted || (caught instanceof Error && caught.name === 'AbortError')) return
+            setForecastPlanId(plan.id)
+            setForecastStatus('error')
+        })
+        return () => controller.abort()
+    }, [plan.id])
+
+    const retryForecast = async () => {
+        setForecastStatus('loading')
+        try {
+            const forecast = await getConfirmedBudgetForecast(plan.id)
+            setForecastItems(forecast?.items ?? [])
+            setForecastPlanId(plan.id)
+            setForecastStatus('ready')
+        } catch {
+            setForecastPlanId(plan.id)
+            setForecastStatus('error')
+        }
+    }
+
     const updatePriority = (categoryId: string, priority: BudgetPriority) => setCategories((current) => current.map((category) => category.category.id === categoryId ? {...category, priority} : category))
     const updateConstraintRole = (categoryId: string, constraintRole: 'REQUIRED' | 'FLEXIBLE') => setCategories((current) => current.map((category) => {
         if (category.category.id !== categoryId || category.allocationType !== 'VARIABLE') return category
         return {
             ...category,
             constraintRole,
+            priority: constraintRole === 'REQUIRED' ? 'HIGH' : category.priority,
             requiredAmount: constraintRole === 'REQUIRED' ? minimumAmount(category) : 0,
         }
     }))
@@ -93,6 +130,36 @@ export function BudgetConstraintsStep({plan, currency, onBack, onSaved, onContin
             })),
         }
     }))
+    const applyRecurringMinimum = (categoryId: string, amount: number, sourceKeys: string[]) => {
+        setRecurringSelections((current) => ({...current, [categoryId]: sourceKeys}))
+        setCategories((current) => current.map((category) => {
+            if (category.category.id !== categoryId || category.allocationType !== 'VARIABLE') return category
+            return {
+                ...category,
+                constraintRole: amount > 0 ? 'REQUIRED' : 'FLEXIBLE',
+                priority: amount > 0 ? 'HIGH' : category.priority,
+                requiredAmount: amount,
+                fundingLevels: category.fundingLevels.map((level) => ({
+                    ...level,
+                    amount: level.level === 'MINIMUM' ? amount : Math.max(level.amount, amount),
+                })),
+            }
+        }))
+        setSelectedCategoryId(null)
+    }
+    const addCategory = (category: DraftConstraint) => {
+        setCategories((current) => [...current, category].sort((left, right) => left.category.name.localeCompare(right.category.name, locale)))
+        setAddCategoryOpen(false)
+    }
+    const removeManualCategory = (categoryId: string) => {
+        setCategories((current) => current.filter((category) => category.category.id !== categoryId))
+        setRecurringSelections((current) => {
+            const next = {...current}
+            delete next[categoryId]
+            return next
+        })
+        if (selectedCategoryId === categoryId) setSelectedCategoryId(null)
+    }
 
     const liveSummary = useMemo(() => {
         if (!constraints) return null
@@ -153,6 +220,16 @@ export function BudgetConstraintsStep({plan, currency, onBack, onSaved, onContin
     if (status === 'error' || !constraints || !liveSummary) return <div className="budget-state error" role="alert">{error}<button type="button" onClick={() => {setStatus('loading'); setError(''); void load()}}>{t('budgets.tryAgain')}</button></div>
 
     const protectedCategories = categories.filter((category) => category.requiredAmount > 0)
+    const selectedCategory = categories.find((category) => category.category.id === selectedCategoryId) ?? null
+    const selectedRecurringItems = selectedCategory && forecastPlanId === plan.id ? forecastItems
+        .filter((item) => item.sourceType === 'RECURRING' && item.operationType === 'EXPENSE' && item.category?.id === selectedCategory.category.id)
+        .sort((left, right) => (left.expectedDate ?? '').localeCompare(right.expectedDate ?? '') || left.title.localeCompare(right.title)) : []
+    const initialRecurringSelection = selectedCategory ? recurringSelections[selectedCategory.category.id] ?? (() => {
+        const included = selectedRecurringItems.filter((item) => item.included)
+        const recurringTotal = roundMoney(included.reduce((sum, item) => sum + item.effectiveAmount, 0))
+        if (recurringTotal > 0 && recurringTotal === roundMoney(selectedCategory.requiredAmount)) return included.map((item) => item.sourceKey)
+        return included.filter((item) => item.defaultConstraintRole === 'REQUIRED').map((item) => item.sourceKey)
+    })() : []
     const feasible = liveSummary.feasible
     return <>
         {error && <div className="budget-action-error" role="alert">{error}</div>}
@@ -162,18 +239,19 @@ export function BudgetConstraintsStep({plan, currency, onBack, onSaved, onContin
                 <article><span className="blue"><Icon name="card"/></span><p>{t('budgets.constraints.requiredPayments')}</p><strong>{formatMoney(liveSummary.requiredAmount, currency, locale)}</strong><small>{t('budgets.constraints.recurringProtected', {count: protectedCategories.length})}</small></article>
                 <article><span className="gold"><Icon name="piggy-bank"/></span><p>{t('budgets.constraints.minimumSavings')}</p><label className="constraints-savings-input"><span>{new Intl.NumberFormat(locale, {style: 'currency', currency, currencyDisplay: 'narrowSymbol', maximumFractionDigits: 0}).formatToParts(0).find((part) => part.type === 'currency')?.value}</span><input aria-label={t('budgets.constraints.minimumSavings')} type="number" min="0" step="100" value={savingsFloorAmount} onChange={(event) => setSavingsFloorAmount(Math.max(0, Number(event.target.value) || 0))}/></label><small>{t('budgets.constraints.savingsTargetRate', {value: constraints.feasibility.forecastIncome ? (savingsFloorAmount / constraints.feasibility.forecastIncome * 100).toFixed(1) : 0})}</small></article>
             </section>
-            <section className="constraints-card"><header><div><h2>{t('budgets.constraints.categoryConstraints')}</h2><p>{t('budgets.constraints.categoryConstraintsDescription')}</p></div><button type="button" disabled title={t('budgets.constraints.addFromForecastHint')}><Icon name="plus"/>{t('budgets.constraints.addCategory')}</button></header>
+            <section className="constraints-card"><header><div><h2>{t('budgets.constraints.categoryConstraints')}</h2><p>{t('budgets.constraints.categoryConstraintsDescription')}</p></div><button type="button" onClick={() => setAddCategoryOpen(true)}><Icon name="plus"/>{t('budgets.constraints.addCategory')}</button></header>
                 <div className="constraints-table-head"><span>{t('budgets.constraints.category')}</span><span>{t('budgets.constraints.classification')}</span><span>{t('budgets.constraints.minimum')}</span><span>{t('budgets.constraints.priority')}</span><span>{t('budgets.constraints.fundingRange')}</span></div>
                 <div className="constraints-list">{categories.map((category) => {
                     const fixed = category.allocationType === 'FIXED'
+                    const manuallyAdded = category.sourceKeys.length === 0
                     const min = minimumAmount(category)
                     const max = maximumAmount(category)
                     return <article key={category.category.id}>
-                        <div className="constraint-category"><span style={{color: category.category.color}}><Icon name={categoryIcon(category.category.icon)}/></span><div><strong>{category.category.name}</strong><small>{fixed ? t('budgets.constraints.protectedRecurring') : category.constraintRole === 'REQUIRED' ? t('budgets.constraints.protectedMinimum') : t('budgets.constraints.flexibleHistory')}</small></div></div>
+                        <button type="button" className="constraint-category" aria-label={t('budgets.constraints.recurringModal.open', {category: category.category.name})} onClick={() => setSelectedCategoryId(category.category.id)}><span style={{color: category.category.color}}><Icon name={categoryIcon(category.category.icon)}/></span><div><strong>{category.category.name}</strong><small>{manuallyAdded ? t('budgets.constraints.manualCategory') : fixed ? t('budgets.constraints.protectedRecurring') : category.constraintRole === 'REQUIRED' ? t('budgets.constraints.protectedMinimum') : t('budgets.constraints.flexibleHistory')}</small></div><Icon className="constraint-category-open" name="chevron-right"/></button>
                         {fixed ? <span className="constraint-classification fixed">{t('budgets.constraints.classificationFixed')} · {t('budgets.constraints.classificationRequired')}</span> : <div className={`constraint-classification-control ${category.constraintRole.toLowerCase()}`}><Icon name={category.constraintRole === 'REQUIRED' ? 'shield' : 'trend-up'}/><Select value={category.constraintRole} onValueChange={(value) => updateConstraintRole(category.category.id, value as 'REQUIRED' | 'FLEXIBLE')} className="constraint-classification-select" aria-label={`${category.category.name}: ${t('budgets.constraints.classification')}`}><SelectOption value="FLEXIBLE">{t('budgets.constraints.classificationFlexible')}</SelectOption><SelectOption value="REQUIRED">{t('budgets.constraints.classificationRequired')}</SelectOption></Select></div>}
                         <div className="constraint-minimum">{fixed ? <><strong>{formatMoney(min, currency, locale)}</strong><Icon name="lock"/></> : <label><span>{new Intl.NumberFormat(locale, {style: 'currency', currency, currencyDisplay: 'narrowSymbol', maximumFractionDigits: 0}).formatToParts(0).find((part) => part.type === 'currency')?.value}</span><input aria-label={`${category.category.name}: ${t(category.constraintRole === 'REQUIRED' ? 'budgets.constraints.protectedAmount' : 'budgets.constraints.minimum')}`} type="number" min="0" step="100" value={min} onChange={(event) => updateMinimum(category.category.id, Number(event.target.value) || 0)}/></label>}</div>
                         <div className="constraint-priority">{fixed ? <span className="critical"><Icon name="alert"/>{t('budgets.constraints.critical')}</span> : <div className={`constraint-priority-control ${(category.priority ?? 'LOW').toLowerCase()}`}><Icon name={priorityIcon(category.priority)}/><Select value={category.priority ?? 'LOW'} onValueChange={(value) => updatePriority(category.category.id, value as BudgetPriority)} className="constraint-priority-select" aria-label={`${category.category.name}: ${t('budgets.constraints.priority')}`}><SelectOption value="HIGH">{t('budgets.constraints.high')}</SelectOption><SelectOption value="MEDIUM">{t('budgets.constraints.medium')}</SelectOption><SelectOption value="LOW">{t('budgets.constraints.low')}</SelectOption></Select></div>}</div>
-                        <span className="constraint-range">{fixed ? t('budgets.constraints.fixedAmount', {amount: formatMoney(min, currency, locale)}) : `${formatMoney(min, currency, locale)} – ${formatMoney(max, currency, locale)}`}</span>
+                        <span className="constraint-range constraint-range-group"><span>{fixed ? t('budgets.constraints.fixedAmount', {amount: formatMoney(min, currency, locale)}) : `${formatMoney(min, currency, locale)} – ${formatMoney(max, currency, locale)}`}</span>{manuallyAdded && <button type="button" className="constraint-remove" aria-label={t('budgets.constraints.removeCategory', {category: category.category.name})} title={t('budgets.constraints.removeCategory', {category: category.category.name})} onClick={() => removeManualCategory(category.category.id)}><Icon name="trash"/></button>}</span>
                     </article>
                 })}</div>
             </section>
@@ -188,5 +266,25 @@ export function BudgetConstraintsStep({plan, currency, onBack, onSaved, onContin
             <section className="recurring-protection-card"><header><Icon name="shield"/><h2>{t('budgets.constraints.recurringProtection')}</h2></header>{protectedCategories.map((category) => <div key={category.category.id}><span>{category.category.name}</span><strong>{formatMoney(category.requiredAmount, currency, locale)}</strong></div>)}<p>{t('budgets.constraints.recurringProtectionHint')}</p></section>
         </aside></div>
         <footer className="constraints-footer"><button type="button" className="secondary back" onClick={onBack}><Icon name="arrow-down-left"/>{t('budgets.constraints.back')}</button><div/><button type="button" className="secondary" disabled={saving} onClick={() => void save(false)}>{saving ? t('budgets.constraints.saving') : t('budgets.planning.saveDraft')}</button><button type="button" className="primary" disabled={saving || !feasible} onClick={() => void save(true)}>{t('budgets.constraints.continue')}<Icon name="arrow-right"/></button></footer>
+        {selectedCategory && <RecurringConstraintModal
+            key={selectedCategory.category.id}
+            category={selectedCategory}
+            currency={currency}
+            initialSelectedSourceKeys={initialRecurringSelection}
+            items={selectedRecurringItems}
+            locale={locale}
+            month={plan.month}
+            status={forecastPlanId === plan.id ? forecastStatus : 'loading'}
+            onApply={selectedCategory.allocationType === 'VARIABLE' ? (amount, sourceKeys) => applyRecurringMinimum(selectedCategory.category.id, amount, sourceKeys) : null}
+            onClose={() => setSelectedCategoryId(null)}
+            onRetry={() => void retryForecast()}
+        />}
+        {addCategoryOpen && <AddConstraintModal
+            currency={currency}
+            existingCategoryIds={categories.map((category) => category.category.id)}
+            locale={locale}
+            onAdd={addCategory}
+            onClose={() => setAddCategoryOpen(false)}
+        />}
     </>
 }

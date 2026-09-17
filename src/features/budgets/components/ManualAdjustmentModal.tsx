@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
+import {Select, SelectOption} from '../../../components/Select'
 import {getCategoryOptions} from '../../categories/api/categoriesApi'
 import type {CategoryOption} from '../../categories/api/categoriesApi'
 import type {BudgetForecastManualAdjustmentRequest, BudgetForecastOperationType} from '../api/budgetPlanningApi'
@@ -76,10 +77,10 @@ export function ManualAdjustmentModal({onClose, onAdd}: ManualAdjustmentModalPro
             <div className="forecast-manual-type" role="group">{(['EXPENSE', 'INCOME'] as const).map((type) => <button key={type} type="button" className={operationType === type ? 'active' : ''} onClick={() => setType(type)}>{type === 'EXPENSE' ? t('budgets.planning.expenses') : t('budgets.planning.income')}</button>)}</div>
             <label>{t('budgets.planning.manual.name')}<input value={title} onChange={(event) => setTitle(event.target.value)} placeholder={t('budgets.planning.manual.namePlaceholder')}/></label>
             <label>{t('budgets.planning.manual.category')}
-                <select value={categoryId} disabled={categoryStatus === 'loading'} onChange={(event) => {setCategoryId(event.target.value); setFormError('')}}>
-                    <option value="">{categoryStatus === 'loading' ? t('budgets.planning.manual.categoryLoading') : operationType === 'EXPENSE' ? t('budgets.planning.manual.categoryPlaceholder') : t('budgets.planning.manual.categoryOptional')}</option>
-                    {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
-                </select>
+                <Select aria-label={t('budgets.planning.manual.category')} value={categoryId} disabled={categoryStatus === 'loading'} onValueChange={(value) => {setCategoryId(value); setFormError('')}}>
+                    <SelectOption value="">{categoryStatus === 'loading' ? t('budgets.planning.manual.categoryLoading') : operationType === 'EXPENSE' ? t('budgets.planning.manual.categoryPlaceholder') : t('budgets.planning.manual.categoryOptional')}</SelectOption>
+                    {categories.map((category) => <SelectOption key={category.id} value={category.id}>{category.name}</SelectOption>)}
+                </Select>
             </label>
             {categoryStatus === 'error' && <div className="forecast-manual-error" role="alert">{t('budgets.planning.manual.categoryLoadError')} <button type="button" onClick={reloadCategories}>{t('budgets.tryAgain')}</button></div>}
             {categoryStatus === 'ready' && categories.length === 0 && <p className="forecast-manual-hint">{t('budgets.planning.manual.categoryEmpty')}</p>}
