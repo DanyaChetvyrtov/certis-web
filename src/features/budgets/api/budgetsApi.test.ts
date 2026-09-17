@@ -1,5 +1,5 @@
 import {http, HttpResponse} from 'msw'
-import {describe, expect, it} from 'vitest'
+import {describe, expect, it, vi} from 'vitest'
 import {server} from '../../../test/server'
 import {
     applyOptimization,
@@ -44,6 +44,22 @@ describe('budgetsApi', () => {
         ))
         await expect(getBudget(budget.month)).resolves.toEqual(budget)
         await expect(getBudget('2026-09')).resolves.toBeNull()
+    })
+
+    it('forwards AbortSignal to fetch when loading a budget', async () => {
+        // jsdom's AbortSignal and MSW's intercepted fetch are incompatible in this test environment.
+        // Assert the HTTP contract directly, while MSW exercises the response contract above.
+        const controller = new AbortController()
+        const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(HttpResponse.json(budget))
+        try {
+            await expect(getBudget(budget.month, controller.signal)).resolves.toEqual(budget)
+            expect(fetchSpy).toHaveBeenCalledWith(
+                expect.stringContaining(`/api/v1/budgets/${budget.month}`),
+                expect.objectContaining({signal: controller.signal}),
+            )
+        } finally {
+            fetchSpy.mockRestore()
+        }
     })
 
     it('saves only fields accepted by the backend', async () => {
