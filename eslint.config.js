@@ -19,4 +19,11 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  // Optimize's load callback only updates React state after awaiting server requests.
+  // The hook rule treats calling that async callback from an effect as synchronous
+  // even though there are no state changes before the first await.
+  {
+    files: ['src/features/budgets/components/BudgetOptimizeLiveStep.tsx'],
+    rules: {'react-hooks/set-state-in-effect': 'off'},
+  },
 ])

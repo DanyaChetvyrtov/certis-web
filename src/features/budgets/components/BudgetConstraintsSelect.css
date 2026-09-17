@@ -1,0 +1,347 @@
+.constraint-priority-control {
+    display: flex;
+    width: min(100%, 150px);
+    min-width: 0;
+    height: 34px;
+    align-items: center;
+    gap: 7px;
+    padding-left: 9px;
+    border: 1px solid #6e93bf;
+    border-radius: 8px;
+    color: #3d668f;
+    background: #edf5fc;
+    transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.constraint-classification-control {
+    display: flex;
+    width: min(100%, 150px);
+    min-width: 0;
+    height: 34px;
+    align-items: center;
+    gap: 7px;
+    padding-left: 9px;
+    border: 1px solid #69baa0;
+    border-radius: 8px;
+    color: #087b64;
+    background: #e5f7ef;
+    transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.constraint-classification-control.required {
+    border-color: #6e93bf;
+    color: #315b8a;
+    background: #e7f0fa;
+}
+
+.constraint-classification-control > svg {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+}
+
+.constraint-classification-control:focus-within {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+.constraint-classification-control .constraint-classification-select.certis-select {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    padding: 0 8px 0 0;
+    border: 0;
+    border-radius: 0;
+    color: inherit;
+    background: transparent;
+    box-shadow: none;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.constraint-classification-control .constraint-classification-select.certis-select:focus-visible {
+    outline: none;
+}
+
+.constraint-classification-control .certis-select-chevron {
+    color: inherit;
+}
+
+.constraint-priority-control > svg {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+}
+
+.constraint-priority-control.high {
+    border-color: #d5ab43;
+    color: #8b6a16;
+    background: #fff9e8;
+}
+
+.constraint-priority-control.medium {
+    border-color: #6e93bf;
+    color: #3d668f;
+    background: #edf5fc;
+}
+
+.constraint-priority-control.low {
+    border-color: #69baa0;
+    color: #087b64;
+    background: #e5f7ef;
+}
+
+.constraint-priority-control:focus-within {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+.constraint-priority-control .constraint-priority-select.certis-select {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    padding: 0 8px 0 0;
+    border: 0;
+    border-radius: 0;
+    color: inherit;
+    background: transparent;
+    box-shadow: none;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.constraint-priority-control .constraint-priority-select.certis-select:focus-visible {
+    outline: none;
+}
+
+.constraint-priority-control .certis-select-chevron {
+    color: inherit;
+}
+
+html[data-theme='dark'] .constraint-priority-control {
+    border-color: #3d668f;
+    color: #9bc1e9;
+    background: #19344f;
+}
+
+html[data-theme='dark'] .constraint-classification-control {
+    border-color: #246e5b;
+    color: #83dec0;
+    background: #103b33;
+}
+
+html[data-theme='dark'] .constraint-classification-control.required {
+    border-color: #3d668f;
+    color: #a7caef;
+    background: #183a5d;
+}
+
+html[data-theme='dark'] .constraint-classification-control .constraint-classification-select.certis-select {
+    color: inherit;
+    background: transparent;
+}
+
+html[data-theme='dark'] .constraint-priority-control.high {
+    border-color: #806c35;
+    color: #e4c56f;
+    background: #39331f;
+}
+
+html[data-theme='dark'] .constraint-priority-control.medium {
+    border-color: #3d668f;
+    color: #9bc1e9;
+    background: #19344f;
+}
+
+html[data-theme='dark'] .constraint-priority-control.low {
+    border-color: #246e5b;
+    color: #83dec0;
+    background: #103b33;
+}
+
+html[data-theme='dark'] .constraint-priority-control .constraint-priority-select.certis-select {
+    color: inherit;
+    background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .constraint-priority-control,
+    .constraint-classification-control {
+        transition: none;
+    }
+}
+
+/* Constraints must respond to the usable workspace width (sidebar excluded),
+   then to the category column itself. Viewport breakpoints alone leave a five-
+   column row wider than the card on intermediate desktop widths. */
+.budgets-main.forecast-page {
+    container-name: forecast-workspace;
+    container-type: inline-size;
+}
+
+.constraints-layout > *,
+.constraints-insights > section,
+.constraints-summary-cards > article,
+.constraints-card,
+.constraints-list article > *,
+.allocation-levels-card article > div {
+    min-width: 0;
+}
+
+.constraints-primary {
+    container: constraints-primary / inline-size;
+}
+
+.constraint-minimum label,
+.constraint-minimum input,
+.constraint-classification-control,
+.constraint-priority,
+.constraint-priority-control {
+    max-width: 100%;
+}
+
+.constraint-minimum input {
+    min-width: 0;
+}
+
+.constraint-range {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+@container forecast-workspace (max-width: 1200px) {
+    .constraints-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .constraints-insights {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        align-items: start;
+    }
+}
+
+@container forecast-workspace (max-width: 850px) {
+    .constraints-insights {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@container constraints-primary (max-width: 900px) {
+    .constraints-table-head {
+        display: none;
+    }
+
+    .constraints-list article {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 16px;
+        row-gap: 11px;
+        align-items: center;
+    }
+
+    .constraint-category {
+        grid-column: 1 / -1;
+        grid-row: 1;
+    }
+
+    .constraint-classification,
+    .constraint-classification-control {
+        grid-column: 1;
+        grid-row: 2;
+        width: fit-content;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+    }
+
+    .constraint-minimum {
+        grid-column: 2;
+        grid-row: 2;
+    }
+
+    .constraint-priority {
+        grid-column: 1;
+        grid-row: 3;
+    }
+
+    .constraint-range {
+        grid-column: 2;
+        grid-row: 3;
+    }
+
+    .allocation-levels-card > div {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .allocation-levels-card > header {
+        flex-wrap: wrap;
+    }
+}
+
+@container constraints-primary (max-width: 750px) {
+    .constraints-summary-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .constraints-summary-cards article:last-child {
+        grid-column: 1 / -1;
+    }
+}
+
+@container forecast-workspace (max-width: 600px) {
+    .constraints-insights {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .constraints-footer {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .constraints-footer > div {
+        display: none;
+    }
+
+    .constraints-footer .back {
+        grid-column: 1 / -1;
+        justify-self: stretch;
+    }
+}
+
+@container constraints-primary (max-width: 560px) {
+    .constraints-summary-cards {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .constraints-summary-cards article:last-child {
+        grid-column: auto;
+    }
+
+    .constraints-card > header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .constraints-list article {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .constraint-category,
+    .constraint-classification,
+    .constraint-classification-control,
+    .constraint-minimum,
+    .constraint-priority,
+    .constraint-range {
+        grid-column: 1;
+        grid-row: auto;
+    }
+}
+
+@container forecast-workspace (max-width: 440px) {
+    .constraints-footer {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .constraints-footer .back {
+        grid-column: 1;
+    }
+}
