@@ -18,9 +18,15 @@ import {AccountFormModal} from '../features/accounts/components/AccountFormModal
 import {useSession} from '../features/auth/session/SessionContext'
 import {getCategoryOptions} from '../features/categories/api/categoriesApi'
 import type {Category} from '../features/categories/api/categoriesApi'
-import {BudgetRing} from '../features/dashboard/components/BudgetRing'
+import {DashboardBudgetPanel} from '../features/dashboard/components/DashboardBudgetPanel'
 import {CashFlowPanel} from '../features/dashboard/components/CashFlowPanel'
 import {CategorySpendingPanels} from '../features/dashboard/components/CategorySpendingPanels'
+import {
+    dashboardBudgetCopy,
+    formatDashboardMoney,
+    getSavingsRate,
+} from '../features/dashboard/dashboardBudgetPresentation'
+import {useDashboardBudget} from '../features/dashboard/hooks/useDashboardBudget'
 import {
     useMonthlyTransactionAnalytics,
 } from '../features/dashboard/hooks/useMonthlyTransactionAnalytics'
@@ -389,6 +395,15 @@ export function DashboardPage() {
         dashboardRevision,
     )
     const {
+        budget: dashboardBudget,
+        loadState: dashboardBudgetState,
+    } = useDashboardBudget(
+        currentMonth,
+        selectedCurrency,
+        !isProfileSetupOpen,
+        dashboardRevision,
+    )
+    const {
         transactions: recentTransactions,
         loadState: recentTransactionsState,
         reload: reloadRecentTransactions,
@@ -468,6 +483,22 @@ export function DashboardPage() {
         0,
     )
     const profileName = profile?.name ?? t('dashboard.greeting.fallbackName')
+    const budgetCopy = dashboardBudgetCopy(locale)
+    const savingsRate = getSavingsRate(dashboardBudget)
+    const savingsRateLoading = dashboardBudgetState === 'loading' || dashboardBudgetState === 'idle'
+    const savingsRateValue = dashboardBudgetState === 'error'
+        ? '—'
+        : savingsRate === null
+            ? '—'
+            : `${new Intl.NumberFormat(locale, {maximumFractionDigits: 1}).format(savingsRate)}%`
+    const savingsRateHint = dashboardBudgetState === 'error'
+        ? budgetCopy.budgetLoadError
+        : dashboardBudget
+            ? budgetCopy.savingsHint(
+                formatDashboardMoney(Number(dashboardBudget.savingsTarget), selectedCurrency, locale),
+                formatDashboardMoney(Number(dashboardBudget.monthlyIncome), selectedCurrency, locale),
+            )
+            : budgetCopy.noSavingsRate
 
     const completeProfileSetup = (createdProfile: Profile) => {
         setRequestedCurrency(createdProfile.preferredCurrency)
@@ -601,8 +632,9 @@ export function DashboardPage() {
                     />
                     <SummaryCard
                         label={t('dashboard.savingsRate')}
-                        value="0%"
-                        hint={t('dashboard.firstMonthHint')}
+                        loading={savingsRateLoading}
+                        value={savingsRateValue}
+                        hint={savingsRateHint}
                         icon="piggy-bank"
                         tone="gold"
                     />
@@ -612,20 +644,12 @@ export function DashboardPage() {
                     <CashFlowPanel currency={selectedCurrency} enabled={!isProfileSetupOpen}
                         refreshRevision={dashboardRevision}/>
 
-                    <article className="dashboard-panel budget-panel">
-                        <PanelHeader eyebrow={t('dashboard.thisMonth')} title={t('dashboard.budgetOverview')} action={t('dashboard.manage')}/>
-                        <div className="budget-overview">
-                            <BudgetRing percentage={0}/>
-                            <div>
-                                <span>{t('dashboard.totalBudget')}</span>
-                                <strong>{formatMoney(0, selectedCurrency, locale)}</strong>
-                                <small>{t('dashboard.noBudget')}</small>
-                            </div>
-                        </div>
-                        <EmptyState icon="gauge" title={t('dashboard.planMonth')}>
-                            {t('dashboard.budgetEmpty')}
-                        </EmptyState>
-                    </article>
+                    <DashboardBudgetPanel
+                        budget={dashboardBudget}
+                        loadState={dashboardBudgetState}
+                        currency={selectedCurrency}
+                        locale={locale}
+                    />
                 </section>
 
                 <section className="dashboard-detail-grid">
