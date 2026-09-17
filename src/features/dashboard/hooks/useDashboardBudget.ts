@@ -41,7 +41,7 @@ export function useDashboardBudget(
                     setBudget(response?.currency === currency ? response : null)
                     setLoadState('ready')
                 },
-                (error: unknown) => {
+                () => {
                     if (controller.signal.aborted) return
                     if (isActive && requestId === loadRequestIdRef.current) {
                         setBudget(null)
