@@ -10,7 +10,7 @@ import {
 } from '../../../components/Icons'
 import {
     WorkspaceSidebar,
-} from '../../../layouts/WorkspaceSidebar'
+} from '../../../widgets/workspace-shell'
 import {useSession} from '../../../features/auth/session/SessionContext'
 import type {
     Transaction,

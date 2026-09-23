@@ -6,12 +6,17 @@ import path from 'node:path'
 import {checkImport, getImports} from './check-fsd-boundaries.mjs'
 
 const page = 'src/pages/transactions/ui/TransactionsPage.tsx'
+const widget = 'src/widgets/workspace-shell/ui/WorkspaceSidebar.tsx'
 
 describe('FSD import boundaries', () => {
     it('accepts internal and downward public imports', () => {
         expect(checkImport(page, '../model/selectors')).toBeNull()
         expect(checkImport(page, '../../../features/transaction-navigation')).toBeNull()
         expect(checkImport(page, '../../../shared/api/client')).toBeNull()
+        expect(checkImport(page, '../../../widgets/workspace-shell')).toBeNull()
+        expect(checkImport(widget, '../model/navigation')).toBeNull()
+        expect(checkImport(widget, '../../../features/transaction-navigation')).toBeNull()
+        expect(checkImport(widget, '../../../components/Icons')).toBeNull()
     })
 
     it('rejects upward, peer and deep cross-slice imports', () => {
@@ -19,6 +24,9 @@ describe('FSD import boundaries', () => {
             '../../pages/transactions')).toContain('upward')
         expect(checkImport(page, '../../accounts')).toContain('peer')
         expect(checkImport(page, '../../../features/transaction-navigation/internal')).toContain('public index')
+        expect(checkImport(widget, '../../../pages/transactions')).toContain('upward')
+        expect(checkImport(widget, '../../other-widget')).toContain('peer')
+        expect(checkImport(widget, '../../../features/transaction-navigation/internal')).toContain('public index')
     })
 
     it('checks dynamic imports and re-exports', () => {
@@ -32,6 +40,8 @@ describe('FSD import boundaries', () => {
         expect(checkImport(page, '../../../features/accounts/api/accountsApi')).toBeNull()
         expect(checkImport(page, '../../../features/accounts/api/other')).toContain('unlisted legacy')
         expect(checkImport(page, '../../../layouts/Unknown')).toContain('unlisted legacy')
+        expect(checkImport(page, '../../../layouts/WorkspaceSidebar')).toContain('unlisted legacy')
+        expect(checkImport(widget, '../../../features/profile/Unknown')).toContain('unlisted legacy')
     })
 
     it('exits nonzero for an unlisted project import', () => {
@@ -41,6 +51,25 @@ describe('FSD import boundaries', () => {
             mkdirSync(directory, {recursive: true})
             writeFileSync(path.join(directory, 'Bad.tsx'),
                 "import '../../../layouts/Unknown'\n")
+            const result = spawnSync(process.execPath, [
+                'scripts/check-fsd-boundaries.mjs', project,
+            ], {encoding: 'utf8'})
+            expect(result.status).toBe(1)
+            expect(result.stderr).toContain('unlisted legacy import')
+        } finally {
+            if (path.resolve(project).startsWith(path.resolve(tmpdir()) + path.sep)) {
+                rmSync(project, {recursive: true, force: true})
+            }
+        }
+    })
+
+    it('checks new widget files as migrated code', () => {
+        const project = mkdtempSync(path.join(tmpdir(), 'certis-fsd-widget-'))
+        try {
+            const directory = path.join(project, 'src/widgets/workspace-shell/ui')
+            mkdirSync(directory, {recursive: true})
+            writeFileSync(path.join(directory, 'Bad.tsx'),
+                "import '../../../features/profile/Unknown'\n")
             const result = spawnSync(process.execPath, [
                 'scripts/check-fsd-boundaries.mjs', project,
             ], {encoding: 'utf8'})

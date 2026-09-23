@@ -38,7 +38,7 @@ vi.mock('../../../features/auth/session/SessionContext', () => ({
     }),
 }))
 
-vi.mock('../../../layouts/WorkspaceSidebar', () => ({
+vi.mock('../../../widgets/workspace-shell', () => ({
     WorkspaceSidebar: ({
         activePage,
     }: {

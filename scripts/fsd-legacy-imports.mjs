@@ -1,7 +1,9 @@
-// Exact transitional dependencies of the Transactions page. Keep this list in
+// Exact transitional dependencies of migrated slices. Keep this list in
 // sync with docs/architecture.md; remove entries as their owners migrate.
 const page = 'src/pages/transactions'
 const owner = 'Transactions page migration'
+const widget = 'src/widgets/workspace-shell'
+const widgetOwner = 'Workspace shell migration'
 
 export const legacyImports = [
   ['src/features/accounts/api/accountsApi', 'account entity extraction'],
@@ -25,6 +27,13 @@ export const legacyImports = [
     `src/components/${name}`,
     'shared UI migration',
   ]),
-  ['src/layouts/WorkspaceSidebar', 'workspace shell migration'],
   ['src/i18n/useLanguage', 'localization API migration'],
-].map(([target, removeWhen]) => ({source: page, target, owner, removeWhen}))
+].map(([target, removeWhen]) => ({source: page, target, owner, removeWhen})).concat(
+  [
+    ['src/components/Icons', 'shared UI migration'],
+    ['src/features/auth/session/SessionContext', 'session API migration'],
+    ['src/features/profile/ProfileModal', 'profile workflow migration'],
+    ['src/features/profile/profilePhoto', 'profile model migration'],
+    ['src/features/settings/SettingsModal', 'settings workflow migration'],
+  ].map(([target, removeWhen]) => ({source: widget, target, owner: widgetOwner, removeWhen})),
+)

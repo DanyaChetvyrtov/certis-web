@@ -5,7 +5,7 @@ import {
 } from 'react'
 import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
-import {WorkspaceSidebar} from '../../../layouts/WorkspaceSidebar'
+import {WorkspaceSidebar} from '../../../widgets/workspace-shell'
 import {useSession} from '../../auth/session/SessionContext'
 import type {
     Category,

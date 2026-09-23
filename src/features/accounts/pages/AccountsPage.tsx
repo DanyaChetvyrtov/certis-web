@@ -2,7 +2,7 @@ import {Select, SelectOption} from '../../../components/Select'
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {Icon} from '../../../components/Icons'
-import {WorkspaceSidebar} from '../../../layouts/WorkspaceSidebar'
+import {WorkspaceSidebar} from '../../../widgets/workspace-shell'
 import {ApiError} from '../../../shared/api/ApiError'
 import {
     accountTypes,

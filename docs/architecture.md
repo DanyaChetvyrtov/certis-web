@@ -1,7 +1,8 @@
 # Application architecture
 
 Feature-Sliced Design (FSD) is the placement rule for **new product code**. The
-Transactions route is the first migrated page. Existing broad modules under
+Transactions route is the first migrated page, and `widgets/workspace-shell`
+owns the navigation used by all six protected screens. Existing broad modules under
 `src/features/*` remain legacy until their own migration; a maintenance change
 inside one of them does not require moving the whole module.
 
@@ -18,7 +19,7 @@ re-export of a legacy folder.
 | --- | --- | --- |
 | `app` | Routing and application setup | `AppRouter` |
 | `pages` | Route composition, route-local state and data | `pages/transactions` |
-| `widgets` | Reusable composed screen blocks | Add when a block has multiple page consumers |
+| `widgets` | Reusable composed screen blocks | `widgets/workspace-shell` |
 | `features` | User actions and workflows | `transaction-navigation` remembers the last Transactions URL |
 | `entities` | Reusable domain data and presentation | Add when transaction/account models have independent owners |
 | `shared` | Generic API, controls, utilities | `shared/api/client` |
@@ -35,8 +36,8 @@ when migrating CSS so the theme and responsive behavior stay stable.
 
 New standalone routes use `pages/<slice>` and new workflows use
 `features/<slice>`. The older `src/features/accounts`, `auth`, `categories`,
-`transactions`, etc. are not yet FSD slices. `src/components`, `src/layouts`,
-and `src/i18n` are also transitional top-level folders. They may be maintained
+`transactions`, etc. are not yet FSD slices. `src/components` and `src/i18n`
+are also transitional top-level folders. They may be maintained
 in place; new migrated slices can use only the exact integrations below. The
 machine-readable list in `scripts/fsd-legacy-imports.mjs` is checked by
 `npm run lint:architecture` and carries the owner and removal point.
@@ -46,11 +47,20 @@ machine-readable list in `scripts/fsd-legacy-imports.mjs` is checked by
 | `pages/transactions` | `features/accounts/api/accountsApi`, `features/auth/session/SessionContext`, `features/categories/api/categoriesApi` | Extract account/category entities and session public API |
 | `pages/transactions` | `features/transactions/api/{transactionsApi,transfersApi}` | Extract transaction/transfer entities |
 | `pages/transactions` | `features/transactions/components/{DeleteTransactionDialog,TransactionActionMenu,TransactionFormModal,RecurringTransactionsView,ReverseTransferDialog,TransferActionMenu,TransferFormModal}` | Migrate each action and recurring workflow |
-| `pages/transactions` | `components/{DateTimeField,Select,Icons}`, `layouts/WorkspaceSidebar`, `i18n/useLanguage` | Migrate shared UI, shell, and localization APIs |
+| `pages/transactions` | `components/{DateTimeField,Select,Icons}`, `i18n/useLanguage` | Migrate shared UI and localization APIs |
+| `widgets/workspace-shell` | `components/Icons` | Migrate shared UI |
+| `widgets/workspace-shell` | `features/auth/session/SessionContext` | Migrate session public API |
+| `widgets/workspace-shell` | `features/profile/{ProfileModal,profilePhoto}` | Migrate profile workflow and model |
+| `widgets/workspace-shell` | `features/settings/SettingsModal` | Migrate settings workflow |
 
 The list is exact by target module, not a directory wildcard. Add an exception
 only with a named owner and intended removal point. Do not import a page or
 `app` from a lower layer to bridge a transition. Remove exceptions as owners
 migrate. The boundary check currently covers production files in
-`pages/transactions` and `features/transaction-navigation`; other legacy
-internals will join when migrated.
+`pages/transactions`, `widgets/workspace-shell`, and
+`features/transaction-navigation`; other legacy internals will join when
+migrated. Dashboard in `pages/DashboardPage.tsx` and the
+Accounts, Budgets, Goals, and Categories pages under legacy `features/*` consume
+`widgets/workspace-shell` during this transition. Their upward imports are not
+treated as migrated-slice code; each will move to a `pages/*` slice in a later
+change.

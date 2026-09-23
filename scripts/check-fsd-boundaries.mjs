@@ -6,7 +6,11 @@ import {legacyImports} from './fsd-legacy-imports.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const layers = ['app', 'pages', 'widgets', 'features', 'entities', 'shared']
-const migratedSlices = new Set(['pages/transactions', 'features/transaction-navigation'])
+const migratedSlices = new Set([
+  'pages/transactions',
+  'widgets/workspace-shell',
+  'features/transaction-navigation',
+])
 
 const slash = (value) => value.replaceAll('\\', '/')
 const withoutExtension = (value) => value.replace(/\.(?:tsx?|jsx?|mjs|css)$/, '')
