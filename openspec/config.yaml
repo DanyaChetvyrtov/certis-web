@@ -1,0 +1,68 @@
+schema: spec-driven
+
+context: |
+  Certis Web is the frontend application of the Certis personal finance platform.
+
+  Tech stack:
+  - React 19
+  - TypeScript 6
+  - Vite 8
+  - React Router 7
+  - Recharts 3
+  - i18next + react-i18next
+  - Radix UI
+  - Vitest
+  - Testing Library
+  - MSW
+  - ESLint
+
+  Architecture:
+  - The application uses a feature-oriented architecture.
+  - Feature-specific code belongs under src/features/<feature>.
+  - Cross-feature reusable UI belongs under src/components.
+  - Shared API clients, hooks and utilities belong under src/shared.
+  - Application-level page composition belongs under src/pages.
+  - Routing and route guards belong under src/app.
+
+  Backend:
+  - certis-api is a separate repository.
+  - Do not assume backend changes can be made as part of a certis-web change.
+  - Existing API contracts should be preserved unless the change explicitly
+    states that a backend contract has already changed.
+
+  Product:
+  - The UI supports both English and Russian.
+  - The UI supports light and dark themes.
+  - The application supports multiple currencies.
+
+  Quality:
+  - Prefer existing components and patterns over introducing duplicates.
+  - Avoid unnecessary cross-feature dependencies.
+  - New behavior should have automated tests when practical.
+  - Before completing implementation run:
+    npm run lint
+    npm test
+    npm run build
+
+rules:
+  proposal:
+    - Clearly state the user-facing problem being solved.
+    - Explicitly state what is out of scope.
+    - Identify affected Certis Web features.
+
+  specs:
+    - Describe observable user behavior rather than implementation details.
+    - Include acceptance scenarios for important behavior and edge cases.
+    - Consider localization when new user-facing text is introduced.
+    - Consider both light and dark themes when UI is changed.
+
+  design:
+    - Reuse the existing feature-oriented architecture.
+    - Identify existing components, hooks, and API clients that can be reused.
+    - Explicitly describe any API contract assumptions.
+    - Avoid introducing new shared abstractions unless multiple features need them.
+
+  tasks:
+    - Separate implementation and automated test tasks.
+    - Include localization updates when user-facing text changes.
+    - Finish with lint, test, and production build verification.
