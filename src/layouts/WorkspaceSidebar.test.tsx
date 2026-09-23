@@ -17,7 +17,7 @@ import {
 } from 'vitest'
 import {
     rememberTransactionsDestination,
-} from '../app/transactionsDestination'
+} from '../features/transaction-navigation'
 import {WorkspaceSidebar} from './WorkspaceSidebar'
 
 const session = vi.hoisted(() => ({

@@ -16,7 +16,7 @@ import {useSession} from '../features/auth/session/SessionContext'
 import {
     clearTransactionsDestination,
     getTransactionsDestination,
-} from '../app/transactionsDestination'
+} from '../features/transaction-navigation'
 import {ApiError} from '../shared/api/ApiError'
 import './WorkspaceSidebar.css'
 import {

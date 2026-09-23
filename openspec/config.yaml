@@ -17,12 +17,16 @@ context: |
   - ESLint
 
   Architecture:
-  - The application uses a feature-oriented architecture.
-  - Feature-specific code belongs under src/features/<feature>.
-  - Cross-feature reusable UI belongs under src/components.
-  - Shared API clients, hooks and utilities belong under src/shared.
-  - Application-level page composition belongs under src/pages.
-  - Routing and route guards belong under src/app.
+  - Feature-Sliced Design (FSD) is the standard for new product code.
+  - Dependencies point app -> pages -> widgets -> features -> entities -> shared.
+  - Cross-slice imports use public index.ts entry points; create layers only when needed.
+  - src/pages/transactions and src/features/transaction-navigation are migrated slices.
+  - Other broad src/features/* modules, src/components, src/layouts and src/i18n
+    remain legacy/transitional and migrate incrementally.
+  - Exact allowed imports from migrated slices into legacy modules are listed in
+    scripts/fsd-legacy-imports.mjs and explained in docs/architecture.md.
+  - UI CSS belongs beside its page, widget or component owner. Global theme
+    primitives remain application-level concerns during migration.
 
   Backend:
   - certis-api is a separate repository.
@@ -57,7 +61,7 @@ rules:
     - Consider both light and dark themes when UI is changed.
 
   design:
-    - Reuse the existing feature-oriented architecture.
+    - Use FSD placement for new product code and describe any legacy integrations.
     - Identify existing components, hooks, and API clients that can be reused.
     - Explicitly describe any API contract assumptions.
     - Avoid introducing new shared abstractions unless multiple features need them.

@@ -21,6 +21,7 @@ import type {
 import {CancelRecurringTransactionDialog} from './CancelRecurringTransactionDialog'
 import {RecurringTransactionFormModal} from './RecurringTransactionFormModal'
 import './RecurringTransactionsView.css'
+import './TransactionsDarkTheme.css'
 import {useLanguage} from '../../../i18n/useLanguage'
 import type {TFunction} from 'i18next'
 

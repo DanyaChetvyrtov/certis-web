@@ -137,7 +137,7 @@ The product is centered around three ideas:
 
 Certis Web is the frontend of the Certis platform. The backend is maintained separately in [`certis-api`](https://github.com/DanyaChetvyrtov/certis-api).
 
-The frontend uses a feature-oriented React architecture and communicates with the API over HTTP. Authentication is cookie-based, so access and refresh tokens remain browser-managed rather than being stored in JavaScript-accessible storage.
+The frontend uses Feature-Sliced Design (FSD) for new product code and is migrating existing feature-oriented modules incrementally. See [the architecture guide](docs/architecture.md) for layer ownership, import rules, CSS ownership, and the explicit legacy transition list. The application communicates with the API over HTTP. Authentication is cookie-based, so access and refresh tokens remain browser-managed rather than being stored in JavaScript-accessible storage.
 
 ### Stack
 
@@ -183,7 +183,8 @@ VITE_API_URL=
 
 ```bash
 npm run dev        # Start the development server
-npm run lint       # Run ESLint
+npm run lint       # Run ESLint and FSD import-boundary checks
+npm run lint:architecture # Run only the FSD import-boundary check
 npm test           # Run the Vitest suite
 npm run test:watch # Run tests in watch mode
 npm run build      # Type-check and build for production
@@ -202,25 +203,24 @@ npm run build
 
 ```text
 src/
-├── app/            # Routing and route guards
-├── components/     # Reusable cross-feature UI
-├── features/       # Product feature modules
-│   ├── accounts/
-│   ├── auth/
-│   ├── budgets/
-│   ├── categories/
-│   ├── dashboard/
-│   ├── goals/
-│   ├── landing/
-│   ├── profile/
-│   ├── settings/
-│   └── transactions/
-├── i18n/           # Localization
-├── layouts/        # Shared layouts
-├── pages/          # Application-level page composition
-├── shared/         # Shared API client, hooks, and utilities
+├── app/            # Application routing, guards and setup
+├── pages/
+│   └── transactions/  # Migrated route slice: public API, model, UI and CSS
+├── features/
+│   ├── transaction-navigation/ # Migrated workflow slice
+│   └── */          # Other existing product modules (legacy until migrated)
+├── shared/         # Shared infrastructure and utilities
+├── components/     # Transitional shared controls
+├── layouts/        # Transitional workspace shell
+├── i18n/           # Transitional localization infrastructure
 └── test/           # Shared test setup
 ```
+
+New pages, features, widgets and entities follow the FSD dependency direction
+`app → pages → widgets → features → entities → shared` and use slice public APIs
+for cross-slice imports. Create layers only when needed. The import checker is
+currently scoped to `pages/transactions` and `features/transaction-navigation`;
+exact legacy integrations are listed in `scripts/fsd-legacy-imports.mjs`.
 
 ### CI and Docker
 

@@ -30,6 +30,7 @@ import type {
     TransactionType,
 } from '../api/transactionsApi'
 import './TransactionFormModal.css'
+import './TransactionsDarkTheme.css'
 
 type TransactionFormModalProps = {
     accounts: Account[]

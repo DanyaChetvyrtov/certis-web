@@ -107,7 +107,6 @@ html[data-theme='dark'] .form-notice-success {
 html[data-theme='dark'] :is(
     .dashboard-shell,
     .accounts-workspace,
-    .transactions-workspace,
     .categories-workspace,
     .budgets-workspace
 ) {
@@ -176,15 +175,6 @@ html[data-theme='dark'] :is(
     .dashboard-panel,
     .accounts-summary-card,
     .accounts-list-card,
-    .transaction-metrics article,
-    .transaction-activity-card,
-    .spending-category-card,
-    .transaction-quick-filters,
-    .recurring-transactions-card,
-    .recurring-list-card,
-    .upcoming-card,
-    .scheduled-flow-card,
-    .recurring-info-card,
     .categories-card,
     .category-analytics-card,
     .budget-summary article,
@@ -199,7 +189,6 @@ html[data-theme='dark'] :is(
 
 html[data-theme='dark'] :is(
     .total-balance-panel,
-    .transaction-activity-heading,
     .categories-toolbar,
     .category-item-stats,
     .category-pagination
@@ -222,23 +211,6 @@ html[data-theme='dark'] :is(
     .account-identity strong,
     .account-balance strong,
     .account-empty-state h3,
-    .transactions-page-header h1,
-    .transaction-metrics strong,
-    .transaction-activity-heading h2,
-    .spending-category-card h2,
-    .transaction-quick-filters h2,
-    .transaction-date-group > h3,
-    .transaction-identity strong,
-    .transaction-details > .transaction-amount,
-    .transaction-empty-state h3,
-    .spending-category-list p strong,
-    .recurring-transactions-card strong,
-    .recurring-list-card h2,
-    .recurring-side-column h2,
-    .recurring-row > div > strong,
-    .recurring-row > strong,
-    .upcoming-card article div > strong,
-    .upcoming-card article > strong,
     .categories-page-header h1,
     .categories-card-heading h2,
     .category-item-heading h3,
@@ -278,30 +250,6 @@ html[data-theme='dark'] :is(
     .account-table-head,
     .account-identity small,
     .account-balance small,
-    .transactions-page-header p,
-    .transaction-metrics p,
-    .transaction-metrics small,
-    .transaction-activity-heading p,
-    .spending-category-card header p,
-    .transaction-quick-filters header p,
-    .transaction-column-headings,
-    .transaction-identity small,
-    .transaction-identity em,
-    .transaction-details > span,
-    .transaction-details > time,
-    .transaction-empty-state p,
-    .spending-category-list p,
-    .spending-category-message p,
-    .transaction-quick-filters > label,
-    .recurring-transactions-card p,
-    .recurring-list-card header p,
-    .recurring-side-column header p,
-    .recurring-table-heading,
-    .recurring-row > div > small,
-    .recurring-list-card > footer,
-    .upcoming-card article div > small,
-    .recurring-side-empty,
-    .scheduled-flow-card > p,
     .categories-page-header p,
     .categories-card-heading p,
     .category-item-heading p,
@@ -334,14 +282,6 @@ html[data-theme='dark'] :is(
     .balance-type-heading .certis-select,
     .account-search-field,
     .account-sort-field,
-    .transaction-period-button,
-    .transaction-search-field,
-    .transaction-activity-tools > button,
-    .transaction-activity-tools > span,
-    .spending-category-currency.certis-select,
-    .quick-filter-select,
-    .recurring-list-tools label,
-    .recurring-list-tools .certis-select,
     .category-search-field,
     .category-currency-field,
     .category-sort-field,
@@ -358,8 +298,6 @@ html[data-theme='dark'] :is(
 html[data-theme='dark'] :is(
     .dashboard-currency-action .certis-select,
     .account-search-field input,
-    .transaction-search-field input,
-    .recurring-list-tools input,
     .category-search-field input
 ) {
     color: #dce7f2;
@@ -368,15 +306,12 @@ html[data-theme='dark'] :is(
 html[data-theme='dark'] :is(
     .dashboard-currency-action .certis-select,
     .account-search-field input,
-    .transaction-search-field input,
-    .recurring-list-tools input,
     .category-search-field input
 )::placeholder {
     color: #71869c;
 }
 
 html[data-theme='dark'] :is(
-    .transaction-view-tabs,
     .category-status-tabs
 ) {
     border-color: #29435f;
@@ -385,8 +320,6 @@ html[data-theme='dark'] :is(
 
 html[data-theme='dark'] :is(
     .account-filter-tabs button,
-    .transaction-type-tabs button,
-    .transaction-view-tabs button,
     .category-status-tabs button,
     .category-type-tabs button,
     .budget-filters button
@@ -396,8 +329,6 @@ html[data-theme='dark'] :is(
 
 html[data-theme='dark'] :is(
     .account-filter-tabs button.active,
-    .transaction-type-tabs button.active,
-    .transaction-view-tabs button.active,
     .category-status-tabs button.active,
     .category-type-tabs button.active,
     .budget-filters button.active
@@ -434,8 +365,6 @@ html[data-theme='dark'] .certis-select-option[data-state='checked'][data-highlig
 /* Workspace rows and empty states */
 html[data-theme='dark'] :is(
     .account-row,
-    .transaction-row,
-    .recurring-row,
     .category-item,
     .budget-allocation-row
 ) {
@@ -445,8 +374,6 @@ html[data-theme='dark'] :is(
 
 html[data-theme='dark'] :is(
     .account-row,
-    .transaction-row,
-    .recurring-row,
     .category-item,
     .budget-allocation-row
 ):hover {
@@ -456,7 +383,6 @@ html[data-theme='dark'] :is(
 
 html[data-theme='dark'] :is(
     .account-filter-tabs,
-    .transaction-type-tabs,
     .dashboard-account-row,
     .recent-transaction-row
 ) {
@@ -479,7 +405,6 @@ html[data-theme='dark'] :is(
     .summary-progress,
     .budget-category-copy > span,
     .savings-card > div,
-    .spending-progress,
     .category-item-progress,
     .category-coverage-progress,
     .top-category-progress
@@ -490,7 +415,6 @@ html[data-theme='dark'] :is(
 html[data-theme='dark'] :is(
     .dashboard-empty-state,
     .account-empty-state,
-    .transaction-empty-state,
     .category-empty-state,
     .top-categories-empty
 ) {
@@ -505,8 +429,7 @@ html[data-theme='dark'] .budget-state {
 }
 
 html[data-theme='dark'] :is(
-    .account-action-menu,
-    .transaction-action-popover
+    .account-action-menu
 ) {
     border-color: #36516d;
     background: #102842;
@@ -514,16 +437,13 @@ html[data-theme='dark'] :is(
 }
 
 html[data-theme='dark'] :is(
-    .account-action-menu button,
-    .transaction-action-popover button
+    .account-action-menu button
 ) {
     color: #c6d3e0;
 }
 
 html[data-theme='dark'] :is(
-    .account-action-menu button,
-    .transaction-action-popover button,
-    .recurring-row-actions button
+    .account-action-menu button
 ):hover {
     background: #1b3855;
 }
@@ -626,15 +546,12 @@ html[data-theme='dark'] :is(
 html[data-theme='dark'] :is(
     .summary-card-icon-navy,
     .budget-summary .navy,
-    .budget-type.fixed,
-    .transfer-state-pill,
-    .upcoming-card time
+    .budget-type.fixed
 ) {
     background: #213a55;
 }
 
 html[data-theme='dark'] :is(
-    .recurring-info-card,
     .category-create-card,
     .category-coverage-notice.complete
 ) {
@@ -646,9 +563,6 @@ html[data-theme='dark'] :is(
 html[data-theme='dark'] :is(
     .account-modal,
     .account-confirm-modal,
-    .transaction-modal,
-    .transaction-delete-dialog,
-    .recurring-modal,
     .category-modal,
     .category-archive-dialog,
     .uncategorized-modal,
@@ -664,8 +578,6 @@ html[data-theme='dark'] :is(
 
 html[data-theme='dark'] :is(
     .account-modal-heading,
-    .transaction-modal-heading,
-    .recurring-modal > header,
     .category-modal-heading,
     .uncategorized-modal-heading,
     .budget-modal > header,
@@ -679,9 +591,6 @@ html[data-theme='dark'] :is(
 
 html[data-theme='dark'] :is(
     .account-confirm-modal h2,
-    .transaction-modal-heading h2,
-    .transaction-delete-dialog h2,
-    .recurring-modal h2,
     .category-modal-heading h2,
     .category-archive-dialog h2,
     .uncategorized-modal-heading h2,
@@ -699,8 +608,6 @@ html[data-theme='dark'] :is(
 }
 
 html[data-theme='dark'] :is(
-    .transaction-modal-heading p,
-    .recurring-modal header p,
     .category-modal-heading p,
     .uncategorized-modal-heading p,
     .profile-editor-header p,
@@ -715,15 +622,11 @@ html[data-theme='dark'] :is(
 
 html[data-theme='dark'] :is(
     .account-modal-close,
-    .transaction-modal-heading > button,
-    .recurring-modal header button,
     .category-modal-heading > button,
     .uncategorized-modal-heading > button,
     .profile-editor-close,
     .settings-modal-close,
     .account-modal-actions button,
-    .transaction-modal-actions button,
-    .recurring-modal footer button,
     .category-modal-actions button,
     .category-archive-actions button,
     .uncategorized-modal-footer > button,
@@ -740,13 +643,6 @@ html[data-theme='dark'] :is(
     .account-form-field input,
     .account-form-field .certis-select,
     .account-type-grid label,
-    .transaction-amount-input,
-    .transaction-date-shell,
-    .transaction-note-field textarea,
-    .recurring-field input,
-    .recurring-field .certis-select,
-    .recurring-frequency-row > input,
-    .recurring-frequency-row button,
     .category-name-field input,
     .category-icon-options label,
     .category-preview,
@@ -766,8 +662,6 @@ html[data-theme='dark'] :is(
 }
 
 html[data-theme='dark'] :is(
-    .transaction-type-options,
-    .recurring-type > div,
     .category-type-options,
     .category-icon-options,
     .category-color-options
@@ -778,11 +672,6 @@ html[data-theme='dark'] :is(
 
 html[data-theme='dark'] :is(
     .account-form-field input,
-    .transaction-amount-input input,
-    .transaction-date-shell input,
-    .transaction-note-field textarea,
-    .recurring-field input,
-    .recurring-frequency-row > input,
     .category-name-field input,
     .uncategorized-search-field input,
     .budget-modal input,
@@ -794,17 +683,6 @@ html[data-theme='dark'] :is(
 }
 
 html[data-theme='dark'] :is(
-    .transaction-amount-input strong,
-    .recurring-amount-input span
-) {
-    border-color: #36516d;
-    color: #afbdcb;
-    background: #193550;
-}
-
-html[data-theme='dark'] :is(
-    .transaction-balance-note,
-    .recurring-preview,
     .uncategorized-summary,
     .profile-editor-privacy,
     .settings-storage-note
@@ -815,18 +693,9 @@ html[data-theme='dark'] :is(
 }
 
 html[data-theme='dark'] :is(
-    .transfer-reversal-summary,
-    .transfer-reversal-note
-) {
-    border-color: #3c4f76;
-    background: #172842;
-}
-
-html[data-theme='dark'] :is(
     .uncategorized-table-heading,
     .uncategorized-modal-footer,
     .profile-editor-section + .profile-editor-section,
-    .recurring-modal footer,
     .settings-language-heading
 ) {
     border-color: #29435f;
@@ -873,29 +742,8 @@ html[data-theme='dark'] :is(
     border-color: #18c796;
 }
 
-html[data-theme='dark'] :is(
-    .custom-period-filter,
-    .custom-period-filter input
-) {
-    border-color: #304a65;
-    color: #dce7f2;
-    background: #102842;
-}
-
-html[data-theme='dark'] .custom-period-filter label > span {
-    color: #94a7bc;
-}
-
-html[data-theme='dark'] .custom-period-filter button:disabled {
-    border-color: #29435f;
-    color: #71869c;
-    background: #172d45;
-}
-
 /* Complete controls that use a light wrapper around a transparent input. */
 html[data-theme='dark'] :is(
-    .transaction-form-field > input,
-    .transaction-select-shell,
     .uncategorized-search-field,
     .uncategorized-account-field,
     .uncategorized-category-field,
@@ -909,7 +757,6 @@ html[data-theme='dark'] :is(
     .uncategorized-empty button,
     .uncategorized-pagination button,
     .uncategorized-cancel-button,
-    .transaction-delete-actions button,
     .budget-modal-section-title .budget-add-allocation,
     .budget-month
 ) {
@@ -920,9 +767,6 @@ html[data-theme='dark'] :is(
 }
 
 html[data-theme='dark'] :is(
-    .transaction-form-field > input,
-    .transaction-select-shell .certis-select,
-    .quick-filter-select .certis-select,
     .account-sort-field .certis-select,
     .category-currency-field .certis-select,
     .category-sort-field .certis-select,
@@ -936,7 +780,6 @@ html[data-theme='dark'] :is(
 
 html[data-theme='dark'] :is(
     .account-form-field input,
-    .transaction-form-field > input,
     .uncategorized-search-field input,
     .profile-input-shell input
 )::placeholder {
@@ -947,17 +790,7 @@ html[data-theme='dark'] :is(
 html[data-theme='dark'] :is(
     .account-form-field input:focus,
     .account-form-field .certis-select:focus,
-    .transaction-search-field:focus-within,
-    .quick-filter-select:focus-within,
-    .transaction-amount-input:focus-within,
-    .transaction-form-field > input:focus,
-    .transaction-select-shell:focus-within,
-    .transaction-date-shell:focus-within,
-    .transaction-note-field textarea:focus,
-    .recurring-field input:focus,
-    .recurring-field .certis-select:focus,
     .category-name-field input:focus,
-    .custom-period-filter input:focus,
     .profile-input-shell:focus-within,
     .profile-editor-grid input:focus
 ) {
@@ -968,11 +801,6 @@ html[data-theme='dark'] :is(
 html[data-theme='dark'] :is(
     .input-shell-error,
     .account-form-field input[aria-invalid='true'],
-    .transaction-amount-input.error,
-    .transaction-form-field > input[aria-invalid='true'],
-    .transaction-select-shell:has(.certis-select[aria-invalid='true']),
-    .transaction-date-shell:has(input[aria-invalid='true']),
-    .recurring-field input[aria-invalid='true'],
     .category-name-field input[aria-invalid='true'],
     .profile-input-shell-error,
     .profile-editor-grid input[aria-invalid='true']
@@ -981,9 +809,6 @@ html[data-theme='dark'] :is(
 }
 
 html[data-theme='dark'] :is(
-    .transaction-select-shell > svg,
-    .transaction-date-shell > svg,
-    .quick-filter-select > svg,
     .uncategorized-search-field > svg,
     .profile-input-shell > svg
 ) {
@@ -996,7 +821,6 @@ html[data-theme='dark'] :is(
     .dashboard-account-row b,
     .dashboard-empty-state strong,
     .chart-legend strong,
-    .upcoming-card time strong,
     .top-category-list b,
     .top-categories-empty h3,
     .category-preview strong,
@@ -1005,10 +829,7 @@ html[data-theme='dark'] :is(
     .uncategorized-transaction h4,
     .uncategorized-transaction-account strong,
     .uncategorized-transaction-amount strong,
-    .uncategorized-empty h3,
-    .transfer-reversal-summary strong,
-    .transaction-balance-note strong,
-    .recurring-preview strong
+    .uncategorized-empty h3
 ) {
     color: #edf4fb;
 }
@@ -1036,13 +857,7 @@ html[data-theme='dark'] :is(
     .uncategorized-transactions-heading > div > p,
     .uncategorized-transaction p,
     .uncategorized-pagination,
-    .transaction-delete-dialog > p:not(.transaction-form-error),
     #archive-category-description,
-    .transfer-reversal-summary p,
-    .transaction-balance-note p,
-    .recurring-preview small,
-    .recurring-preview span,
-    .recurring-modal footer p,
     .profile-modal-meta span:last-child,
     .profile-field-hint,
     .profile-modal-footer p,
@@ -1060,10 +875,6 @@ html[data-theme='dark'] :is(
 html[data-theme='dark'] :is(
     .account-form-field,
     .account-type-fieldset legend,
-    .transaction-type-fieldset legend,
-    .transaction-form-field > label,
-    .recurring-field label,
-    .recurring-frequency > label,
     .category-name-field label,
     .category-type-fieldset legend,
     .category-option-fieldset legend,
@@ -1085,19 +896,15 @@ html[data-theme='dark'] :is(
 }
 
 html[data-theme='dark'] :is(
-    .transaction-type-options label,
-    .category-type-options label,
-    .recurring-type button
+    .category-type-options label
 ) {
     color: #a7b7c7;
 }
 
 /* Selected states stay semantic without introducing bright light surfaces. */
 html[data-theme='dark'] :is(
-    .transaction-type-options label.selected.income,
     .category-type-options label.selected.income,
-    .account-type-grid label.selected,
-    .recurring-frequency-row button.active
+    .account-type-grid label.selected
 ) {
     border-color: #247d68;
     color: #8ce5c8;
@@ -1105,7 +912,6 @@ html[data-theme='dark'] :is(
 }
 
 html[data-theme='dark'] :is(
-    .transaction-type-options label.selected.expense,
     .category-type-options label.selected.expense,
     .category-icon-options label.selected
 ) {
@@ -1114,30 +920,15 @@ html[data-theme='dark'] :is(
     background: #412a31;
 }
 
-html[data-theme='dark'] .recurring-type button.active {
-    border-color: #46617c;
-    color: #edf4fb;
-    background: #193855;
-    box-shadow: none;
-}
-
 html[data-theme='dark'] :is(
-    .account-status,
-    .recurring-status.active
+    .account-status
 ) {
     color: #86e0c3;
     background: #103b38;
 }
 
-html[data-theme='dark'] .recurring-status.paused {
-    color: #d8bc91;
-    background: #3a3228;
-}
-
 html[data-theme='dark'] :is(
-    .account-status.closed,
-    .recurring-status.completed,
-    .recurring-status.cancelled
+    .account-status.closed
 ) {
     border-color: #36516d;
     color: #aebdcb;
@@ -1145,8 +936,6 @@ html[data-theme='dark'] :is(
 }
 
 html[data-theme='dark'] :is(
-    .transaction-identity > span,
-    .recurring-rule > span,
     .category-preview > span
 ) {
     background: color-mix(
@@ -1213,7 +1002,6 @@ html[data-theme='dark'] :is(
 }
 
 html[data-theme='dark'] :is(
-    .transaction-delete-icon,
     .category-archive-icon,
     .uncategorized-summary-remaining > span
 ) {
@@ -1222,8 +1010,7 @@ html[data-theme='dark'] :is(
 }
 
 html[data-theme='dark'] :is(
-    .transfer-direction,
-    .transfer-reversal-summary > span
+    .transfer-direction
 ) {
     color: #9dacfa;
     background: #252c52;
@@ -1281,7 +1068,6 @@ html[data-theme='dark'] :is(
 html[data-theme='dark'] :is(
     .accounts-panel-summary,
     .profile-modal-header,
-    .transaction-modal-actions,
     .category-modal-actions,
     .uncategorized-summary-progress
 ) {
@@ -1291,7 +1077,6 @@ html[data-theme='dark'] :is(
 /* Preserve primary and destructive action emphasis after shared button rules. */
 html[data-theme='dark'] :is(
     .account-modal-actions button.primary,
-    .transaction-modal-actions button.primary,
     .category-modal-actions button.primary,
     .budget-modal footer button[type='submit'],
     .budgets-header-actions .edit-budget,
@@ -1304,14 +1089,8 @@ html[data-theme='dark'] :is(
     box-shadow: 0 10px 24px rgb(10 169 124 / 18%);
 }
 
-html[data-theme='dark'] .transaction-modal-actions .transfer-reverse-button {
-    border-color: #7182d8;
-    background: #6174c9;
-}
-
 html[data-theme='dark'] :is(
     .account-modal-actions button.danger,
-    .transaction-delete-actions button.danger,
     .category-archive-actions button.danger
 ) {
     border-color: #d86661;
@@ -1321,7 +1100,6 @@ html[data-theme='dark'] :is(
 
 html[data-theme='dark'] :is(
     .account-modal-actions button.primary,
-    .transaction-modal-actions button.primary,
     .category-modal-actions button.primary,
     .budget-modal footer button[type='submit'],
     .budgets-header-actions .edit-budget,
@@ -1332,20 +1110,13 @@ html[data-theme='dark'] :is(
     background: #087f60;
 }
 
-html[data-theme='dark'] .transaction-modal-actions .transfer-reverse-button:hover:not(:disabled) {
-    border-color: #8795df;
-    background: #5265ba;
-}
-
 html[data-theme='dark'] :is(
-    .recurring-preview .income,
     .uncategorized-transaction-amount.income strong
 ) {
     color: #35d2a3;
 }
 
 html[data-theme='dark'] :is(
-    .recurring-preview .expense,
     .uncategorized-transaction-amount.expense strong
 ) {
     color: #f07a73;
@@ -1353,15 +1124,12 @@ html[data-theme='dark'] :is(
 
 html[data-theme='dark'] :is(
     .account-modal-close,
-    .transaction-modal-heading > button,
-    .recurring-modal header button,
     .category-modal-heading > button,
     .uncategorized-modal-heading > button,
     .profile-editor-close,
     .settings-modal-close,
     .budget-modal > header button,
     .account-row-actions > button,
-    .transaction-action-trigger,
     .profile-editor-photo-actions button,
     .profile-editor-footer button.secondary
 ):hover:not(:disabled) {
@@ -1416,7 +1184,6 @@ html[data-theme='dark'] .dashboard-panel-create-action:disabled {
 html[data-theme='dark'] :is(
     .profile-form-notice,
     .profile-editor-notice,
-    .recurring-form-error,
     .uncategorized-inline-error,
     .budget-action-error
 ) {
@@ -1426,15 +1193,13 @@ html[data-theme='dark'] :is(
 }
 
 html[data-theme='dark'] :is(
-    .transaction-form-error,
     .category-form-error,
     .category-archive-error,
     .account-form-error,
     .account-form-field small:not(.field-hint),
     .profile-editor-field-error,
     .profile-field-error,
-    .budget-modal-error,
-    .custom-period-filter > p
+    .budget-modal-error
 ) {
     color: #f1aaa6;
 }
@@ -1456,8 +1221,7 @@ html[data-theme='dark'] .categories-notice.error {
 }
 
 html[data-theme='dark'] :is(
-    .dashboard-transaction-notice,
-    .transactions-notice
+    .dashboard-transaction-notice
 ) {
     border-color: #247d68;
     color: #86e0c3;
@@ -1466,8 +1230,7 @@ html[data-theme='dark'] :is(
 }
 
 html[data-theme='dark'] :is(
-    .dashboard-transaction-notice.error,
-    .transactions-notice.error
+    .dashboard-transaction-notice.error
 ) {
     border-color: #7e4a51;
     color: #f1aaa6;
@@ -1487,7 +1250,6 @@ html[data-theme='dark'] .uncategorized-options-empty {
 html[data-theme='dark'] :is(
     .accounts-loading span,
     .account-loading-state > span,
-    .transaction-loading-state > span,
     .category-loading-state > span,
     .category-analytics-loading span,
     .uncategorized-loading span
@@ -1503,21 +1265,18 @@ html[data-theme='dark'] :is(
 }
 
 html[data-theme='dark'] :is(
-    .transaction-details > .transaction-amount.income,
     .recent-transaction-amount-income
 ) {
     color: #35d2a3;
 }
 
 html[data-theme='dark'] :is(
-    .transaction-details > .transaction-amount.expense,
     .recent-transaction-amount-expense
 ) {
     color: #f07a73;
 }
 
 html[data-theme='dark'] :is(
-    .transaction-details > .transaction-amount.transfer,
     .recent-transaction-amount-transfer
 ) {
     color: #8c9df3;

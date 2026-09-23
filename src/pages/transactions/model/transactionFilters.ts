@@ -1,5 +1,5 @@
-import type {Currency} from '../../shared/currency'
-import type {TransactionType} from './api/transactionsApi'
+import type {Currency} from '../../../shared/currency'
+import type {TransactionType} from '../../../features/transactions/api/transactionsApi'
 
 export type ActivityType = 'ALL' | TransactionType | 'TRANSFER'
 export type PeriodPreset =
