@@ -38,6 +38,7 @@ const renderNavigation = (
         <MemoryRouter>
             <MobileWorkspaceNavigation
                 activePage={activePage}
+                transactionsDestination="/transactions"
                 displayName="Daniel C."
                 initials="DC"
                 profileAvailable

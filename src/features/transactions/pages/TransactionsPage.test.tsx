@@ -10,7 +10,13 @@ import {
     http,
     HttpResponse,
 } from 'msw'
-import {MemoryRouter} from 'react-router-dom'
+import {
+    MemoryRouter,
+    Route,
+    Routes,
+    useLocation,
+    useNavigate,
+} from 'react-router-dom'
 import {
     describe,
     expect,
@@ -572,6 +578,245 @@ describe('TransactionsPage', () => {
         expect(reverseRequest).toEqual({
             note: 'Transferred by mistake',
             occurredAt: expect.any(String),
+        })
+    })
+})
+
+function HistoryControls() {
+    const navigate = useNavigate()
+    const location = useLocation()
+
+    return (
+        <div>
+            <output data-testid="route-location">
+                {location.pathname + location.search}
+            </output>
+            <button type="button" onClick={() => navigate('/dashboard')}>
+                Leave page
+            </button>
+            <button type="button" onClick={() => navigate(-1)}>
+                Back
+            </button>
+            <button type="button" onClick={() => navigate(1)}>
+                Forward
+            </button>
+        </div>
+    )
+}
+
+const renderRoutedPage = (initialUrl: string) =>
+    render(
+        <MemoryRouter initialEntries={[initialUrl]}>
+            <HistoryControls/>
+            <Routes>
+                <Route path="/transactions" element={<TransactionsPage/>}/>
+                <Route path="/dashboard" element={<p>Dashboard route</p>}/>
+            </Routes>
+        </MemoryRouter>,
+    )
+
+describe('Transactions URL filters', () => {
+    it('restores a direct filtered URL after remount and keeps server and list filters', async () => {
+        const queries: URLSearchParams[] = []
+
+        useWorkspaceHandlers([expenseTransaction, incomeTransaction])
+        server.use(http.get('/api/v1/transactions', ({request}) => {
+            queries.push(new URL(request.url).searchParams)
+            return HttpResponse.json(transactionPage([
+                expenseTransaction,
+                incomeTransaction,
+            ]))
+        }))
+
+        const url = '/transactions?period=all-time&account=rub-account'
+            + '&category=groceries&type=expense&q=Greenfield'
+        const page = renderRoutedPage(url)
+
+        await screen.findByText('Greenfield Market')
+        expect(screen.getByLabelText('Period')).toHaveTextContent('All time')
+        expect(screen.getByLabelText('Account')).toHaveTextContent('Main card')
+        expect(screen.getByLabelText('Category filter')).toHaveTextContent('Groceries')
+        expect(screen.getByRole('tab', {name: 'Expense'}))
+            .toHaveAttribute('aria-selected', 'true')
+        expect(screen.getByRole('searchbox', {name: 'Search transactions'}))
+            .toHaveValue('Greenfield')
+        expect(screen.queryByText('Salary')).not.toBeInTheDocument()
+        expect(queries.at(-1)?.get('accountId')).toBe('rub-account')
+        expect(queries.at(-1)?.get('categoryId')).toBe('groceries')
+        expect(queries.at(-1)?.has('from')).toBe(false)
+
+        const currentUrl = screen.getByTestId('route-location').textContent!
+        page.unmount()
+        renderRoutedPage(currentUrl)
+
+        await screen.findByText('Greenfield Market')
+        expect(screen.getByRole('searchbox', {name: 'Search transactions'}))
+            .toHaveValue('Greenfield')
+        expect(screen.getByRole('tab', {name: 'Expense'}))
+            .toHaveAttribute('aria-selected', 'true')
+    })
+
+    it('restores discrete filters with Back and Forward, including after leaving', async () => {
+        useWorkspaceHandlers([expenseTransaction])
+        renderRoutedPage('/transactions')
+
+        await screen.findByText('Greenfield Market')
+        await selectOption(screen.getByLabelText('Period'), 'All time')
+        expect(screen.getByTestId('route-location'))
+            .toHaveTextContent('/transactions?period=all-time')
+
+        fireEvent.click(screen.getByRole('button', {name: 'Back'}))
+        await waitFor(() => {
+            expect(screen.getByTestId('route-location'))
+                .toHaveTextContent('/transactions')
+            expect(screen.getByLabelText('Period'))
+                .toHaveTextContent('This month')
+        })
+
+        fireEvent.click(screen.getByRole('button', {name: 'Forward'}))
+        await waitFor(() => {
+            expect(screen.getByLabelText('Period'))
+                .toHaveTextContent('All time')
+        })
+
+        fireEvent.click(screen.getByRole('button', {name: 'Leave page'}))
+        expect(screen.getByText('Dashboard route')).toBeInTheDocument()
+        fireEvent.click(screen.getByRole('button', {name: 'Back'}))
+        await waitFor(() => {
+            expect(screen.getByLabelText('Period'))
+                .toHaveTextContent('All time')
+        })
+    })
+
+    it('keeps custom date edits out of the URL until Apply range', async () => {
+        useWorkspaceHandlers([expenseTransaction])
+        renderRoutedPage(
+            '/transactions?period=custom&from=2026-07-10&to=2026-08-12',
+        )
+
+        await screen.findByText('Greenfield Market')
+        const before = screen.getByTestId('route-location').textContent
+
+        fireEvent.change(screen.getByLabelText('From'), {
+            target: {value: '2026-07-11'},
+        })
+        expect(screen.getByTestId('route-location').textContent).toBe(before)
+
+        fireEvent.click(screen.getByRole('button', {name: 'Apply range'}))
+        await waitFor(() => {
+            expect(screen.getByTestId('route-location'))
+                .toHaveTextContent('from=2026-07-11')
+        })
+    })
+
+    it('resets all controls and preserves unrelated params and Back history', async () => {
+        const euroExpense = {
+            ...expenseTransaction,
+            id: 'euro-expense',
+            accountId: 'eur-account',
+            merchant: 'Airport cafe',
+            amount: 25,
+        }
+        useWorkspaceHandlers([
+            expenseTransaction,
+            incomeTransaction,
+            euroExpense,
+        ])
+        renderRoutedPage(
+            '/transactions?period=all-time&type=income&q=Salary'
+            + '&currency=EUR&extra=keep',
+        )
+
+        await screen.findAllByText('Salary')
+        await waitFor(() => {
+            expect(screen.getByLabelText('Spending currency'))
+                .toHaveTextContent('EUR')
+        })
+        fireEvent.click(screen.getByRole('button', {name: 'Clear filters'}))
+
+        await waitFor(() => {
+            expect(screen.getByTestId('route-location'))
+                .toHaveTextContent('/transactions?extra=keep')
+            expect(screen.getByRole('searchbox', {name: 'Search transactions'}))
+                .toHaveValue('')
+            expect(screen.getByRole('tab', {name: 'All'}))
+                .toHaveAttribute('aria-selected', 'true')
+            expect(screen.getByLabelText('Period'))
+                .toHaveTextContent('This month')
+            expect(screen.getByLabelText('Spending currency'))
+                .toHaveTextContent('RUB')
+        })
+
+        fireEvent.click(screen.getByRole('button', {name: 'Back'}))
+        await waitFor(() => {
+            expect(screen.getByRole('searchbox', {name: 'Search transactions'}))
+                .toHaveValue('Salary')
+            expect(screen.getByRole('tab', {name: 'Income'}))
+                .toHaveAttribute('aria-selected', 'true')
+        })
+    })
+
+    it('removes invalid values before querying and keeps unrelated params', async () => {
+        const queries: URLSearchParams[] = []
+
+        useWorkspaceHandlers([expenseTransaction])
+        server.use(http.get('/api/v1/transactions', ({request}) => {
+            queries.push(new URL(request.url).searchParams)
+            return HttpResponse.json(transactionPage([expenseTransaction]))
+        }))
+        renderRoutedPage(
+            '/transactions?period=custom&from=bad&to=2026-08-12'
+            + '&account=deleted&category=deleted&currency=EUR&extra=keep',
+        )
+
+        await screen.findByText('Greenfield Market')
+        await waitFor(() => {
+            expect(screen.getByTestId('route-location'))
+                .toHaveTextContent('/transactions?extra=keep')
+        })
+        expect(screen.getByLabelText('Period'))
+            .toHaveTextContent('This month')
+        expect(queries.length).toBeGreaterThan(0)
+        expect(queries.every((query) =>
+            query.has('from')
+            && query.has('to')
+            && !query.has('accountId')
+            && !query.has('categoryId'),
+        )).toBe(true)
+    })
+})
+
+describe('Transactions URL destination rules', () => {
+    it('keeps an explicit link ahead of a remembered menu destination', async () => {
+        window.sessionStorage.setItem(
+            'certis.transactions.lastUrl.profile-id',
+            '/transactions?q=old',
+        )
+        useWorkspaceHandlers([expenseTransaction])
+        renderRoutedPage('/transactions?q=Greenfield')
+
+        await screen.findByText('Greenfield Market')
+        expect(screen.getByRole('searchbox', {name: 'Search transactions'}))
+            .toHaveValue('Greenfield')
+        expect(screen.getByTestId('route-location'))
+            .toHaveTextContent('/transactions?q=Greenfield')
+        expect(window.sessionStorage.getItem(
+            'certis.transactions.lastUrl.profile-id',
+        )).toBe('/transactions?q=Greenfield')
+    })
+
+    it('shows Reset when only the activity type is selected', async () => {
+        useWorkspaceHandlers([expenseTransaction])
+        renderRoutedPage('/transactions?type=expense')
+
+        await screen.findByText('Greenfield Market')
+        fireEvent.click(screen.getByRole('button', {name: 'Clear filters'}))
+
+        await waitFor(() => {
+            expect(screen.getByTestId('route-location'))
+                .toHaveTextContent('/transactions')
+            expect(screen.getByRole('tab', {name: 'All'}))
+                .toHaveAttribute('aria-selected', 'true')
         })
     })
 })

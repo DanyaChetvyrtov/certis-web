@@ -13,6 +13,10 @@ import {
     Icon,
 } from '../components/Icons'
 import {useSession} from '../features/auth/session/SessionContext'
+import {
+    clearTransactionsDestination,
+    getTransactionsDestination,
+} from '../app/transactionsDestination'
 import {ApiError} from '../shared/api/ApiError'
 import './WorkspaceSidebar.css'
 import {
@@ -98,6 +102,8 @@ export function WorkspaceSidebar({
     const mobileAccountButtonRef = useRef<HTMLButtonElement>(null)
     const profileRestoreFocusRef = useRef<HTMLElement | null>(null)
     const settingsRestoreFocusRef = useRef<HTMLElement | null>(null)
+
+    const transactionsDestination = getTransactionsDestination(profile?.id)
 
     const displayName = profile
         ? `${profile.name} ${profile.surname.charAt(0)}.`
@@ -194,6 +200,7 @@ export function WorkspaceSidebar({
 
         try {
             await signOut()
+            clearTransactionsDestination(profile?.id)
             navigate('/', {replace: true})
         } catch (error) {
             setSignOutError(
@@ -263,7 +270,7 @@ export function WorkspaceSidebar({
                                 ? 'active'
                                 : undefined
                         }
-                        to="/transactions"
+                        to={transactionsDestination}
                         aria-current={
                             activePage === 'transactions'
                                 ? 'page'
@@ -475,6 +482,7 @@ export function WorkspaceSidebar({
 
             <MobileWorkspaceNavigation
                 activePage={activePage}
+                transactionsDestination={transactionsDestination}
                 displayName={displayName}
                 initials={initials}
                 profileAvailable={Boolean(profile)}

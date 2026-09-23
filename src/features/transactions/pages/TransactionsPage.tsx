@@ -9,7 +9,7 @@ import {
 import type {
     CSSProperties,
 } from 'react'
-import {useSearchParams} from 'react-router-dom'
+import {useLocation, useSearchParams} from 'react-router-dom'
 import {useTranslation} from 'react-i18next'
 import type {TFunction} from 'i18next'
 import {
@@ -42,7 +42,6 @@ import {
 } from '../api/transactionsApi'
 import type {
     Transaction,
-    TransactionType,
 } from '../api/transactionsApi'
 import {
     getTransfers,
@@ -72,17 +71,27 @@ import {
     TransferFormModal,
 } from '../components/TransferFormModal'
 import {useLanguage} from '../../../i18n/useLanguage'
+import {rememberTransactionsDestination} from '../../../app/transactionsDestination'
+import {
+    getDefaultCustomPeriod,
+    getDefaultSpendingCurrency,
+    getDefaultTransactionFilters,
+    hasActiveTransactionFilters,
+    parseLocalDate,
+    parseTransactionFilters,
+    periodPresets,
+    resolveTransactionFilters,
+    serializeTransactionFilters,
+} from '../transactionFilters'
+import type {
+    CustomPeriod,
+    PeriodPreset,
+    TransactionFilterState,
+} from '../transactionFilters'
 import './TransactionsPage.css'
 
 type LoadState = 'loading' | 'ready' | 'error'
-type ActivityType = 'ALL' | TransactionType | 'TRANSFER'
 type TransactionView = 'HISTORY' | 'RECURRING'
-type PeriodPreset =
-    | 'THIS_MONTH'
-    | 'LAST_30_DAYS'
-    | 'CUSTOM'
-    | 'ALL_TIME'
-
 type Notice = {
     kind: 'success' | 'error'
     message: string
@@ -114,11 +123,6 @@ type PeriodRange = {
     end?: Date
 }
 
-type CustomPeriod = {
-    from: string
-    to: string
-}
-
 type TransactionAccentStyle = CSSProperties & {
     '--transaction-accent': string
 }
@@ -137,13 +141,6 @@ const currencySymbols: Record<Currency, string> = {
 }
 
 const currencyOrder: Currency[] = ['RUB', 'EUR', 'USD']
-
-const periodPresets: PeriodPreset[] = [
-    'THIS_MONTH',
-    'LAST_30_DAYS',
-    'CUSTOM',
-    'ALL_TIME',
-]
 
 const toYearMonth = (date: Date): string => {
     const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -172,49 +169,6 @@ const endOfLocalDay = (
         59,
         999,
     )
-
-const toDateInputValue = (
-    date: Date,
-): string => [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, '0'),
-    String(date.getDate()).padStart(2, '0'),
-].join('-')
-
-const parseLocalDate = (
-    value: string,
-): Date | undefined => {
-    const parts = value
-        .split('-')
-        .map(Number)
-
-    if (
-        parts.length !== 3
-        || parts.some((part) => !Number.isInteger(part))
-    ) {
-        return undefined
-    }
-
-    const [year, month, day] = parts
-    const date = new Date(year, month - 1, day)
-
-    return date.getFullYear() === year
-        && date.getMonth() === month - 1
-        && date.getDate() === day
-        ? date
-        : undefined
-}
-
-const getDefaultCustomPeriod = (
-    anchorDate: Date,
-): CustomPeriod => ({
-    from: toDateInputValue(new Date(
-        anchorDate.getFullYear(),
-        anchorDate.getMonth(),
-        1,
-    )),
-    to: toDateInputValue(anchorDate),
-})
 
 const getPeriodRange = (
     period: PeriodPreset,
@@ -424,7 +378,13 @@ export function TransactionsPage() {
     const {locale} = useLanguage()
     const {profile} = useSession()
     const [searchParams, setSearchParams] = useSearchParams()
+    const location = useLocation()
     const preferredCurrency = profile?.preferredCurrency ?? 'RUB'
+    const [anchorDate] = useState(() => new Date())
+    const parsedFilters = useMemo(
+        () => parseTransactionFilters(searchParams, anchorDate),
+        [searchParams, anchorDate],
+    )
     const activeView: TransactionView = searchParams.get('view') === 'recurring'
         ? 'RECURRING'
         : 'HISTORY'
@@ -437,6 +397,7 @@ export function TransactionsPage() {
             nextParams.delete('view')
         }
 
+        rememberTransactionsDestination(profile?.id, nextParams)
         setSearchParams(nextParams)
     }
     const [transactions, setTransactions] =
@@ -448,17 +409,9 @@ export function TransactionsPage() {
         useState<LoadState>('loading')
     const [transactionState, setTransactionState] =
         useState<LoadState>('loading')
+    const [loadedQueryKey, setLoadedQueryKey] = useState('')
     const [loadError, setLoadError] = useState('')
     const [reloadRevision, setReloadRevision] = useState(0)
-    const [period, setPeriod] =
-        useState<PeriodPreset>('THIS_MONTH')
-    const [accountFilter, setAccountFilter] = useState('')
-    const [categoryFilter, setCategoryFilter] = useState('')
-    const [requestedSpendingCurrency, setRequestedSpendingCurrency] =
-        useState<Currency>(preferredCurrency)
-    const [activityType, setActivityType] =
-        useState<ActivityType>('ALL')
-    const [searchQuery, setSearchQuery] = useState('')
     const [formState, setFormState] =
         useState<FormState | null>(null)
     const [deleteState, setDeleteState] =
@@ -468,18 +421,67 @@ export function TransactionsPage() {
     const [reverseTransferState, setReverseTransferState] =
         useState<ReverseTransferState | null>(null)
     const [notice, setNotice] = useState<Notice | null>(null)
-    const [anchorDate] = useState(() => new Date())
-    const [customPeriod, setCustomPeriod] =
+    const [lastCustomPeriod, setLastCustomPeriod] =
         useState<CustomPeriod>(() =>
             getDefaultCustomPeriod(anchorDate),
         )
-    const [customPeriodDraft, setCustomPeriodDraft] =
-        useState<CustomPeriod>(() =>
-            getDefaultCustomPeriod(anchorDate),
-        )
+    const [customPeriodDraftState, setCustomPeriodDraftState] =
+        useState<{key: string, value: CustomPeriod}>(() => ({
+            key: '',
+            value: getDefaultCustomPeriod(anchorDate),
+        }))
     const newTransactionButtonRef = useRef<HTMLButtonElement>(null)
     const newTransferButtonRef = useRef<HTMLButtonElement>(null)
     const quickFiltersRef = useRef<HTMLElement>(null)
+
+    const accountIds = useMemo(
+        () => accounts.map((account) => account.id),
+        [accounts],
+    )
+    const categoryIds = useMemo(
+        () => categories.map((category) => category.id),
+        [categories],
+    )
+    const filters = useMemo(
+        () => resolveTransactionFilters(parsedFilters, {
+            accountIds: resourceState === 'ready'
+                ? accountIds
+                : undefined,
+            categoryIds: resourceState === 'ready'
+                ? categoryIds
+                : undefined,
+            preferredCurrency,
+        }),
+        [
+            accountIds,
+            categoryIds,
+            parsedFilters,
+            preferredCurrency,
+            resourceState,
+        ],
+    )
+    const period = filters.period
+    const customPeriod = filters.customPeriod
+    const accountFilter = filters.accountId
+    const categoryFilter = filters.categoryId
+    const activityType = filters.activityType
+    const searchQuery = filters.searchQuery
+    const customPeriodDraftKey = [
+        location.key,
+        period,
+        customPeriod.from,
+        customPeriod.to,
+    ].join(':')
+    const customPeriodDraft =
+        customPeriodDraftState.key === customPeriodDraftKey
+            ? customPeriodDraftState.value
+            : customPeriod
+    const setCustomPeriodDraft = (value: CustomPeriod) => {
+        setCustomPeriodDraftState({
+            key: customPeriodDraftKey,
+            value,
+        })
+    }
 
     const periodRange = useMemo(
         () => getPeriodRange(
@@ -493,6 +495,17 @@ export function TransactionsPage() {
             period,
         ],
     )
+    const transactionQueryKey = JSON.stringify([
+        accountFilter,
+        categoryFilter,
+        periodRange.from,
+        periodRange.to,
+        reloadRevision,
+    ])
+
+    useEffect(() => {
+        rememberTransactionsDestination(profile?.id, searchParams)
+    }, [profile?.id, searchParams])
 
     const customPeriodStart =
         parseLocalDate(customPeriodDraft.from)
@@ -551,6 +564,10 @@ export function TransactionsPage() {
     }, [anchorDate, preferredCurrency, reloadRevision, t])
 
     useEffect(() => {
+        if (resourceState !== 'ready') {
+            return
+        }
+
         let isActive = true
 
         void getAllTransactions({
@@ -565,6 +582,7 @@ export function TransactionsPage() {
                 }
 
                 setTransactions(loadedTransactions)
+                setLoadedQueryKey(transactionQueryKey)
                 setTransactionState('ready')
             },
             (error: unknown) => {
@@ -573,6 +591,7 @@ export function TransactionsPage() {
                 }
 
                 setLoadError(loadErrorMessage(error, t('transactions.loadError')))
+                setLoadedQueryKey(transactionQueryKey)
                 setTransactionState('error')
             },
         )
@@ -585,7 +604,8 @@ export function TransactionsPage() {
         categoryFilter,
         periodRange.from,
         periodRange.to,
-        reloadRevision,
+        resourceState,
+        transactionQueryKey,
         t,
     ])
 
@@ -662,11 +682,76 @@ export function TransactionsPage() {
         return available.length > 0 ? available : [preferredCurrency]
     }, [accountMap, preferredCurrency, selectedAccount, transactions])
 
-    const spendingCurrency = spendingCurrencyOptions.includes(requestedSpendingCurrency)
+    const defaultSpendingCurrency = getDefaultSpendingCurrency(
+        spendingCurrencyOptions,
+        preferredCurrency,
+    )
+    const requestedSpendingCurrency =
+        filters.currency ?? defaultSpendingCurrency
+    const spendingCurrency = spendingCurrencyOptions.includes(
+        requestedSpendingCurrency,
+    )
         ? requestedSpendingCurrency
-        : spendingCurrencyOptions.includes(preferredCurrency)
-            ? preferredCurrency
-            : spendingCurrencyOptions[0]
+        : defaultSpendingCurrency
+    const resultsMatchFilters = transactionState === 'ready'
+        && loadedQueryKey === transactionQueryKey
+    const canonicalFilters = useMemo(
+        () => resolveTransactionFilters(filters, {
+            currencies: resultsMatchFilters
+                ? spendingCurrencyOptions
+                : undefined,
+            preferredCurrency,
+        }),
+        [
+            filters,
+            preferredCurrency,
+            resultsMatchFilters,
+            spendingCurrencyOptions,
+        ],
+    )
+
+    useEffect(() => {
+        if (resourceState !== 'ready') {
+            return
+        }
+
+        const nextParams = serializeTransactionFilters(
+            searchParams,
+            canonicalFilters,
+            resultsMatchFilters
+                ? defaultSpendingCurrency
+                : preferredCurrency,
+        )
+
+        if (nextParams.toString() !== searchParams.toString()) {
+            rememberTransactionsDestination(profile?.id, nextParams)
+            setSearchParams(nextParams, {replace: true})
+        }
+    }, [
+        canonicalFilters,
+        defaultSpendingCurrency,
+        preferredCurrency,
+        profile?.id,
+        resourceState,
+        resultsMatchFilters,
+        searchParams,
+        setSearchParams,
+    ])
+
+    const updateFilters = (
+        changes: Partial<TransactionFilterState>,
+        replace = false,
+    ) => {
+        const nextFilters = {...canonicalFilters, ...changes}
+        const nextParams = serializeTransactionFilters(
+            searchParams,
+            nextFilters,
+            defaultSpendingCurrency,
+        )
+
+        rememberTransactionsDestination(profile?.id, nextParams)
+        setSearchParams(nextParams, {replace})
+    }
 
     const metrics = useMemo(() => {
         const income = new Map<Currency, number>()
@@ -1027,10 +1112,13 @@ export function TransactionsPage() {
 
     const loadState: LoadState =
         resourceState === 'error'
-        || transactionState === 'error'
+        || (
+            transactionState === 'error'
+            && loadedQueryKey === transactionQueryKey
+        )
             ? 'error'
             : resourceState === 'loading'
-            || transactionState === 'loading'
+            || loadedQueryKey !== transactionQueryKey
                 ? 'loading'
                 : 'ready'
 
@@ -1249,7 +1337,7 @@ export function TransactionsPage() {
                                         value={searchQuery}
                                         placeholder={t('transactions.search')}
                                         onChange={(event) =>
-                                            setSearchQuery(event.target.value)
+                                            updateFilters({searchQuery: event.target.value}, true)
                                         }
                                     />
                                 </label>
@@ -1290,7 +1378,7 @@ export function TransactionsPage() {
                                             role="tab"
                                             aria-selected={activityType === type}
                                             key={type}
-                                            onClick={() => setActivityType(type)}
+                                            onClick={() => updateFilters({activityType: type})}
                                         >
                                             {t(`transactions.activityTypes.${type}`)}
                                         </button>
@@ -1586,7 +1674,11 @@ export function TransactionsPage() {
                                         value={spendingCurrency}
                                         disabled={spendingCurrencyOptions.length < 2}
                                         onValueChange={(value) =>
-                                            setRequestedSpendingCurrency(value as Currency)
+                                            updateFilters({
+                                                currency: value === defaultSpendingCurrency
+                                                    ? null
+                                                    : value as Currency,
+                                            })
                                         }
                                     >
                                         {spendingCurrencyOptions.map((currency) => (
@@ -1675,12 +1767,19 @@ export function TransactionsPage() {
                                         const nextPeriod =
                                             value as PeriodPreset
 
-                                        setPeriod(nextPeriod)
-
                                         if (nextPeriod === 'CUSTOM') {
                                             setCustomPeriodDraft(
-                                                customPeriod,
+                                                lastCustomPeriod,
                                             )
+                                            updateFilters({
+                                                period: nextPeriod,
+                                                customPeriod: lastCustomPeriod,
+                                            })
+                                        } else {
+                                            if (period === 'CUSTOM') {
+                                                setLastCustomPeriod(customPeriod)
+                                            }
+                                            updateFilters({period: nextPeriod})
                                         }
                                     }}
                                 >
@@ -1700,9 +1799,12 @@ export function TransactionsPage() {
                                         event.preventDefault()
 
                                         if (canApplyCustomPeriod) {
-                                            setCustomPeriod(
+                                            setLastCustomPeriod(
                                                 customPeriodDraft,
                                             )
+                                            updateFilters({
+                                                customPeriod: customPeriodDraft,
+                                            })
                                         }
                                     }}
                                 >
@@ -1714,10 +1816,10 @@ export function TransactionsPage() {
                                             mode="date"
                                             max={customPeriodDraft.to || undefined}
                                             onChange={(value) =>
-                                                setCustomPeriodDraft((current) => ({
-                                                    ...current,
+                                                setCustomPeriodDraft({
+                                                    ...customPeriodDraft,
                                                     from: value,
-                                                }))
+                                                })
                                             }
                                         />
                                     </label>
@@ -1730,10 +1832,10 @@ export function TransactionsPage() {
                                             mode="date"
                                             min={customPeriodDraft.from || undefined}
                                             onChange={(value) =>
-                                                setCustomPeriodDraft((current) => ({
-                                                    ...current,
+                                                setCustomPeriodDraft({
+                                                    ...customPeriodDraft,
                                                     to: value,
-                                                }))
+                                                })
                                             }
                                         />
                                     </label>
@@ -1763,7 +1865,7 @@ export function TransactionsPage() {
                                         id="transaction-account-filter"
                                         value={accountFilter}
                                         onValueChange={(value) =>
-                                            setAccountFilter(value)
+                                            updateFilters({accountId: value})
                                         }
                                     >
                                         <SelectOption value="">{t('transactions.allAccounts')}</SelectOption>
@@ -1784,7 +1886,7 @@ export function TransactionsPage() {
                                         aria-label={t('transactions.categoryFilter')}
                                         value={categoryFilter}
                                         onValueChange={(value) =>
-                                            setCategoryFilter(value)
+                                            updateFilters({categoryId: value})
                                         }
                                     >
                                         <SelectOption value="">{t('transactions.allCategories')}</SelectOption>
@@ -1800,20 +1902,18 @@ export function TransactionsPage() {
                                 </div>
                             </div>
 
-                            {(accountFilter || categoryFilter || period !== 'THIS_MONTH')
+                            {hasActiveTransactionFilters(canonicalFilters)
                                 && (
                                     <button
                                         className="clear-transaction-filters"
                                         type="button"
                                         onClick={() => {
-                                            setAccountFilter('')
-                                            setCategoryFilter('')
-                                            setPeriod('THIS_MONTH')
-                                            const defaultPeriod =
-                                                getDefaultCustomPeriod(anchorDate)
+                                            const defaults =
+                                                getDefaultTransactionFilters(anchorDate)
 
-                                            setCustomPeriod(defaultPeriod)
-                                            setCustomPeriodDraft(defaultPeriod)
+                                            setLastCustomPeriod(defaults.customPeriod)
+                                            setCustomPeriodDraft(defaults.customPeriod)
+                                            updateFilters(defaults)
                                         }}
                                     >
                                         {t('transactions.clearFilters')}

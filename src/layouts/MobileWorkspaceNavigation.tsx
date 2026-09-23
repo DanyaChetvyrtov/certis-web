@@ -20,6 +20,7 @@ type ActivePage =
 
 type MobileWorkspaceNavigationProps = {
     activePage: ActivePage
+    transactionsDestination: string
     displayName: string
     initials: string
     profileAvailable: boolean
@@ -43,6 +44,7 @@ type MobileWorkspaceNavigationProps = {
 
 export function MobileWorkspaceNavigation({
                                               activePage,
+                                              transactionsDestination,
                                               displayName,
                                               initials,
                                               profileAvailable,
@@ -104,7 +106,7 @@ export function MobileWorkspaceNavigation({
                         ? 'active'
                         : undefined
                 }
-                to="/transactions"
+                to={transactionsDestination}
                 aria-label={t('navigation.transactions')}
                 aria-current={
                     activePage === 'transactions'
