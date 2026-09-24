@@ -26,7 +26,7 @@ import {
 import {server} from '../../../test/server'
 import {TransactionsPage} from './TransactionsPage'
 
-vi.mock('../../auth/session/SessionContext', () => ({
+vi.mock('../../../features/auth/session/SessionContext', () => ({
     useSession: () => ({
         profile: {
             id: 'profile-id',
@@ -38,7 +38,7 @@ vi.mock('../../auth/session/SessionContext', () => ({
     }),
 }))
 
-vi.mock('../../../layouts/WorkspaceSidebar', () => ({
+vi.mock('../../../widgets/workspace-shell', () => ({
     WorkspaceSidebar: ({
         activePage,
     }: {
@@ -490,6 +490,52 @@ describe('TransactionsPage', () => {
         expect(deletedTransactionId).toBe('expense-id')
     })
 
+    it('edits a transaction from its row action menu', async () => {
+        let updatedId = ''
+        let requestBody: unknown
+        useWorkspaceHandlers([expenseTransaction])
+        server.use(http.put('/api/v1/transactions/:transactionId', async ({params, request}) => {
+            updatedId = String(params.transactionId)
+            requestBody = await request.json()
+            return HttpResponse.json({
+                ...expenseTransaction,
+                merchant: 'Updated market',
+            })
+        }))
+
+        renderRoutedPage('/transactions?period=all-time')
+        await screen.findByText('Greenfield Market')
+        fireEvent.click(screen.getByRole('button', {
+            name: 'Actions for Greenfield Market',
+        }))
+        fireEvent.click(screen.getByRole('menuitem', {name: 'Edit'}))
+        const dialog = screen.getByRole('dialog', {name: 'Edit transaction'})
+        fireEvent.change(within(dialog).getByLabelText(/Merchant/), {
+            target: {value: 'Updated market'},
+        })
+        fireEvent.click(within(dialog).getByRole('button', {name: 'Save changes'}))
+
+        expect(await screen.findByText('Updated market')).toBeInTheDocument()
+        expect(updatedId).toBe('expense-id')
+        expect(requestBody).toMatchObject({merchant: 'Updated market'})
+    })
+
+    it('retries a failed transaction request', async () => {
+        let requestCount = 0
+        useWorkspaceHandlers([expenseTransaction])
+        server.use(http.get('/api/v1/transactions', () => {
+            requestCount += 1
+            return requestCount === 1
+                ? HttpResponse.json({message: 'Temporary error'}, {status: 500})
+                : HttpResponse.json(transactionPage([expenseTransaction]))
+        }))
+
+        renderPage()
+        fireEvent.click(await screen.findByRole('button', {name: 'Try again'}))
+        expect(await screen.findByText('Greenfield Market')).toBeInTheDocument()
+        expect(requestCount).toBeGreaterThanOrEqual(2)
+    })
+
     it('creates a same-currency transfer from the transaction page', async () => {
         let requestBody: unknown
 
@@ -616,6 +662,44 @@ const renderRoutedPage = (initialUrl: string) =>
     )
 
 describe('Transactions URL filters', () => {
+    it('ignores an older response after the account filter changes quickly', async () => {
+        let releaseSlowRequest = () => {}
+        const slowRequest = new Promise<void>((resolve) => {
+            releaseSlowRequest = resolve
+        })
+        const queries: string[] = []
+        const euroExpense = {
+            ...expenseTransaction,
+            id: 'euro-expense',
+            accountId: 'eur-account',
+            merchant: 'Airport cafe',
+        }
+        useWorkspaceHandlers([])
+        server.use(http.get('/api/v1/transactions', async ({request}) => {
+            const accountId = new URL(request.url).searchParams.get('accountId') ?? ''
+            queries.push(accountId)
+            if (accountId === 'rub-account') {
+                await slowRequest
+                return HttpResponse.json(transactionPage([expenseTransaction]))
+            }
+            return HttpResponse.json(transactionPage(
+                accountId === 'eur-account' ? [euroExpense] : [],
+            ))
+        }))
+
+        renderRoutedPage('/transactions?period=all-time')
+        await screen.findByText('No transactions yet')
+        await selectOption(screen.getByLabelText('Account'), 'Main card · RUB')
+        await waitFor(() => expect(queries).toContain('rub-account'))
+        await selectOption(screen.getByLabelText('Account'), 'Travel cash · EUR')
+        expect(await screen.findByText('Airport cafe')).toBeInTheDocument()
+        releaseSlowRequest()
+        await new Promise((resolve) => window.setTimeout(resolve, 50))
+        await waitFor(() => {
+            expect(screen.getByText('Airport cafe')).toBeInTheDocument()
+            expect(screen.queryByText('Greenfield Market')).not.toBeInTheDocument()
+        })
+    })
     it('restores a direct filtered URL after remount and keeps server and list filters', async () => {
         const queries: URLSearchParams[] = []
 

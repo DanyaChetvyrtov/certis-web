@@ -1,0 +1,440 @@
+/* Legacy transaction actions and recurring view in dark mode. */
+
+html[data-theme='dark'] :is(
+    .recurring-list-card,
+    .upcoming-card,
+    .scheduled-flow-card,
+    .recurring-info-card
+) {
+    border-color: #29425e;
+    color: #dce7f2;
+    background: #0d233b;
+    box-shadow: 0 12px 32px rgb(0 5 15 / 20%);
+}
+
+html[data-theme='dark'] :is(
+    .recurring-list-card h2,
+    .recurring-side-column h2,
+    .recurring-row > div > strong,
+    .recurring-row > strong,
+    .upcoming-card article div > strong,
+    .upcoming-card article > strong
+) {
+    color: #edf4fb;
+}
+
+html[data-theme='dark'] :is(
+    .recurring-list-card header p,
+    .recurring-side-column header p,
+    .recurring-table-heading,
+    .recurring-row > div > small,
+    .recurring-list-card > footer,
+    .upcoming-card article div > small,
+    .recurring-side-empty,
+    .scheduled-flow-card > p
+) {
+    color: #94a7bc;
+}
+html[data-theme='dark'] :is(
+    .recurring-list-tools label,
+    .recurring-list-tools .certis-select
+) {
+    border-color: #304a65;
+    color: #c4d2df;
+    background: #122a45;
+    box-shadow: none;
+}
+
+html[data-theme='dark'] :is(
+    .recurring-list-tools input
+) {
+    color: #dce7f2;
+}
+
+html[data-theme='dark'] :is(
+    .recurring-list-tools input
+)::placeholder {
+    color: #71869c;
+}
+html[data-theme='dark'] :is(
+    .recurring-row
+) {
+    border-color: #29425d;
+    background: #102842;
+}
+
+html[data-theme='dark'] :is(
+    .recurring-row
+):hover {
+    border-color: #3a5874;
+    background: #142f4c;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-action-popover
+) {
+    border-color: #36516d;
+    background: #102842;
+    box-shadow: 0 16px 38px rgb(0 5 15 / 38%);
+}
+
+html[data-theme='dark'] :is(
+    .transaction-action-popover button
+) {
+    color: #c6d3e0;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-action-popover button,
+    .recurring-row-actions button
+):hover {
+    background: #1b3855;
+}
+
+html[data-theme='dark'] :is(
+    .upcoming-card time
+) {
+    background: #213a55;
+}
+
+html[data-theme='dark'] :is(
+    .recurring-info-card
+) {
+    border-color: #246a5a;
+    background: #0d302f;
+}
+html[data-theme='dark'] :is(
+    .transaction-modal,
+    .transaction-delete-dialog,
+    .recurring-modal
+) {
+    border-color: #304a65;
+    color: #dce7f2;
+    background: #0d233b;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-modal-heading,
+    .recurring-modal > header
+) {
+    border-color: #29435f;
+    background: #0d233b;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-modal-heading h2,
+    .transaction-delete-dialog h2,
+    .recurring-modal h2
+) {
+    color: #edf4fb;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-modal-heading p,
+    .recurring-modal header p
+) {
+    color: #94a7bb;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-modal-heading > button,
+    .recurring-modal header button,
+    .transaction-modal-actions button,
+    .recurring-modal footer button
+) {
+    border-color: #36516d;
+    color: #c6d3e0;
+    background: #132b46;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-amount-input,
+    .transaction-date-shell,
+    .transaction-note-field textarea,
+    .recurring-field input,
+    .recurring-field .certis-select,
+    .recurring-frequency-row > input,
+    .recurring-frequency-row button
+) {
+    border-color: #304a65;
+    color: #dce7f2;
+    background: #102842;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-type-options,
+    .recurring-type > div
+) {
+    border-color: #29435f;
+    background: #0a1e35;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-amount-input input,
+    .transaction-date-shell input,
+    .transaction-note-field textarea,
+    .recurring-field input,
+    .recurring-frequency-row > input
+) {
+    color: #e4edf5;
+    background: transparent;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-amount-input strong,
+    .recurring-amount-input span
+) {
+    border-color: #36516d;
+    color: #afbdcb;
+    background: #193550;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-balance-note,
+    .recurring-preview
+) {
+    border-color: #246a5a;
+    color: #7fe0c1;
+    background: #0d302f;
+}
+
+html[data-theme='dark'] :is(
+    .transfer-reversal-summary,
+    .transfer-reversal-note
+) {
+    border-color: #3c4f76;
+    background: #172842;
+}
+
+html[data-theme='dark'] :is(
+    .recurring-modal footer
+) {
+    border-color: #29435f;
+}
+html[data-theme='dark'] :is(
+    .transaction-form-field > input,
+    .transaction-select-shell,
+    .transaction-delete-actions button
+) {
+    border-color: #36516d;
+    color: #cbd8e4;
+    background: #102842;
+    box-shadow: none;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-form-field > input,
+    .transaction-select-shell .certis-select
+) {
+    color: #e4edf5;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-form-field > input
+)::placeholder {
+    color: #8195a9;
+}
+html[data-theme='dark'] :is(
+    .transaction-amount-input:focus-within,
+    .transaction-form-field > input:focus,
+    .transaction-select-shell:focus-within,
+    .transaction-date-shell:focus-within,
+    .transaction-note-field textarea:focus,
+    .recurring-field input:focus,
+    .recurring-field .certis-select:focus
+) {
+    border-color: #18c796;
+    box-shadow: 0 0 0 4px rgb(16 185 129 / 12%);
+}
+
+html[data-theme='dark'] :is(
+    .transaction-amount-input.error,
+    .transaction-form-field > input[aria-invalid='true'],
+    .transaction-select-shell:has(.certis-select[aria-invalid='true']),
+    .transaction-date-shell:has(input[aria-invalid='true']),
+    .recurring-field input[aria-invalid='true']
+) {
+    border-color: #d66b6b;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-select-shell > svg,
+    .transaction-date-shell > svg
+) {
+    color: #9bacc0;
+}
+html[data-theme='dark'] :is(
+    .upcoming-card time strong,
+    .transfer-reversal-summary strong,
+    .transaction-balance-note strong,
+    .recurring-preview strong
+) {
+    color: #edf4fb;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-delete-dialog > p:not(.transaction-form-error),
+    .transfer-reversal-summary p,
+    .transaction-balance-note p,
+    .recurring-preview small,
+    .recurring-preview span,
+    .recurring-modal footer p
+) {
+    color: #9eafc0;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-form-field > label,
+    .recurring-field label,
+    .recurring-frequency > label
+) {
+    color: #bdcbd8;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-type-options label,
+    .recurring-type button
+) {
+    color: #a7b7c7;
+}
+html[data-theme='dark'] :is(
+    .transaction-type-options label.selected.income,
+    .recurring-frequency-row button.active
+) {
+    border-color: #247d68;
+    color: #8ce5c8;
+    background: #103b38;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-type-options label.selected.expense
+) {
+    border-color: #7e4a51;
+    color: #f0928b;
+    background: #412a31;
+}
+
+html[data-theme='dark'] .recurring-type button.active {
+    border-color: #46617c;
+    color: #edf4fb;
+    background: #193855;
+    box-shadow: none;
+}
+
+html[data-theme='dark'] :is(
+    .recurring-status.active
+) {
+    color: #86e0c3;
+    background: #103b38;
+}
+
+html[data-theme='dark'] .recurring-status.paused {
+    color: #d8bc91;
+    background: #3a3228;
+}
+
+html[data-theme='dark'] :is(
+    .recurring-status.completed,
+    .recurring-status.cancelled
+) {
+    border-color: #36516d;
+    color: #aebdcb;
+    background: #193550;
+}
+
+html[data-theme='dark'] :is(
+    .recurring-rule > span
+) {
+    background: color-mix(
+        in srgb,
+        var(--transaction-accent, var(--recurring-color, var(--category-accent))) 22%,
+        #102842
+    );
+}
+
+html[data-theme='dark'] :is(
+    .transaction-delete-icon
+) {
+    color: #f0928b;
+    background: #412a31;
+}
+
+html[data-theme='dark'] :is(
+    .transfer-reversal-summary > span
+) {
+    color: #9dacfa;
+    background: #252c52;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-modal-actions
+) {
+    border-color: #29435f;
+}
+html[data-theme='dark'] :is(
+    .transaction-modal-actions button.primary
+) {
+    border-color: #10b981;
+    color: #f7fffc;
+    background: #0aa97c;
+    box-shadow: 0 10px 24px rgb(10 169 124 / 18%);
+}
+
+html[data-theme='dark'] .transaction-modal-actions .transfer-reverse-button {
+    border-color: #7182d8;
+    background: #6174c9;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-delete-actions button.danger
+) {
+    border-color: #d86661;
+    color: #fff;
+    background: #b84d4d;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-modal-actions button.primary
+):hover:not(:disabled) {
+    border-color: #18c796;
+    background: #087f60;
+}
+
+html[data-theme='dark'] .transaction-modal-actions .transfer-reverse-button:hover:not(:disabled) {
+    border-color: #8795df;
+    background: #5265ba;
+}
+
+html[data-theme='dark'] :is(
+    .recurring-preview .income
+) {
+    color: #35d2a3;
+}
+
+html[data-theme='dark'] :is(
+    .recurring-preview .expense
+) {
+    color: #f07a73;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-modal-heading > button,
+    .recurring-modal header button
+):hover:not(:disabled) {
+    border-color: #4b6985;
+    color: #edf4fb;
+    background: #1b3855;
+}
+html[data-theme='dark'] :is(
+    .recurring-form-error
+) {
+    border-color: #7e4a51;
+    color: #f1aaa6;
+    background: #41262e;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-form-error
+) {
+    color: #f1aaa6;
+}

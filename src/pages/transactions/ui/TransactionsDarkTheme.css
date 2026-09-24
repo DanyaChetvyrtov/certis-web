@@ -1,0 +1,278 @@
+/* Transactions route colors in dark mode. Shared theme tokens stay in DarkTheme.css. */
+html[data-theme='dark'] .recurring-transactions-card {
+    border-color: #29425e;
+    color: #dce7f2;
+    background: #0d233b;
+    box-shadow: 0 12px 32px rgb(0 5 15 / 20%);
+}
+
+html[data-theme='dark'] .recurring-transactions-card strong {
+    color: #edf4fb;
+}
+
+html[data-theme='dark'] .recurring-transactions-card p {
+    color: #94a7bc;
+}
+
+
+html[data-theme='dark'] :is(
+    .transactions-workspace
+) {
+    color: #dce7f2;
+    background: #07182b;
+}
+html[data-theme='dark'] :is(
+    .transaction-metrics article,
+    .transaction-activity-card,
+    .spending-category-card,
+    .transaction-quick-filters
+) {
+    border-color: #29425e;
+    color: #dce7f2;
+    background: #0d233b;
+    box-shadow: 0 12px 32px rgb(0 5 15 / 20%);
+}
+
+html[data-theme='dark'] :is(
+    .transaction-activity-heading
+) {
+    border-color: #29425e;
+}
+
+html[data-theme='dark'] :is(
+    .transactions-page-header h1,
+    .transaction-metrics strong,
+    .transaction-activity-heading h2,
+    .spending-category-card h2,
+    .transaction-quick-filters h2,
+    .transaction-date-group > h3,
+    .transaction-identity strong,
+    .transaction-details > .transaction-amount,
+    .transaction-empty-state h3,
+    .spending-category-list p strong
+) {
+    color: #edf4fb;
+}
+
+html[data-theme='dark'] :is(
+    .transactions-page-header p,
+    .transaction-metrics p,
+    .transaction-metrics small,
+    .transaction-activity-heading p,
+    .spending-category-card header p,
+    .transaction-quick-filters header p,
+    .transaction-column-headings,
+    .transaction-identity small,
+    .transaction-identity em,
+    .transaction-details > span,
+    .transaction-details > time,
+    .transaction-empty-state p,
+    .spending-category-list p,
+    .spending-category-message p,
+    .transaction-quick-filters > label
+) {
+    color: #94a7bc;
+}
+html[data-theme='dark'] :is(
+    .transaction-period-button,
+    .transaction-search-field,
+    .transaction-activity-tools > button,
+    .transaction-activity-tools > span,
+    .spending-category-currency.certis-select,
+    .quick-filter-select
+) {
+    border-color: #304a65;
+    color: #c4d2df;
+    background: #122a45;
+    box-shadow: none;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-search-field input
+) {
+    color: #dce7f2;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-search-field input
+)::placeholder {
+    color: #71869c;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-view-tabs
+) {
+    border-color: #29435f;
+    background: #0a1e35;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-type-tabs button,
+    .transaction-view-tabs button
+) {
+    color: #94a7bb;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-type-tabs button.active,
+    .transaction-view-tabs button.active
+) {
+    color: #f2f7fb;
+    background: #193855;
+    box-shadow: none;
+}
+html[data-theme='dark'] :is(
+    .transaction-row
+) {
+    border-color: #29425d;
+    background: #102842;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-row
+):hover {
+    border-color: #3a5874;
+    background: #142f4c;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-type-tabs
+) {
+    background: transparent;
+}
+
+html[data-theme='dark'] :is(
+    .spending-progress
+) {
+    background: #223b55;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-empty-state
+) {
+    color: #c9d6e2;
+    background: transparent;
+}
+
+html[data-theme='dark'] :is(
+    .transfer-state-pill
+) {
+    background: #213a55;
+}
+
+html[data-theme='dark'] :is(
+    .custom-period-filter,
+    .custom-period-filter input
+) {
+    border-color: #304a65;
+    color: #dce7f2;
+    background: #102842;
+}
+
+html[data-theme='dark'] .custom-period-filter label > span {
+    color: #94a7bc;
+}
+
+html[data-theme='dark'] .custom-period-filter button:disabled {
+    border-color: #29435f;
+    color: #71869c;
+    background: #172d45;
+}
+
+html[data-theme='dark'] :is(
+    .quick-filter-select .certis-select
+) {
+    color: #e4edf5;
+}
+html[data-theme='dark'] :is(
+    .transaction-search-field:focus-within,
+    .quick-filter-select:focus-within,
+    .custom-period-filter input:focus
+) {
+    border-color: #18c796;
+    box-shadow: 0 0 0 4px rgb(16 185 129 / 12%);
+}
+
+html[data-theme='dark'] :is(
+    .quick-filter-select > svg
+) {
+    color: #9bacc0;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-type-fieldset legend
+) {
+    color: #bdcbd8;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-identity > span
+) {
+    background: color-mix(
+        in srgb,
+        var(--transaction-accent, var(--recurring-color, var(--category-accent))) 22%,
+        #102842
+    );
+}
+
+html[data-theme='dark'] :is(
+    .transaction-action-trigger
+):hover:not(:disabled) {
+    border-color: #4b6985;
+    color: #edf4fb;
+    background: #1b3855;
+}
+
+html[data-theme='dark'] :is(
+    .custom-period-filter > p
+) {
+    color: #f1aaa6;
+}
+
+html[data-theme='dark'] :is(
+    .transactions-notice
+) {
+    border-color: #247d68;
+    color: #86e0c3;
+    background: #103b38;
+    box-shadow: 0 14px 34px rgb(0 5 15 / 26%);
+}
+
+html[data-theme='dark'] :is(
+    .transactions-notice.error
+) {
+    border-color: #7e4a51;
+    color: #f1aaa6;
+    background: #41262e;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-loading-state > span
+) {
+    border-color: #29425e;
+    background: linear-gradient(
+        90deg,
+        #102842 20%,
+        #193550 45%,
+        #102842 70%
+    );
+    background-size: 220% 100%;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-details > .transaction-amount.income
+) {
+    color: #35d2a3;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-details > .transaction-amount.expense
+) {
+    color: #f07a73;
+}
+
+html[data-theme='dark'] :is(
+    .transaction-details > .transaction-amount.transfer
+) {
+    color: #8c9df3;
+}

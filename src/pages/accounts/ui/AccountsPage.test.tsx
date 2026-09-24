@@ -2,6 +2,7 @@ import {MemoryRouter} from 'react-router-dom'
 import {http, HttpResponse} from 'msw'
 import {describe, expect, it, vi} from 'vitest'
 import {server} from '../../../test/server'
+import {selectOption} from '../../../test/selectOption'
 import {AccountsPage} from './AccountsPage'
 import {
     fireEvent,
@@ -10,7 +11,7 @@ import {
     waitFor,
 } from '@testing-library/react'
 
-vi.mock('../../auth/session/SessionContext', () => ({
+vi.mock('../../../features/auth/session/SessionContext', () => ({
     useSession: () => ({
         profile: {
             id: 'profile-id',
@@ -30,6 +31,76 @@ const renderPage = () =>
     )
 
 describe('AccountsPage', () => {
+    it('shows loading, reports a failed request and retries successfully', async () => {
+        let calls = 0
+        server.use(http.get('/api/v1/accounts', () => {
+            calls += 1
+            if (calls === 1) return new HttpResponse(null, {status: 503})
+            return HttpResponse.json({accounts: [{
+                id: 'recovered', name: 'Recovered account', type: 'CARD',
+                openingBalance: 0, balance: 50, currency: 'RUB',
+                createdAt: '2026-08-01T00:00:00Z',
+            }]})
+        }))
+
+        renderPage()
+        expect(screen.getByLabelText('Loading accounts')).toBeInTheDocument()
+        expect(await screen.findByRole('alert')).toHaveTextContent('Accounts could not be loaded')
+        fireEvent.click(screen.getByRole('button', {name: 'Try again'}))
+        expect(await screen.findByText('Recovered account')).toBeInTheDocument()
+        expect(calls).toBe(2)
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
+
+    it('filters, searches, sorts and switches summary currency', async () => {
+        server.use(http.get('/api/v1/accounts', () => HttpResponse.json({accounts: [
+            {
+                id: 'bank', name: 'Zoo bank', type: 'BANK', openingBalance: 0,
+                balance: 10, currency: 'RUB', createdAt: '2026-08-01T00:00:00Z',
+            },
+            {
+                id: 'card', name: 'Alpha card', type: 'CARD', openingBalance: 0,
+                balance: 200, currency: 'EUR', createdAt: '2026-08-02T00:00:00Z',
+            },
+            {
+                id: 'closed', name: 'Closed cash', type: 'CASH', openingBalance: 0,
+                balance: 900, currency: 'RUB', createdAt: '2026-07-01T00:00:00Z',
+                closedAt: '2026-08-03T00:00:00Z',
+            },
+        ]})))
+
+        renderPage()
+        await screen.findByText('Alpha card')
+        const rowNames = () => Array.from(document.querySelectorAll('.account-row .account-identity strong'))
+            .map((element) => element.textContent)
+        expect(rowNames()).toEqual(['Alpha card', 'Zoo bank', 'Closed cash'])
+
+        fireEvent.click(screen.getByRole('button', {name: 'Closed · 1'}))
+        expect(rowNames()).toEqual(['Closed cash'])
+        fireEvent.click(screen.getByRole('button', {name: 'Active · 2'}))
+        expect(rowNames()).toEqual(['Alpha card', 'Zoo bank'])
+
+        const search = screen.getByRole('searchbox', {name: 'Search accounts'})
+        fireEvent.change(search, {target: {value: 'zoo'}})
+        expect(rowNames()).toEqual(['Zoo bank'])
+        fireEvent.change(search, {target: {value: 'missing'}})
+        expect(screen.getByText('No accounts found')).toBeInTheDocument()
+        fireEvent.change(search, {target: {value: ''}})
+
+        await selectOption(screen.getByRole('combobox', {name: 'Sort accounts'}), 'Name')
+        expect(rowNames()).toEqual(['Alpha card', 'Zoo bank'])
+        await selectOption(screen.getByRole('combobox', {name: 'Sort accounts'}), 'Balance')
+        expect(rowNames()).toEqual(['Alpha card', 'Zoo bank'])
+        fireEvent.click(screen.getByRole('button', {name: 'All · 3'}))
+        expect(rowNames()).toEqual(['Closed cash', 'Alpha card', 'Zoo bank'])
+
+        const summary = screen.getByRole('region', {name: 'Balance summary'})
+        expect(summary).toHaveTextContent('₽10')
+        await selectOption(screen.getByRole('combobox', {name: 'Summary currency'}), 'EUR')
+        expect(summary).toHaveTextContent('€200')
+        expect(summary).not.toHaveTextContent('€1,100')
+    })
+
     it('renders real accounts without mixing currencies in the total', async () => {
         server.use(
             http.get('/api/v1/accounts', () => HttpResponse.json({
