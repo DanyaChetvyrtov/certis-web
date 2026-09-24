@@ -2,6 +2,8 @@
 // sync with docs/architecture.md; remove entries as their owners migrate.
 const page = 'src/pages/transactions'
 const owner = 'Transactions page migration'
+const accountsPage = 'src/pages/accounts'
+const accountsOwner = 'Accounts page migration'
 const widget = 'src/widgets/workspace-shell'
 const widgetOwner = 'Workspace shell migration'
 
@@ -29,6 +31,15 @@ export const legacyImports = [
   ]),
   ['src/i18n/useLanguage', 'localization API migration'],
 ].map(([target, removeWhen]) => ({source: page, target, owner, removeWhen})).concat(
+  [
+    ['src/features/accounts/api/accountsApi', 'account entity extraction'],
+    ['src/features/accounts/components/AccountFormModal', 'account action workflow migration'],
+    ['src/features/accounts/components/CloseAccountDialog', 'account action workflow migration'],
+    ['src/features/accounts/components/AccountActionMenu', 'account action workflow migration'],
+    ['src/components/Select', 'shared UI migration'],
+    ['src/components/Icons', 'shared UI migration'],
+    ['src/i18n/useLanguage', 'localization API migration'],
+  ].map(([target, removeWhen]) => ({source: accountsPage, target, owner: accountsOwner, removeWhen})),
   [
     ['src/components/Icons', 'shared UI migration'],
     ['src/features/auth/session/SessionContext', 'session API migration'],

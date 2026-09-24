@@ -8,6 +8,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const layers = ['app', 'pages', 'widgets', 'features', 'entities', 'shared']
 const migratedSlices = new Set([
   'pages/transactions',
+  'pages/accounts',
   'widgets/workspace-shell',
   'features/transaction-navigation',
 ])

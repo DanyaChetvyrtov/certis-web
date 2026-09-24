@@ -25,7 +25,7 @@ const LandingPage = lazy(() =>
 )
 
 const AccountsPage = lazy(() =>
-    import('../features/accounts/pages/AccountsPage').then(
+    import('../pages/accounts').then(
         (module) => ({
             default: module.AccountsPage,
         }),

@@ -6,6 +6,7 @@ import path from 'node:path'
 import {checkImport, getImports} from './check-fsd-boundaries.mjs'
 
 const page = 'src/pages/transactions/ui/TransactionsPage.tsx'
+const accountsPage = 'src/pages/accounts/ui/AccountsPage.tsx'
 const widget = 'src/widgets/workspace-shell/ui/WorkspaceSidebar.tsx'
 
 describe('FSD import boundaries', () => {
@@ -44,6 +45,30 @@ describe('FSD import boundaries', () => {
         expect(checkImport(widget, '../../../features/profile/Unknown')).toContain('unlisted legacy')
     })
 
+    it('checks Accounts public APIs and exact legacy imports', () => {
+        expect(checkImport(accountsPage, '../model/accountSelectors')).toBeNull()
+        expect(checkImport(accountsPage, '../../../widgets/workspace-shell')).toBeNull()
+        for (const target of [
+            'features/accounts/api/accountsApi',
+            'features/accounts/components/AccountFormModal',
+            'features/accounts/components/CloseAccountDialog',
+            'features/accounts/components/AccountActionMenu',
+            'components/Select',
+            'components/Icons',
+            'i18n/useLanguage',
+        ]) {
+            expect(checkImport(accountsPage, `../../../${target}`)).toBeNull()
+        }
+        expect(checkImport(accountsPage, '../../../app/AppRouter')).toContain('upward')
+        expect(checkImport(accountsPage, '../../transactions')).toContain('peer')
+        expect(checkImport(accountsPage, '../../../widgets/workspace-shell/ui/WorkspaceSidebar'))
+            .toContain('public index')
+        expect(checkImport(accountsPage, '../../../features/transaction-navigation/internal'))
+            .toContain('public index')
+        expect(checkImport(accountsPage, '../../../features/accounts/components/Unknown'))
+            .toContain('unlisted legacy')
+    })
+
     it('exits nonzero for an unlisted project import', () => {
         const project = mkdtempSync(path.join(tmpdir(), 'certis-fsd-'))
         try {
@@ -70,6 +95,25 @@ describe('FSD import boundaries', () => {
             mkdirSync(directory, {recursive: true})
             writeFileSync(path.join(directory, 'Bad.tsx'),
                 "import '../../../features/profile/Unknown'\n")
+            const result = spawnSync(process.execPath, [
+                'scripts/check-fsd-boundaries.mjs', project,
+            ], {encoding: 'utf8'})
+            expect(result.status).toBe(1)
+            expect(result.stderr).toContain('unlisted legacy import')
+        } finally {
+            if (path.resolve(project).startsWith(path.resolve(tmpdir()) + path.sep)) {
+                rmSync(project, {recursive: true, force: true})
+            }
+        }
+    })
+
+    it('checks new Accounts files as migrated code', () => {
+        const project = mkdtempSync(path.join(tmpdir(), 'certis-fsd-accounts-'))
+        try {
+            const directory = path.join(project, 'src/pages/accounts/ui')
+            mkdirSync(directory, {recursive: true})
+            writeFileSync(path.join(directory, 'Bad.tsx'),
+                "import '../../../features/accounts/components/Unknown'\n")
             const result = spawnSync(process.execPath, [
                 'scripts/check-fsd-boundaries.mjs', project,
             ], {encoding: 'utf8'})

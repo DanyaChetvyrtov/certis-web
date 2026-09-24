@@ -20,8 +20,9 @@ context: |
   - Feature-Sliced Design (FSD) is the standard for new product code.
   - Dependencies point app -> pages -> widgets -> features -> entities -> shared.
   - Cross-slice imports use public index.ts entry points; create layers only when needed.
-  - src/pages/transactions and src/features/transaction-navigation are migrated slices.
-  - Other broad src/features/* modules, src/components, src/layouts and src/i18n
+  - src/pages/transactions, src/pages/accounts, src/widgets/workspace-shell,
+    and src/features/transaction-navigation are migrated slices.
+  - Other broad src/features/* modules, src/components and src/i18n
     remain legacy/transitional and migrate incrementally.
   - Exact allowed imports from migrated slices into legacy modules are listed in
     scripts/fsd-legacy-imports.mjs and explained in docs/architecture.md.

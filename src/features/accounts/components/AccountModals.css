@@ -344,3 +344,142 @@
     animation: none;
   }
 }
+
+/* Universal :nth-child(n) and the impossible ID branch retain the
+   specificity of the former mixed theme groups. */
+html[data-theme='dark'] :is(
+    .account-modal,
+    .account-confirm-modal
+) {
+    border-color: #304a65;
+    color: #dce7f2;
+    background: #0d233b;
+}
+
+html[data-theme='dark'] :is(
+    .account-modal-heading
+) {
+    border-color: #29435f;
+    background: #0d233b;
+}
+
+html[data-theme='dark'] :is(
+    .account-confirm-modal h2
+) {
+    color: #edf4fb;
+}
+
+html[data-theme='dark'] :is(
+    .account-modal-close,
+    .account-modal-actions button
+):nth-child(n) {
+    border-color: #36516d;
+    color: #c6d3e0;
+    background: #132b46;
+}
+
+html[data-theme='dark'] :is(
+    .account-form-field input,
+    .account-form-field .certis-select,
+    .account-type-grid label
+) {
+    border-color: #304a65;
+    color: #dce7f2;
+    background: #102842;
+}
+
+html[data-theme='dark'] :is(
+    .account-form-field input
+) {
+    color: #e4edf5;
+    background: transparent;
+}
+
+html[data-theme='dark'] :is(
+    .account-form-field input
+)::placeholder {
+    color: #8195a9;
+}
+
+html[data-theme='dark'] :is(
+    .account-form-field input:focus,
+    .account-form-field .certis-select:focus
+) {
+    border-color: #18c796;
+    box-shadow: 0 0 0 4px rgb(16 185 129 / 12%);
+}
+
+html[data-theme='dark'] :is(
+    .account-form-field input[aria-invalid='true']
+) {
+    border-color: #d66b6b;
+}
+
+html[data-theme='dark'] :is(
+    .account-form-field .field-hint,
+    .account-confirm-modal > p:nth-of-type(2),
+    #accounts-theme-specificity-anchor:not(*)
+) {
+    color: #9eafc0;
+}
+
+html[data-theme='dark'] :is(
+    .account-form-field,
+    .account-type-fieldset legend
+) {
+    color: #bdcbd8;
+}
+
+html[data-theme='dark'] :is(
+    .account-modal-heading p,
+    .account-confirm-modal > p:first-of-type
+) {
+    color: #d5b47f;
+}
+
+html[data-theme='dark'] :is(
+    .account-type-grid label.selected
+):nth-child(n) {
+    border-color: #247d68;
+    color: #8ce5c8;
+    background: #103b38;
+}
+
+html[data-theme='dark'] :is(
+    .account-modal-actions button.primary
+) {
+    border-color: #10b981;
+    color: #f7fffc;
+    background: #0aa97c;
+    box-shadow: 0 10px 24px rgb(10 169 124 / 18%);
+}
+
+html[data-theme='dark'] :is(
+    .account-modal-actions button.danger
+) {
+    border-color: #d86661;
+    color: #fff;
+    background: #b84d4d;
+}
+
+html[data-theme='dark'] :is(
+    .account-modal-actions button.primary
+):hover:not(:disabled) {
+    border-color: #18c796;
+    background: #087f60;
+}
+
+html[data-theme='dark'] :is(
+    .account-modal-close
+):nth-child(n):hover:not(:disabled) {
+    border-color: #4b6985;
+    color: #edf4fb;
+    background: #1b3855;
+}
+
+html[data-theme='dark'] :is(
+    .account-form-error,
+    .account-form-field small:not(.field-hint)
+) {
+    color: #f1aaa6;
+}

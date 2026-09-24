@@ -1,0 +1,211 @@
+/* Accounts route colors in dark mode. Universal :nth-child(n) selectors and
+   the impossible ID branch retain specificity from the mixed theme groups. */
+html[data-theme='dark'] :is(
+    .accounts-workspace
+) {
+    color: #dce7f2;
+    background: #07182b;
+}
+
+html[data-theme='dark'] :is(
+    .accounts-summary-card,
+    .accounts-list-card
+) {
+    border-color: #29425e;
+    color: #dce7f2;
+    background: #0d233b;
+    box-shadow: 0 12px 32px rgb(0 5 15 / 20%);
+}
+
+html[data-theme='dark'] :is(
+    .total-balance-panel
+) {
+    border-color: #29425e;
+}
+
+html[data-theme='dark'] :is(
+    .accounts-page-header h1,
+    .total-balance-panel > strong,
+    .balance-type-row strong,
+    .accounts-list-heading h2,
+    .account-identity strong,
+    .account-balance strong,
+    .account-empty-state h3
+):nth-child(n) {
+    color: #edf4fb;
+}
+
+html[data-theme='dark'] :is(
+    .accounts-page-header p,
+    .accounts-page-header > div:first-child > span,
+    .total-balance-panel > p,
+    .total-balance-panel > small,
+    .balance-type-heading > p,
+    .balance-type-row small,
+    .accounts-list-heading p,
+    .account-table-head,
+    .account-identity small,
+    .account-balance small
+) {
+    color: #94a7bc;
+}
+
+html[data-theme='dark'] :is(
+    .accounts-icon-button,
+    .balance-type-heading .certis-select,
+    .account-search-field,
+    .account-sort-field
+) {
+    border-color: #304a65;
+    color: #c4d2df;
+    background: #122a45;
+    box-shadow: none;
+}
+
+html[data-theme='dark'] :is(
+    .account-search-field input
+):nth-child(n) {
+    color: #dce7f2;
+}
+
+html[data-theme='dark'] :is(
+    .account-search-field input
+):nth-child(n)::placeholder {
+    color: #71869c;
+}
+
+html[data-theme='dark'] :is(
+    .account-filter-tabs button
+) {
+    color: #94a7bb;
+}
+
+html[data-theme='dark'] :is(
+    .account-filter-tabs button.active
+) {
+    color: #f2f7fb;
+    background: #193855;
+    box-shadow: none;
+}
+
+html[data-theme='dark'] :is(
+    .account-row
+) {
+    border-color: #29425d;
+    background: #102842;
+}
+
+html[data-theme='dark'] :is(
+    .account-row
+):hover {
+    border-color: #3a5874;
+    background: #142f4c;
+}
+
+html[data-theme='dark'] :is(
+    .account-filter-tabs
+) {
+    background: transparent;
+}
+
+html[data-theme='dark'] :is(
+    .account-row.closed
+) {
+    background: #0b1e34;
+}
+
+html[data-theme='dark'] :is(
+    .balance-type-track
+) {
+    background: #223b55;
+}
+
+html[data-theme='dark'] :is(
+    .account-empty-state
+) {
+    color: #c9d6e2;
+    background: transparent;
+}
+
+html[data-theme='dark'] :is(
+    .account-counts span:first-child
+) {
+    background: #103b38;
+}
+
+html[data-theme='dark'] :is(
+    .account-sort-field .certis-select
+) {
+    color: #e4edf5;
+}
+
+html[data-theme='dark'] :is(
+    .account-counts,
+    .balance-type-row,
+    .balance-type-empty,
+    .account-timeline,
+    #accounts-theme-specificity-anchor:not(*)
+) {
+    color: #9eafc0;
+}
+
+html[data-theme='dark'] :is(
+    .account-status
+) {
+    color: #86e0c3;
+    background: #103b38;
+}
+
+html[data-theme='dark'] :is(
+    .account-status.closed
+) {
+    border-color: #36516d;
+    color: #aebdcb;
+    background: #193550;
+}
+
+html[data-theme='dark'] :is(
+    .type-card
+) {
+    background: #103b38;
+}
+
+html[data-theme='dark'] :is(
+    .type-bank
+) {
+    background: #3a3228;
+}
+
+html[data-theme='dark'] :is(
+    .type-cash
+) {
+    background: #213a55;
+}
+
+html[data-theme='dark'] :is(
+    .type-investment
+) {
+    background: #252c52;
+}
+
+html[data-theme='dark'] :is(
+    .accounts-notice
+) {
+    border-color: #247d68;
+    color: #86e0c3;
+    background: #103b38;
+    box-shadow: 0 15px 36px rgb(0 5 15 / 28%);
+}
+
+html[data-theme='dark'] :is(
+    .account-loading-state > span
+) {
+    border-color: #29425e;
+    background: linear-gradient(
+        90deg,
+        #102842 20%,
+        #193550 45%,
+        #102842 70%
+    );
+    background-size: 220% 100%;
+}
